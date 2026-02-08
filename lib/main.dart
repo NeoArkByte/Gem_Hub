@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Screen/geminventory.dart';
+import 'utils/app_thems.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,9 +14,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: AppThemes.emeraldTheme,
+      darkTheme: AppThemes.darkTheme,
       home: inventory(),
     );
   }
