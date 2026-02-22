@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:test_ravidu/screen/login.dart';
+import 'package:test_ravidu/db/db_helper.dart';
 
-void main() {
+void main()async {
+  WidgetsFlutterBinding.ensureInitialized(); // Meka aniwaryen ona
+  await DBHelper.insertDemoData(); // Demo data insert karanawa
 runApp(GemJobApp());
 }
 

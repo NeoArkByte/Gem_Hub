@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_ravidu/screen/admin_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,11 +15,12 @@ class _LoginScreenState extends State<LoginScreen> {
   void handleLogin() {
     String username = _userController.text;
     String password = _passwordController.text;
-    
+
     if(username == "admin" && password == "admin") {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Login successful!"))
       );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> AdminScreen()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Invalid username or password."))
