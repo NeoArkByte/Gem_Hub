@@ -2,84 +2,92 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DBHelper {
-  // Database eka open karana function eka
   static Future<Database> database() async {
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'gem_jobs.db'),
       onCreate: (db, version) {
-        // Table eka hadanakota status ekata 'pending' kiyala default value ekak dunna
+        // Table eka hadanakota 'reason' kiyala aluth column ekak damma
         return db.execute(
-          'CREATE TABLE jobs(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, location TEXT, description TEXT, status TEXT DEFAULT "pending")',
+          'CREATE TABLE jobs(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, location TEXT, description TEXT, status TEXT DEFAULT "pending", reason TEXT)',
         );
       },
       version: 1,
     );
   }
 
-  // 1. Aluth Job ekak SQLite ekata insert kireema
+  // 1. Job ekak insert kireema
   static Future<void> insertJob(Map<String, dynamic> data) async {
     final db = await DBHelper.database();
     await db.insert('jobs', data, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  // 2. Status eka anuwa Jobs fetch kireema (Pending hari Approved hari)
+  // 2. Status eka anuwa jobs fetch kireema
   static Future<List<Map<String, dynamic>>> getJobs(String status) async {
     final db = await DBHelper.database();
     return db.query(
-      'jobs',
-      where: 'status = ?',
+      'jobs', 
+      where: 'status = ?', 
       whereArgs: [status],
-      orderBy: 'id DESC', // Aluthma jobs udaata ena widiyata
+      orderBy: 'id DESC'
     );
   }
 
-  // 3. Admin ta job ekak approve kireema (Status update)
+  // 3. Job ekak Approve kireema
   static Future<void> approveJob(int id) async {
     final db = await DBHelper.database();
     await db.update(
-      'jobs',
-      {'status': 'approved'},
-      where: 'id = ?',
-      whereArgs: [id],
+      'jobs', 
+      {'status': 'approved', 'reason': ''}, // Approve weddi reason eka empty karanawa
+      where: 'id = ?', 
+      whereArgs: [id]
     );
   }
 
-  // 4. Demo data insert kireema (Test karanna lesi wenna)
+  // 4. Job ekak Reject kireema (Reason ekath ekka)
+  static Future<void> rejectJob(int id, String reason) async {
+    final db = await DBHelper.database();
+    await db.update(
+      'jobs', 
+      {'status': 'rejected', 'reason': reason}, 
+      where: 'id = ?', 
+      whereArgs: [id]
+    );
+  }
+
+  // 5. Test karanna Demo Data tikak (Update kala)
   static Future<void> insertDemoData() async {
     final db = await DBHelper.database();
-
-    // Table eka check karala data natham witarak insert karamu
-    final List<Map<String, dynamic>> count = await db.rawQuery(
-      'SELECT COUNT(*) as total FROM jobs',
-    );
-
+    final List<Map<String, dynamic>> count = await db.rawQuery('SELECT COUNT(*) as total FROM jobs');
+    
     if (count[0]['total'] == 0) {
       List<Map<String, dynamic>> demoJobs = [
         {
-          'title': 'Professional Gem Cutter',
+          'title': 'Blue Sapphire Cutter',
           'location': 'Ratnapura',
-          'description': 'Looking for an expert with 5 years experience.',
+          'description': 'Needs to have experience with heat-treated stones.',
           'status': 'pending',
+          'reason': ''
         },
         {
-          'title': 'Certified Gem Valuer',
-          'location': 'Colombo 03',
-          'description': 'High salary for the right candidate.',
+          'title': 'Gem Auction Manager',
+          'location': 'Colombo 07',
+          'description': 'Managing high-value auctions.',
           'status': 'approved',
+          'reason': ''
         },
         {
-          'title': 'Lapidary Assistant',
-          'location': 'Beruwala',
-          'description': 'Immediate vacancy for a trainee.',
-          'status': 'pending',
+          'title': 'Invalid Listing Test',
+          'location': 'Kandy',
+          'description': 'This is a test for rejected status.',
+          'status': 'rejected',
+          'reason': 'Incorrect contact number provided.'
         },
       ];
 
       for (var job in demoJobs) {
         await db.insert('jobs', job);
       }
-      print("Demo data successfully added to SQLite!");
     }
   }
 }

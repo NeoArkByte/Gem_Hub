@@ -28,17 +28,60 @@ class _AdminScreenState extends State<AdminScreen> {
               child: ListTile(
                 title: Text(jobs[index]['title']),
                 subtitle: Text(jobs[index]['location']),
-                trailing: IconButton(
-                  icon: Icon(Icons.check),
-                  onPressed: () {
-                    //DBHelper.approveJob(jobs[index]['id']);
-                    //setState(() {});
-                  },
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Accept Button
+                    IconButton(
+                      icon: Icon(Icons.check_circle, color: Colors.green),
+                      onPressed: () async {
+                        await DBHelper.approveJob(jobs[index]['id']);
+                        setState(() {});
+                      },
+                    ),
+                    // Decline Button
+                    IconButton(
+                      icon: Icon(Icons.cancel, color: Colors.red),
+                      onPressed: () => _showRejectDialog(jobs[index]['id']),
+                    ),
+                  ],
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showRejectDialog(int jobId) {
+    final _reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Reject Job"),
+        content: TextField(
+          controller: _reasonController,
+          decoration: InputDecoration(
+            hintText: "Reason (e.g. Invalid Contact)",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (_reasonController.text.isNotEmpty) {
+                await DBHelper.rejectJob(jobId, _reasonController.text);
+                Navigator.pop(context);
+                setState(() {}); // Admin list eka refresh karanawa
+              }
+            },
+            child: Text("Reject"),
+          ),
+        ],
       ),
     );
   }
