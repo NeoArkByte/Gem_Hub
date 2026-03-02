@@ -5,89 +5,76 @@ class DBHelper {
   static Future<Database> database() async {
     final dbPath = await getDatabasesPath();
     return openDatabase(
-      join(dbPath, 'gem_jobs.db'),
-      onCreate: (db, version) {
-        // Table eka hadanakota 'reason' kiyala aluth column ekak damma
-        return db.execute(
-          'CREATE TABLE jobs(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, location TEXT, description TEXT, status TEXT DEFAULT "pending", reason TEXT)',
+      join(dbPath, 'gem_jobs_v12.db'), // Database එක අලුතින්ම හැදෙන්න Version එක වෙනස් කළා
+      onCreate: (db, version) async {
+        // 1. Users Table
+        await db.execute(
+          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, password TEXT, role TEXT)'
         );
+        // 2. Jobs Table (Status එක Default විදිහටම 'request' වෙනවා)
+        await db.execute(
+          'CREATE TABLE jobs(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, location TEXT, salary TEXT, description TEXT, status TEXT DEFAULT "request", reason TEXT)'
+        );
+        // 3. Applications Table
+        await db.execute(
+          'CREATE TABLE applications(id INTEGER PRIMARY KEY AUTOINCREMENT, jobId INTEGER, userName TEXT, cvPath TEXT, status TEXT DEFAULT "pending")'
+        );
+
+        // Default Admin ලොගින් එක
+        await db.insert('users', {'username': 'admin', 'password': '123', 'role': 'admin'});
       },
       version: 1,
     );
   }
 
-  // 1. Job ekak insert kireema
-  static Future<void> insertJob(Map<String, dynamic> data) async {
+  // --- Login එක චෙක් කරන්න ---
+  static Future<Map<String, dynamic>?> checkLogin(String user, String pass) async {
     final db = await DBHelper.database();
-    await db.insert('jobs', data, conflictAlgorithm: ConflictAlgorithm.replace);
+    List<Map<String, dynamic>> res = await db.query('users', where: 'username = ? AND password = ?', whereArgs: [user, pass]);
+    return res.isNotEmpty ? res.first : null;
   }
 
-  // 2. Status eka anuwa jobs fetch kireema
-  static Future<List<Map<String, dynamic>>> getJobs(String status) async {
+  // --- අලුත් Job එකක් ඇතුළත් කරන්න ---
+  static Future<void> insertJob(Map<String, dynamic> data) async {
+    final db = await DBHelper.database();
+    await db.insert('jobs', data);
+  }
+
+  // --- වැදගත්ම කොටස: Status එක අනුව Jobs ටික Filter කරලා ගන්න එක ---
+  static Future<List<Map<String, dynamic>>> getJobsByStatus(String status) async {
     final db = await DBHelper.database();
     return db.query(
       'jobs', 
       where: 'status = ?', 
-      whereArgs: [status],
+      whereArgs: [status], 
       orderBy: 'id DESC'
     );
   }
 
-  // 3. Job ekak Approve kireema
-  static Future<void> approveJob(int id) async {
+  // --- Job එකක Status එක (Request -> Approved) මාරු කරන්න ---
+  static Future<void> updateJobStatus(int id, String status) async {
     final db = await DBHelper.database();
     await db.update(
       'jobs', 
-      {'status': 'approved', 'reason': ''}, // Approve weddi reason eka empty karanawa
+      {'status': status}, 
       where: 'id = ?', 
       whereArgs: [id]
     );
   }
 
-  // 4. Job ekak Reject kireema (Reason ekath ekka)
-  static Future<void> rejectJob(int id, String reason) async {
+  // --- Job එකක් Delete කරන්න ---
+  static Future<void> deleteJob(int id) async {
     final db = await DBHelper.database();
-    await db.update(
-      'jobs', 
-      {'status': 'rejected', 'reason': reason}, 
-      where: 'id = ?', 
-      whereArgs: [id]
-    );
+    await db.delete('jobs', where: 'id = ?', whereArgs: [id]);
   }
 
-  // 5. Test karanna Demo Data tikak (Update kala)
+  // --- Demo Data (Testing වලට) ---
   static Future<void> insertDemoData() async {
     final db = await DBHelper.database();
-    final List<Map<String, dynamic>> count = await db.rawQuery('SELECT COUNT(*) as total FROM jobs');
-    
-    if (count[0]['total'] == 0) {
-      List<Map<String, dynamic>> demoJobs = [
-        {
-          'title': 'Blue Sapphire Cutter',
-          'location': 'Ratnapura',
-          'description': 'Needs to have experience with heat-treated stones.',
-          'status': 'pending',
-          'reason': ''
-        },
-        {
-          'title': 'Gem Auction Manager',
-          'location': 'Colombo 07',
-          'description': 'Managing high-value auctions.',
-          'status': 'approved',
-          'reason': ''
-        },
-        {
-          'title': 'Invalid Listing Test',
-          'location': 'Kandy',
-          'description': 'This is a test for rejected status.',
-          'status': 'rejected',
-          'reason': 'Incorrect contact number provided.'
-        },
-      ];
-
-      for (var job in demoJobs) {
-        await db.insert('jobs', job);
-      }
+    final List<Map<String, dynamic>> users = await db.query('users');
+    if (users.isEmpty) {
+      await db.insert('users', {'username': 'admin', 'password': '123', 'role': 'admin'});
+      print("Admin User Added!");
     }
   }
 }

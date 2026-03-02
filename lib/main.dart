@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:test_ravidu/screen/login.dart';
 import 'package:test_ravidu/db/db_helper.dart';
+import 'package:test_ravidu/screen/UserScreens/UserHomeScreen.dart';
 
-void main()async {
-  WidgetsFlutterBinding.ensureInitialized(); // Meka aniwaryen ona
-  await DBHelper.insertDemoData(); // Demo data insert karanawa
-runApp(GemJobApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
+
+  await DBHelper.database(); 
+
+  await DBHelper.insertDemoData(); 
+
+  runApp(const GemJobApp());
 }
 
 class GemJobApp extends StatelessWidget {
@@ -17,9 +22,10 @@ class GemJobApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Gem Job',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: const Color(0xFF003366),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF003366)),
       ),
-      home: LoginScreen(),
+      home: const LoginScreen(),
     );
   }
 }

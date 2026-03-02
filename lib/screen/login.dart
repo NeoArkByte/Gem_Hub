@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:test_ravidu/screen/admin_screen.dart';
+import 'package:test_ravidu/screen/AdminScreens/admin_screen.dart';
+import 'package:test_ravidu/screen/UserScreens/UserHomeScreen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,15 +17,27 @@ class _LoginScreenState extends State<LoginScreen> {
     String username = _userController.text;
     String password = _passwordController.text;
 
-    if(username == "admin" && password == "admin") {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login successful!"))
+    if (username == "admin" && password == "admin") {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login successful!")));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminScreen()),
       );
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> AdminScreen()));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Invalid username or password."))
+    } else if (username == "user" && password == "user") {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login successful!")));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Userhomescreen()),
       );
+    }
+    else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Invalid username or password.")));
     }
   }
 
