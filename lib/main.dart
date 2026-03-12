@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:test_ravidu/screen/login.dart';
-import 'package:test_ravidu/db/db_helper.dart';
+import 'package:job_market/Test/login_screen.dart';
+import 'package:job_market/Screen/Job_details.dart';
 
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
-
-  await DBHelper.database(); 
-
-  await DBHelper.insertDemoData(); 
-
-  runApp(const GemJobApp());
+void main() {
+  runApp(const MyApp());
 }
 
-class GemJobApp extends StatelessWidget {
-  const GemJobApp({super.key});
-
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      title: 'Gem Job',
+      // --- 1. LIGHT MODE THEME ---
       theme: ThemeData(
-        primaryColor: const Color(0xFF003366),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF003366)),
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF5F7FA), // Light background
+        primaryColor: const Color(0xFF10C971),
+        fontFamily: 'Roboto',
       ),
-      home: const LoginScreen(),
+
+      // --- 2. DARK MODE THEME ---
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF111827), // Dark background
+        primaryColor: const Color(0xFF10C971),
+        fontFamily: 'Roboto',
+      ),
+
+      // --- 3. MAGIC COMMAND EKA ---
+      // Meken phone eke system eka dark nam dark theme ekath, light nam light theme ekath auto gannawa
+      themeMode: ThemeMode.system,
+      //home: JobDetailsScreen(),
+      //home: JobMarketplaceScreen(),
+      //home: AdminJobReviewScreen(),
+      home: LoginScreen(),
     );
   }
 }
+
