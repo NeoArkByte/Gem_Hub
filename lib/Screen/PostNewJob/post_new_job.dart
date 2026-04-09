@@ -20,6 +20,25 @@ class _PostJobScreenState extends State<PostJobScreen> {
   
   // Location eka save wenna String variable ekak
   String _selectedLocation = ""; 
+  
+  // 👇 Skills save wenna List ekak haduwa
+  List<String> _skills = ['Faceting', 'Gemology']; 
+
+  // 👇 Skill ekak add karana function eka
+  void _addSkill(String skill) {
+    if (skill.isNotEmpty && !_skills.contains(skill)) {
+      setState(() {
+        _skills.add(skill);
+      });
+    }
+  }
+
+  // 👇 Skill ekak remove karana function eka
+  void _removeSkill(int index) {
+    setState(() {
+      _skills.removeAt(index);
+    });
+  }
 
   @override
   void dispose() {
@@ -46,7 +65,8 @@ class _PostJobScreenState extends State<PostJobScreen> {
       'title': _jobTitleCtrl.text,
       'companyInfo': companyInfoFormatted,
       'salary': salaryFormatted,
-      'tags': 'NEW,REVIEW', 
+      // 👇 Skills tika comma dala string ekak widihata save karanawa
+      'tags': _skills.isEmpty ? 'NEW' : _skills.join(','), 
       'logoColor': 0xFF10C971, 
       'status': 'pending', 
     };
@@ -107,7 +127,14 @@ class _PostJobScreenState extends State<PostJobScreen> {
                   const SizedBox(height: 20),
                   PostJobTextField(label: 'Job Description', hint: 'Describe the responsibilities...', maxLines: 4, controller: _descriptionCtrl),
                   const SizedBox(height: 20),
-                  PostJobSkills(primaryYellow: primaryYellow),
+                  
+                  // 👇 DYNAMIC SKILLS WIDGET EKA METHANATA DAMMA
+                  PostJobSkills(
+                    primaryYellow: primaryYellow,
+                    selectedSkills: _skills,
+                    onAddSkill: _addSkill,
+                    onRemoveSkill: _removeSkill,
+                  ),
 
                   divider,
 
@@ -122,7 +149,6 @@ class _PostJobScreenState extends State<PostJobScreen> {
                   ),
                   const SizedBox(height: 20),
                   
-                  // 👇 OPEN STREET MAP PICKER EKA 
                   PostJobLocationPicker(
                     onPlaceSelected: (String place) {
                       _selectedLocation = place; 
