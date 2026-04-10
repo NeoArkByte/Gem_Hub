@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+
+// 👇 Oyage DB path eka hariyata danna
+import 'package:job_market/db/database_helper.dart';
 
 class JobDetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> job; // 👇 Meka thamai aluthin add kale
+  final Map<String, dynamic> job;
 
   const JobDetailsScreen({Key? key, required this.job}) : super(key: key);
 
   final Color primaryGreen = const Color(0xFF10C971);
-  final Color textColor = const Color(0xFF111827);
-  final Color greyText = const Color(0xFF6B7280);
 
   @override
   Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    Color bgColor = isDark ? const Color(0xFF111827) : Colors.white;
+    Color textColor = isDark ? Colors.white : const Color(0xFF111827);
+    Color greyText = isDark ? Colors.grey[400]! : const Color(0xFF6B7280);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: bgColor,
         elevation: 0,
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: isDark ? const Color(0xFF1F2937) : Colors.grey[100],
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new,
-                size: 18,
-                color: Colors.black,
-              ),
+              icon: Icon(Icons.arrow_back_ios_new, size: 18, color: textColor),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -47,15 +50,11 @@ class JobDetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: isDark ? const Color(0xFF1F2937) : Colors.grey[100],
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                icon: const Icon(
-                  Icons.ios_share,
-                  size: 20,
-                  color: Colors.black,
-                ),
+                icon: Icon(Icons.ios_share, size: 20, color: textColor),
                 onPressed: () {},
               ),
             ),
@@ -70,26 +69,25 @@ class JobDetailsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              _buildHeaderSection(),
+              _buildHeaderSection(textColor, greyText, isDark),
               const SizedBox(height: 24),
-              _buildTagsRow(),
+              _buildTagsRow(isDark),
               const SizedBox(height: 32),
-              _buildAboutSection(),
+              _buildAboutSection(textColor, greyText),
               const SizedBox(height: 24),
-              _buildSalaryCard(),
+              _buildSalaryCard(textColor, greyText, isDark),
               const SizedBox(height: 32),
-              _buildExpertiseSection(),
+              _buildExpertiseSection(textColor, greyText),
               const SizedBox(height: 40),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomActionArea(),
+      bottomNavigationBar: _buildBottomActionArea(context, isDark),
     );
   }
 
-  Widget _buildHeaderSection() {
-    // DB eke companyInfo eke "Name • Location" widihata thiyenne, eka split karagamu
+  Widget _buildHeaderSection(Color textColor, Color greyText, bool isDark) {
     List<String> companyParts = job['companyInfo'].toString().split(' • ');
     String companyName = companyParts[0];
     String location = companyParts.length > 1 ? companyParts[1] : 'Remote';
@@ -101,22 +99,27 @@ class JobDetailsScreen extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF1F2937) : Colors.white,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey[200]!, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              border: Border.all(
+                color: isDark ? const Color(0xFF374151) : Colors.grey[200]!,
+                width: 2,
+              ),
+              boxShadow: isDark
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Center(
               child: Container(
                 width: 60,
                 height: 60,
-                color: Color(job['logoColor']), // DB eken ena pata
+                color: Color(job['logoColor'] ?? 0xFF10C971),
                 child: const Icon(
                   Icons.diamond_outlined,
                   color: Colors.white38,
@@ -127,7 +130,7 @@ class JobDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            job['title'], // DB eken ena Job Title eka
+            job['title'] ?? 'Job Title',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -140,7 +143,7 @@ class JobDetailsScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                companyName, // Split karapu company name eka
+                companyName,
                 style: TextStyle(
                   fontSize: 16,
                   color: primaryGreen,
@@ -153,7 +156,7 @@ class JobDetailsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '$location • Active Listing', // Split karapu location eka
+            '$location • Active Listing',
             style: TextStyle(fontSize: 14, color: greyText),
           ),
         ],
@@ -161,9 +164,8 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTagsRow() {
-    // DB eke comma-separated string eka list ekak karanawa
-    List<String> tagsList = (job['tags'] as String).split(',');
+  Widget _buildTagsRow(bool isDark) {
+    List<String> tagsList = (job['tags'] as String? ?? '').split(',');
 
     return Wrap(
       alignment: WrapAlignment.center,
@@ -173,8 +175,8 @@ class JobDetailsScreen extends StatelessWidget {
         return _buildTag(
           Icons.check_circle_outline,
           tag.trim(),
-          Colors.grey[100]!,
-          const Color(0xFF4B5563),
+          isDark ? const Color(0xFF1F2937) : Colors.grey[100]!,
+          isDark ? Colors.grey[300]! : const Color(0xFF4B5563),
         );
       }).toList(),
     );
@@ -211,7 +213,7 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(Color textColor, Color greyText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -225,27 +227,31 @@ class JobDetailsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'We are seeking an experienced professional for the ${job['title']} position. You will be responsible for handling premium gemstones, maintaining high-quality standards, and working closely with our international teams. (Description is currently standard for all posts).',
+          'We are seeking an experienced professional for the ${job['title'] ?? 'position'}. You will be responsible for handling premium gemstones, maintaining high-quality standards, and working closely with our international teams.',
           style: TextStyle(fontSize: 15, color: greyText, height: 1.5),
         ),
       ],
     );
   }
 
-  Widget _buildSalaryCard() {
+  Widget _buildSalaryCard(Color textColor, Color greyText, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(
+          color: isDark ? const Color(0xFF374151) : Colors.grey[200]!,
+        ),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -263,19 +269,13 @@ class JobDetailsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    job['salary'], // DB eken ena Salary eka
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                  ),
-                ],
+              Text(
+                job['salary'] ?? 'Negotiable',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
               ),
             ],
           ),
@@ -292,7 +292,7 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildExpertiseSection() {
+  Widget _buildExpertiseSection(Color textColor, Color greyText) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -308,20 +308,31 @@ class JobDetailsScreen extends StatelessWidget {
         _buildExpertiseItem(
           'Industry Experience',
           'Prior experience in the gem and jewelry sector.',
+          textColor,
+          greyText,
         ),
         _buildExpertiseItem(
           'Quality Control',
           'Strict adherence to GIA and AGS grading standards.',
+          textColor,
+          greyText,
         ),
         _buildExpertiseItem(
           'Reliability',
           'Proven track record of handling high-value materials.',
+          textColor,
+          greyText,
         ),
       ],
     );
   }
 
-  Widget _buildExpertiseItem(String title, String description) {
+  Widget _buildExpertiseItem(
+    String title,
+    String description,
+    Color textColor,
+    Color greyText,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Row(
@@ -362,13 +373,17 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomActionArea() {
+  Widget _buildBottomActionArea(BuildContext context, bool isDark) {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey[200]!)),
+          color: isDark ? const Color(0xFF111827) : Colors.white,
+          border: Border(
+            top: BorderSide(
+              color: isDark ? const Color(0xFF374151) : Colors.grey[200]!,
+            ),
+          ),
         ),
         child: Row(
           children: [
@@ -376,11 +391,14 @@ class JobDetailsScreen extends StatelessWidget {
               height: 56,
               width: 56,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: isDark ? const Color(0xFF1F2937) : Colors.grey[100],
                 borderRadius: BorderRadius.circular(16),
               ),
               child: IconButton(
-                icon: const Icon(Icons.bookmark, color: Colors.black),
+                icon: Icon(
+                  Icons.bookmark_border,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
                 onPressed: () {},
               ),
             ),
@@ -390,7 +408,8 @@ class JobDetailsScreen extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Apply Now button logic
+                    // 👇 Methana full job eka pass karanawa
+                    _showApplyBottomSheet(context, job);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryGreen,
@@ -410,6 +429,282 @@ class JobDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- POPUP FUNCTION EKA ---
+  void _showApplyBottomSheet(
+    BuildContext context,
+    Map<String, dynamic> jobData,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ApplyJobForm(job: jobData),
+    );
+  }
+}
+
+// ==========================================
+// APPLY JOB FORM (BOTTOM SHEET WIDGET)
+// ==========================================
+class ApplyJobForm extends StatefulWidget {
+  final Map<String, dynamic> job; // 👇 Full job map eka illanawa
+  const ApplyJobForm({Key? key, required this.job}) : super(key: key);
+
+  @override
+  State<ApplyJobForm> createState() => _ApplyJobFormState();
+}
+
+class _ApplyJobFormState extends State<ApplyJobForm> {
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _phoneCtrl = TextEditingController();
+  final TextEditingController _salaryCtrl = TextEditingController();
+
+  String? _cvFileName;
+  String? _cvFilePath;
+  bool _isSubmitting = false;
+
+  final Color primaryGreen = const Color(0xFF10C971);
+
+  Future<void> _pickCV() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx'],
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          _cvFilePath = result.files.single.path;
+          _cvFileName = result.files.single.name;
+        });
+      }
+    } catch (e) {
+      print("Error picking file: $e");
+    }
+  }
+
+  void _submitForm() async {
+    if (_nameCtrl.text.isEmpty ||
+        _phoneCtrl.text.isEmpty ||
+        _cvFilePath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill all details and upload your CV'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    // 1. Application eka DB ekata danawa
+    Map<String, dynamic> application = {
+      'job_id': widget.job['id'],
+      'applicant_name': _nameCtrl.text,
+      'phone': _phoneCtrl.text,
+      'expected_salary': _salaryCtrl.text,
+      'cv_path': _cvFilePath,
+      'status': 'pending',
+    };
+
+    await DatabaseHelper().submitApplication(application);
+
+    // 2. 🔥 NOTIFICATION EKA YAWANAWA 🔥
+    await DatabaseHelper().addNotification(
+      widget.job['employer_id'], // Job eka dapu Employer ta
+      "New Application! 🎉",
+      "${_nameCtrl.text} applied for your job: ${widget.job['title']}",
+    );
+
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Application Submitted Successfully!'),
+          backgroundColor: Color(0xFF10C971),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    Color bgColor = isDark ? const Color(0xFF1F2937) : Colors.white;
+    Color textColor = isDark ? Colors.white : Colors.black;
+    Color fieldBg = isDark ? const Color(0xFF111827) : Colors.white;
+    Color borderColor = isDark ? const Color(0xFF374151) : Colors.grey[400]!;
+
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+        top: 24,
+        left: 24,
+        right: 24,
+      ),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Apply for this Role',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            TextField(
+              controller: _nameCtrl,
+              style: TextStyle(color: textColor),
+              decoration: InputDecoration(
+                labelText: 'Full Name',
+                labelStyle: TextStyle(color: Colors.grey[500]),
+                filled: true,
+                fillColor: fieldBg,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryGreen, width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _phoneCtrl,
+              keyboardType: TextInputType.phone,
+              style: TextStyle(color: textColor),
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                labelStyle: TextStyle(color: Colors.grey[500]),
+                filled: true,
+                fillColor: fieldBg,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryGreen, width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _salaryCtrl,
+              keyboardType: TextInputType.number,
+              style: TextStyle(color: textColor),
+              decoration: InputDecoration(
+                labelText: 'Expected Salary (Optional)',
+                labelStyle: TextStyle(color: Colors.grey[500]),
+                filled: true,
+                fillColor: fieldBg,
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryGreen, width: 2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            Text(
+              'Resume / CV',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.grey[300] : Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: _pickCV,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: fieldBg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _cvFilePath != null ? primaryGreen : borderColor,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _cvFilePath != null
+                          ? Icons.check_circle
+                          : Icons.upload_file,
+                      color: _cvFilePath != null
+                          ? primaryGreen
+                          : Colors.grey[500],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _cvFileName ?? 'Tap to select PDF or Word doc',
+                        style: TextStyle(
+                          color: _cvFilePath != null
+                              ? primaryGreen
+                              : Colors.grey[500],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : _submitForm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryGreen,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: _isSubmitting
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Confirm Application',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

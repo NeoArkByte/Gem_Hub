@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:job_market/Test/login_screen.dart';
+import 'package:job_market/Screen/PostNewJob/employer_applications_screen.dart'; 
+import 'package:job_market/widgets/notification_screen.dart';
+
 
 class MarketplaceHeader extends StatelessWidget {
   const MarketplaceHeader({Key? key}) : super(key: key);
@@ -78,8 +81,36 @@ class MarketplaceHeader extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          _iconButton(Icons.notifications_none, () {}, isDark),
+          
+          // 👇 ALUTH INBOX BUTTON EKA (Applications balanna)
+          _iconButton(
+            Icons.inbox_outlined, 
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const EmployerApplicationsScreen()),
+              );
+            }, 
+            isDark,
+            iconColor: const Color(0xFF10C971), // Lassanata Green color eka dunna
+          ),
           const SizedBox(width: 8),
+
+          // Notification Button
+         // 👇 Notification Button eka link kala
+          _iconButton(
+            Icons.notifications_none, 
+            () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationScreen()),
+              );
+            }, 
+            isDark
+          ),
+          const SizedBox(width: 8),
+
+          // Logout Button
           _iconButton(
             Icons.logout,
             () => _logout(context),

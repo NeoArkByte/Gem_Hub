@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:job_market/Test/login_screen.dart';
-import 'package:job_market/db/database_helper.dart'; // Make sure this path is correct!
+import 'package:job_market/db/database_helper.dart';
+
+// 👇 Notification screen eke path eka hariyata danna
+import 'package:job_market/widgets/notification_screen.dart';
 
 class AdminJobReviewScreen extends StatefulWidget {
   const AdminJobReviewScreen({Key? key}) : super(key: key);
@@ -11,7 +14,7 @@ class AdminJobReviewScreen extends StatefulWidget {
 
 class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
   final Color primaryGreen = const Color(0xFF10C971);
-  final Color primaryYellow = const Color(0xFFFDB913); 
+  final Color primaryYellow = const Color(0xFFFDB913);
   final Color bgColor = const Color(0xFFF8F9FA);
   final Color textColor = const Color(0xFF111827);
   final Color greyText = const Color(0xFF6B7280);
@@ -35,7 +38,7 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(), 
+              onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Cancel',
                 style: TextStyle(color: greyText, fontWeight: FontWeight.bold),
@@ -43,12 +46,15 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEF4444), 
+                backgroundColor: const Color(0xFFEF4444),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
               ),
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
@@ -59,7 +65,10 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
               },
               child: const Text(
                 'Log Out',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -78,21 +87,28 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
             _buildAdminHeader(context),
             _buildSearchBar(),
             _buildCategories(),
-            _buildSectionHeader('Pending Job Post Listings', Icons.hourglass_empty),
-            
+            _buildSectionHeader(
+              'Pending Job Post Listings',
+              Icons.hourglass_empty,
+            ),
+
             // --- DYNAMIC SQLITE LIST ---
             Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                 future: DatabaseHelper().getPendingJobs(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(color: Color(0xFFFDB913)));
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFDB913),
+                      ),
+                    );
                   }
-                  
+
                   if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
-                  
+
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
                       child: Text(
@@ -105,35 +121,67 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
                   final pendingJobs = snapshot.data!;
 
                   return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
                     itemCount: pendingJobs.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 16),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final job = pendingJobs[index];
                       return JobPostReviewCard(
                         title: job['title'],
                         companyInfo: job['companyInfo'],
                         salary: job['salary'],
-                        tags: (job['tags'] as String).split(','), // Convert string back to list
+                        tags: (job['tags'] as String).split(','),
                         logoColor: Color(job['logoColor']),
-                        
+
                         // --- ACCEPT LOGIC ---
                         onAccept: () async {
-                          await DatabaseHelper().updateJobStatus(job['id'], 'approved');
+                          await DatabaseHelper().updateJobStatus(
+                            job['id'],
+                            'approved',
+                          );
+
+                          // Notification eka Employer ta yawanawa
+                          await DatabaseHelper().addNotification(
+                            job['employer_id'],
+                            "Job Approved! ✅",
+                            "Your job '${job['title']}' has been approved and is now live.",
+                          );
+
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Accepted: ${job['title']}'), backgroundColor: primaryGreen),
+                              SnackBar(
+                                content: Text('Accepted: ${job['title']}'),
+                                backgroundColor: primaryGreen,
+                              ),
                             );
                             setState(() {}); // Refresh the list
                           }
                         },
-                        
+
                         // --- REJECT LOGIC ---
                         onReject: () async {
-                          await DatabaseHelper().updateJobStatus(job['id'], 'rejected');
+                          await DatabaseHelper().updateJobStatus(
+                            job['id'],
+                            'rejected',
+                          );
+
+                          // Notification eka Employer ta yawanawa
+                          await DatabaseHelper().addNotification(
+                            job['employer_id'],
+                            "Job Update ⚠️",
+                            "Your job '${job['title']}' was not approved by the admin.",
+                          );
+
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Rejected: ${job['title']}'), backgroundColor: const Color(0xFFEF4444)),
+                              SnackBar(
+                                content: Text('Rejected: ${job['title']}'),
+                                backgroundColor: const Color(0xFFEF4444),
+                              ),
                             );
                             setState(() {}); // Refresh the list
                           }
@@ -172,7 +220,11 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
             children: [
               const Text(
                 'Admin - Job Post Review',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF111827),
+                ),
               ),
               Text(
                 'Review new pending listings',
@@ -181,21 +233,39 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
             ],
           ),
           const Spacer(),
-          
+
+          // 👇 NOTIFICATION BELL EKA LINK KALA
           Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: IconButton(
-              icon: Icon(Icons.notifications_none, color: Colors.grey[800], size: 22),
-              onPressed: () {},
+              icon: Icon(
+                Icons.notifications_none,
+                color: Colors.grey[800],
+                size: 22,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationScreen(),
+                  ),
+                );
+              },
               splashRadius: 24,
             ),
           ),
-          
+
           const SizedBox(width: 8),
 
           Container(
@@ -203,10 +273,20 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: IconButton(
-              icon: Icon(Icons.logout, color: const Color(0xFFEF4444).withOpacity(0.9), size: 22),
+              icon: Icon(
+                Icons.logout,
+                color: const Color(0xFFEF4444).withOpacity(0.9),
+                size: 22,
+              ),
               tooltip: 'Log Out',
               onPressed: () => _showLogoutDialog(context),
               splashRadius: 24,
@@ -228,7 +308,13 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: TextField(
                 decoration: InputDecoration(
@@ -268,11 +354,16 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
             return Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: isSelected ? const Color(0xFF131B2A) : Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: isSelected ? null : Border.all(color: Colors.grey.withOpacity(0.3)),
+                  border: isSelected
+                      ? null
+                      : Border.all(color: Colors.grey.withOpacity(0.3)),
                 ),
                 child: Text(
                   cat,
@@ -299,10 +390,22 @@ class _AdminJobReviewScreenState extends State<AdminJobReviewScreen> {
           const SizedBox(width: 8),
           Text(
             title,
-            style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            style: TextStyle(
+              color: textColor,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
           ),
           const Spacer(),
-          Text('See All', style: TextStyle(color: greyText, fontSize: 12, fontWeight: FontWeight.w500)),
+          Text(
+            'See All',
+            style: TextStyle(
+              color: greyText,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -336,7 +439,13 @@ class JobPostReviewCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -366,12 +475,20 @@ class JobPostReviewCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF111827)),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
+                            ),
                           ),
                         ),
                         Text(
                           salary,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF10C971)),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF10C971),
+                          ),
                         ),
                       ],
                     ),
@@ -385,14 +502,21 @@ class JobPostReviewCard extends StatelessWidget {
                       spacing: 8,
                       children: tags.map((tag) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFF3F4F6),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             tag,
-                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey[700]),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[700],
+                            ),
                           ),
                         );
                       }).toList(),
@@ -402,24 +526,36 @@ class JobPostReviewCard extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Divider(color: Color(0xFFE5E7EB), thickness: 1, height: 1),
           ),
-          
+
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: onReject,
-                  icon: const Icon(Icons.close, color: Color(0xFFEF4444), size: 20),
-                  label: const Text("Reject", style: TextStyle(color: Color(0xFFEF4444), fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFFEF4444),
+                    size: 20,
+                  ),
+                  label: const Text(
+                    "Reject",
+                    style: TextStyle(
+                      color: Color(0xFFEF4444),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFEF2F2), 
+                    backgroundColor: const Color(0xFFFEF2F2),
                     foregroundColor: const Color(0xFFEF4444),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),
@@ -429,11 +565,19 @@ class JobPostReviewCard extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: onAccept,
                   icon: const Icon(Icons.check, color: Colors.white, size: 20),
-                  label: const Text("Accept", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  label: const Text(
+                    "Accept",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10C971), 
+                    backgroundColor: const Color(0xFF10C971),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                 ),

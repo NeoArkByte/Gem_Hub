@@ -59,28 +59,40 @@ class FeaturedJobsList extends StatelessWidget {
   }
 }
 
+// 👇 RECENT JOBS LIST EKA MEKEN REPLACE KARANNA
 class RecentJobsList extends StatelessWidget {
-  const RecentJobsList({Key? key}) : super(key: key);
+  final String searchQuery;
+  final String category;
+
+  const RecentJobsList({
+    Key? key,
+    required this.searchQuery,
+    required this.category,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Map<String, dynamic>>>(
-      future: DatabaseHelper().getApprovedJobs(),
+      // 👇 METHANA KALIN THIBBE getApprovedJobs(), DAN METHANATA ALUTH FUNCTION EKA DAMMA
+      future: DatabaseHelper().searchAndFilterJobs(searchQuery, category),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator(color: Color(0xFF10C971)));
-        if (!snapshot.hasData || snapshot.data!.isEmpty) return const Center(child: Text('No recent jobs found.'));
+        
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Center(child: Text('No jobs found for your search.', style: TextStyle(color: Colors.grey))),
+          );
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: snapshot.data!.map((job) => Padding(
               padding: const EdgeInsets.only(bottom: 12.0),
-              // 👇 MEKA THAMAI CLICK KARANNA DENA KALLA 👇
               child: GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => JobDetailsScreen(job: job)),
-                  );
+                  // Oya kalin dapu JobDetailsScreen ekata yana link eka (if needed)
                 },
                 child: RecentJobCard(
                   title: job['title'], 

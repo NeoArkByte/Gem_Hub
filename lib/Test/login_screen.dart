@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // 👇 Added
+import 'package:job_market/db/database_helper.dart'; // 👇 Added
+
 import 'package:job_market/Screen/Job_market.dart'; // Check your path
 import 'package:job_market/Test/admin_screen.dart'; // Check your path
+import 'package:job_market/Test/sign_up_screen.dart'; // 👇 Added for Sign Up
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -16,27 +20,55 @@ class _LoginScreenState extends State<LoginScreen> {
 
   final Color primaryGreen = const Color(0xFF10C971);
 
-  void _handleLogin() {
+  // 👇 REAL DATABASE LOGIN LOGIC 👇
+  void _handleLogin() async {
+    // Changed to async
     String username = _usernameController.text.trim().toLowerCase();
     String password = _passwordController.text.trim();
 
-    // Dummy Authentication Logic
-    if (username == 'admin' && password == 'admin123') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AdminJobReviewScreen()),
-      );
-    } else if (username == 'user' && password == 'user123') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const JobMarketplaceScreen()),
-      );
-    } else {
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Invalid username or password! Try admin/admin123 or user/user123',
-          ),
+          content: Text('Please enter details'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // 1. ADMIN CHECK EKA
+    if (username == 'admin' && password == 'admin123') {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('logged_in_user_id', 'ADMIN');
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminJobReviewScreen()),
+        );
+      }
+      return;
+    }
+
+    // 2. NORMAL USER CHECK EKA (Database eken)
+    var user = await DatabaseHelper().loginUser(username, password);
+
+    if (user != null) {
+      // User hitiyoth eyage ID eka save karanawa
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('logged_in_user_id', user['id'].toString());
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const JobMarketplaceScreen()),
+        );
+      }
+    } else {
+      // Invalid nam error eka denawa
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid username or password!'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -52,16 +84,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 👇 MEKA THAMAI MAGIC EKA! Phone eke mode eka check karanawa
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Mode eka anuwa Main Colors hadagannawa
     Color bgColor = isDark ? const Color(0xFF111827) : Colors.white;
     Color headingColor = isDark ? Colors.white : const Color(0xFF111827);
     Color subTextColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
 
     return Scaffold(
-      backgroundColor: bgColor, // Dynamic Background
+      backgroundColor: bgColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -95,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: headingColor, // Dynamic Text Color
+                  color: headingColor,
                   height: 1.2,
                 ),
               ),
@@ -103,10 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'Sign in to continue',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: subTextColor, // Dynamic Subtext Color
-                ),
+                style: TextStyle(fontSize: 16, color: subTextColor),
               ),
               const SizedBox(height: 48),
 
@@ -114,9 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
               _buildTextField(
                 controller: _usernameController,
                 label: 'Username',
-                hint: 'Enter admin or user',
+                hint: 'Enter your username',
                 icon: Icons.person_outline,
-                isDark: isDark, // Pass the mode state
+                isDark: isDark,
               ),
               const SizedBox(height: 20),
 
@@ -127,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hint: 'Enter your password',
                 icon: Icons.lock_outline,
                 isPassword: true,
-                isDark: isDark, // Pass the mode state
+                isDark: isDark,
               ),
 
               const SizedBox(height: 12),
@@ -166,11 +193,42 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // Always white on Green button
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
+
+              // 👇 SIGN UP LINK EKA ADD KALA 👇
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Don\'t have an account? ',
+                    style: TextStyle(color: subTextColor),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: primaryGreen,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -178,16 +236,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Helper method ekatath isDark parameter eka add kala
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required String hint,
     required IconData icon,
     bool isPassword = false,
-    required bool isDark, // 👇 Added this parameter
+    required bool isDark,
   }) {
-    // Text field colors dynamic kara
     Color labelColor = isDark ? Colors.grey[300]! : const Color(0xFF374151);
     Color fieldBgColor = isDark ? const Color(0xFF1F2937) : Colors.grey[50]!;
     Color borderColor = isDark ? const Color(0xFF374151) : Colors.grey[200]!;
@@ -214,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: TextField(
             controller: controller,
             obscureText: isPassword ? _obscurePassword : false,
-            style: TextStyle(color: inputTextColor), // Types text color
+            style: TextStyle(color: inputTextColor),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),

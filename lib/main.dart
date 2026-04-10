@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      // --- 1. LIGHT MODE THEME ---
+  
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: const Color(0xFFF5F7FA), // Light background
@@ -20,7 +20,6 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
 
-      // --- 2. DARK MODE THEME ---
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF111827), // Dark background
@@ -28,8 +27,6 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Roboto',
       ),
 
-      // --- 3. MAGIC COMMAND EKA ---
-      // Meken phone eke system eka dark nam dark theme ekath, light nam light theme ekath auto gannawa
       themeMode: ThemeMode.system,
       //home: JobDetailsScreen(),
       //home: JobMarketplaceScreen(),
