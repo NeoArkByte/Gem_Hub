@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-// 👇 Oyage DB path eka hariyata danna
+// 👇 Path tika hariyata check karaganna
+import 'package:job_market/Test/login_screen.dart';
 import 'package:job_market/db/database_helper.dart';
 
 class JobDetailsScreen extends StatelessWidget {
@@ -407,9 +409,27 @@ class JobDetailsScreen extends StatelessWidget {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // 👇 Methana full job eka pass karanawa
-                    _showApplyBottomSheet(context, job);
+                  // 👇 APPLY BUTTON EKE LOGIN CHECK EKA HARIYATA HADUWA
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    // Log welada balanawa
+                    bool isLoggedIn = prefs.getString('logged_in_user_id') != null;
+
+                    if (isLoggedIn) {
+                      // Log wela nam Form eka open wenawa
+                      _showApplyBottomSheet(context, job);
+                    } else {
+                      // Guest nam Login ekata yawanawa
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please log in to apply for jobs'))
+                        );
+                        Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (_) => const LoginScreen())
+                        );
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: primaryGreen,

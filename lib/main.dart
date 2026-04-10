@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:job_market/Test/login_screen.dart';
+import 'package:job_market/Screen/Job_market.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,9 +30,9 @@ class MyApp extends StatelessWidget {
 
       themeMode: ThemeMode.system,
       //home: JobDetailsScreen(),
-      //home: JobMarketplaceScreen(),
+      home: JobMarketplaceScreen(),
       //home: AdminJobReviewScreen(),
-      home: LoginScreen(),
+      //home: LoginScreen(),
     );
   }
 }
