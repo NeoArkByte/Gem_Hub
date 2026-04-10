@@ -213,7 +213,7 @@ Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
     );
   }
 
-  // 👇 ALUTH FUNCTION EKA: Search & Category Filter
+  /// 👇 ALUTH FUNCTION EKA: Search & Category Filter (100% Case-Insensitive)
   Future<List<Map<String, dynamic>>> searchAndFilterJobs(
     String keyword,
     String category,
@@ -222,16 +222,19 @@ Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
     String query = "SELECT * FROM jobs WHERE status = 'approved'";
     List<dynamic> args = [];
 
-    // 1. Keyword ekak thiyenawanam Title ekenui Company ekenui hoyanawa
+    // 1. Keyword eka thiyenawanam (LOWER dala case-insensitive kara)
     if (keyword.isNotEmpty) {
-      query += " AND (title LIKE ? OR companyInfo LIKE ?)";
-      args.addAll(['%$keyword%', '%$keyword%']);
+      query += " AND (LOWER(title) LIKE ? OR LOWER(companyInfo) LIKE ?)";
+      // User type karapu ekath simple letters karanawa
+      String searchLower = '%${keyword.toLowerCase()}%'; 
+      args.addAll([searchLower, searchLower]);
     }
 
-    // 2. Category ekak select karala nam eka tags walin hoyanawa
+    // 2. Category eka thiyenawanam (LOWER dala case-insensitive kara)
     if (category != 'All Jobs') {
-      query += " AND tags LIKE ?";
-      args.add('%$category%');
+      query += " AND LOWER(tags) LIKE ?";
+      // Category ekath simple letters karanawa
+      args.add('%${category.toLowerCase()}%'); 
     }
 
     query += " ORDER BY id DESC";

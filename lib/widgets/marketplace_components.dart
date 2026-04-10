@@ -84,7 +84,17 @@ class MarketplaceCategories extends StatefulWidget {
 class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
   // Danata select wela thiyena eka methana save wenawa
   String _selectedCategory = 'All Jobs'; 
-  final List<String> categories = ['All Jobs', 'Cutter', 'Polisher', 'Sales', 'Expert'];
+  
+  // 👇 ALUTH CATEGORIES TIKA METHANATA DAMMA
+  final List<String> categories = [
+    'All Jobs', 
+    'Gem Cutter', 
+    'Polisher', 
+    'Gemologist', 
+    'Jewelry Designer',
+    'Bench Jeweler',
+    'Sales Executive'
+  ];
 
   @override
   Widget build(BuildContext context) {
