@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/db/database_helper.dart';
-import 'package:job_market/Screen/PostNewJob/post_job_components.dart'; // Path eka hariyata check karaganna
+import 'package:job_market/data/datasources/local/database_helper.dart';
+import 'package:job_market/features/jobs/view/PostNewJob/post_job_components.dart'; // Path eka hariyata check karaganna
 
 class PostJobScreen extends StatefulWidget {
   const PostJobScreen({Key? key}) : super(key: key);

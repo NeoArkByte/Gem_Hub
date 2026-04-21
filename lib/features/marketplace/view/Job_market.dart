@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // 👇 Screens
-import 'package:job_market/Test/login_screen.dart';
-import 'package:job_market/Screen/PostNewJob/post_new_job.dart';
+import 'package:job_market/features/auth/view/login_screen.dart';
+import 'package:job_market/features/jobs/view/PostNewJob/post_new_job.dart';
 
 // 👇 Widgets
-import 'package:job_market/widgets/marketplace_header.dart';
-import 'package:job_market/widgets/marketplace_components.dart';
-import 'package:job_market/widgets/marketplace_lists.dart';
+import 'package:job_market/features/marketplace/view/marketplace_header.dart';
+import 'package:job_market/features/marketplace/view/marketplace_components.dart';
+import 'package:job_market/features/marketplace/view/marketplace_lists.dart';
 
 class JobMarketplaceScreen extends StatefulWidget {
   const JobMarketplaceScreen({Key? key}) : super(key: key);

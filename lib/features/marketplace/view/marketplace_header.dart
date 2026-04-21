@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/Test/login_screen.dart';
-import 'package:job_market/widgets/notification_screen.dart';
+import 'package:job_market/features/auth/view/login_screen.dart';
+import 'package:job_market/features/marketplace/view/notification_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/Screen/PostNewJob/employer_applications_screen.dart'; // 👈 Path eka hariyata danna
+import 'package:job_market/features/jobs/view/PostNewJob/employer_applications_screen.dart'; // 👈 Path eka hariyata danna
 
 class MarketplaceHeader extends StatelessWidget {
   // 👇 ALUTH KALLA: User log welada nadda kiyala meken check karanawa

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/db/database_helper.dart';
-import 'package:job_market/widgets/featured_job_card.dart';
-import 'package:job_market/widgets/recent_job_card.dart';
+import 'package:job_market/data/datasources/local/database_helper.dart';
+import 'package:job_market/features/jobs/view/featured_job_card.dart';
+import 'package:job_market/features/marketplace/view/recent_job_card.dart';
 // 👇 OYAGE DETAILS SCREEN EKA IMPORT KARANNA (Path eka hariyata danna)
-import 'package:job_market/Screen/job_details.dart';
+import 'package:job_market/features/jobs/view/job_details.dart';
 
 class FeaturedJobsList extends StatelessWidget {
   const FeaturedJobsList({Key? key}) : super(key: key);

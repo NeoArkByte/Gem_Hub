@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/db/database_helper.dart';
+import 'package:job_market/data/datasources/local/database_helper.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
