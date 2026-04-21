@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// 👇 1. SEARCH BAR EKA DYNAMIC KALA
+
 class MarketplaceSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onSearchChanged;
@@ -36,8 +36,8 @@ class MarketplaceSearchBar extends StatelessWidget {
                       ],
               ),
               child: TextField(
-                controller: controller, // 👈 Controller eka link kala
-                onChanged: onSearchChanged, // 👈 Type karaddi weda
+                controller: controller, 
+                onChanged: onSearchChanged, 
                 style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 decoration: InputDecoration(
                   icon: Icon(
@@ -68,7 +68,6 @@ class MarketplaceSearchBar extends StatelessWidget {
   }
 }
 
-// 👇 2. CATEGORIES TIKA DYNAMIC KALA (StatefulWidget kara)
 class MarketplaceCategories extends StatefulWidget {
   final Function(String) onCategorySelected;
 
@@ -82,10 +81,8 @@ class MarketplaceCategories extends StatefulWidget {
 }
 
 class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
-  // Danata select wela thiyena eka methana save wenawa
   String _selectedCategory = 'All Jobs'; 
   
-  // 👇 ALUTH CATEGORIES TIKA METHANATA DAMMA
   final List<String> categories = [
     'All Jobs', 
     'Gem Cutter', 
@@ -107,15 +104,15 @@ class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: categories.map((cat) {
-            bool isSelected = _selectedCategory == cat; // 👈 Dynamic Check eka
+            bool isSelected = _selectedCategory == cat; 
             return Padding(
               padding: const EdgeInsets.only(right: 12),
               child: GestureDetector(
                 onTap: () {
                   setState(() {
-                    _selectedCategory = cat; // Click kalama state eka maru wenawa
+                    _selectedCategory = cat; 
                   });
-                  widget.onCategorySelected(cat); // Parent screen ekata kiyanawa
+                  widget.onCategorySelected(cat); 
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -154,7 +151,7 @@ class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
   }
 }
 
-// (SectionHeader eka wenas une na)
+
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? actionText;
@@ -201,7 +198,6 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-// 👇 3. BOTTOM NAV EKA DYNAMIC KALA
 class MarketplaceBottomNav extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -227,8 +223,8 @@ class MarketplaceBottomNav extends StatelessWidget {
         fontSize: 12,
       ),
       unselectedLabelStyle: const TextStyle(fontSize: 12),
-      currentIndex: currentIndex, // 👈 Hardcoded '3' wenuwata meka damma
-      onTap: onTap, // 👈 Click karaddi wena function eka link kala
+      currentIndex: currentIndex, 
+      onTap: onTap, 
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.diamond_outlined), label: 'Inventory'),
