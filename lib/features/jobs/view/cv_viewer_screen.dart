@@ -14,7 +14,6 @@ class CvViewerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 👇 Supabase dammata passe URL eka enawada, nattam local file ekakda kiyala check karanawa
     bool isNetworkPdf = cvPath.startsWith('http://') || cvPath.startsWith('https://');
 
     return Scaffold(
@@ -31,9 +30,7 @@ class CvViewerScreen extends StatelessWidget {
       body: cvPath.isEmpty 
           ? const Center(child: Text("CV file path is missing 📄"))
           : isNetworkPdf
-              // URL ekak nam (Supabase walin passe) meken open karanawa
               ? SfPdfViewer.network(cvPath) 
-              // Local phone eke file ekak nam meken open karanawa
               : SfPdfViewer.file(File(cvPath)), 
     );
   }
