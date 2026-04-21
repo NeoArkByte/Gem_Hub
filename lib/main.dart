@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // 👈 1. Import kala
-import 'package:job_market/features/marketplace/view/job_market.dart'; // Path check karanna
+import 'package:flutter_riverpod/flutter_riverpod.dart'; 
+import 'package:job_market/features/marketplace/view/job_market.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
-  
-  // 👇 2. ProviderScope eken wrap kala
   runApp(const ProviderScope(child: MyApp())); 
 }
 

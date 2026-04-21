@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-// --- 1. HERO SECTION ---
 class PostJobHeroSection extends StatelessWidget {
   final Color textColor;
   const PostJobHeroSection({Key? key, required this.textColor})
@@ -31,7 +30,6 @@ class PostJobHeroSection extends StatelessWidget {
   }
 }
 
-// --- 2. SECTION HEADER ---
 class PostJobSectionHeader extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -64,7 +62,6 @@ class PostJobSectionHeader extends StatelessWidget {
   }
 }
 
-// --- 3. CUSTOM TEXT FIELD ---
 class PostJobTextField extends StatelessWidget {
   final String label;
   final String hint;
@@ -130,7 +127,6 @@ class PostJobTextField extends StatelessWidget {
   }
 }
 
-// --- 4. SKILLS SECTION (DYNAMIC) ---
 class PostJobSkills extends StatelessWidget {
   final Color primaryYellow;
   final List<String> selectedSkills;
@@ -164,7 +160,6 @@ class PostJobSkills extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // Skill eka type karana field eka
         Container(
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1F2937) : Colors.white,
@@ -205,7 +200,6 @@ class PostJobSkills extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Add karapu skills list eka pennana thana
         Wrap(
           spacing: 10,
           runSpacing: 10,
@@ -249,7 +243,6 @@ class PostJobSkills extends StatelessWidget {
   }
 }
 
-// --- 5. BOTTOM ACTION BUTTON ---
 class PostJobBottomAction extends StatelessWidget {
   final VoidCallback onPublish;
   final Color bgColor;
@@ -317,7 +310,6 @@ class PostJobBottomAction extends StatelessWidget {
   }
 }
 
-// --- 6. OPEN STREET MAP (OSM) LOCATION PICKER ---
 class PostJobLocationPicker extends StatefulWidget {
   final Function(String) onPlaceSelected;
 

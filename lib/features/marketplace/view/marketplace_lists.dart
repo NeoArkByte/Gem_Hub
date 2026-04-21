@@ -1,89 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/data/datasources/local/database_helper.dart';
-import 'package:job_market/features/jobs/view/featured_job_card.dart';
-import 'package:job_market/features/marketplace/view/recent_job_card.dart';
-// 👇 OYAGE DETAILS SCREEN EKA IMPORT KARANNA (Path eka hariyata danna)
-import 'package:job_market/features/jobs/view/job_details.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FeaturedJobsList extends StatelessWidget {
+// 👇 Imports tika hariyatama check karaganna bosa
+import 'package:job_market/features/jobs/view/job_details.dart';
+import 'package:job_market/features/marketplace/viewmodels/marketplace_viewmodel.dart';
+import 'package:job_market/features/marketplace/view/recent_job_card.dart';
+import 'package:job_market/features/jobs/view/featured_job_card.dart';
+
+// =========================================================
+// 1. FEATURED JOBS LIST (Newly Listed Jobs)
+// =========================================================
+class FeaturedJobsList extends ConsumerWidget {
   const FeaturedJobsList({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: DatabaseHelper().getFeaturedJobs(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF10C971)),
-          );
-        if (snapshot.hasError)
-          return Center(child: Text('Error: ${snapshot.error}'));
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.diamond_outlined,
-                    color: Colors.grey[400],
-                    size: 32,
-                  ),
-                  Text(
-                    'No new jobs listed today.',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Post a job to see it listed here!',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          );
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 👇 ViewModel eken data tika live gannawa
+    final jobsState = ref.watch(marketplaceViewModelProvider);
+
+    return jobsState.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(color: Color(0xFF10C971)),
+        ),
+      ),
+      error: (error, stack) => Center(child: Text('Error: $error')),
+      data: (jobs) {
+        // 👇 Aluthma jobs 3 witharak "Newly Listed" ekata gannawa
+        final featuredJobs = jobs.take(3).toList();
+
+        if (featuredJobs.isEmpty) {
+          return const SizedBox.shrink(); // Data natham mukuth pennanne na
         }
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
-            children: snapshot.data!
+            children: featuredJobs
                 .map(
                   (job) => Padding(
                     padding: const EdgeInsets.only(right: 16.0),
-                    // 👇 MEKA THAMAI CLICK KARANNA DENA KALLA 👇
                     child: GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => JobDetailsScreen(job: job),
+                            builder: (context) =>
+                                JobDetailsScreen(job: job.toMap()),
                           ),
                         );
                       },
+                      // 👇 ViewModel eken ena real data tika methanata pass karanawa
                       child: FeaturedJobCard(
-                        title: job['title'],
-                        company: job['companyInfo'],
-                        salary: job['salary'],
+                        title: job.title,
+                        company: job.companyInfo,
+                        salary: job.salary,
                         timePosted: 'New',
                         isPremium: true,
-                        logoColor: Color(job['logoColor']),
+                        logoColor: Color(job.logoColor),
                       ),
                     ),
                   ),
@@ -96,34 +72,31 @@ class FeaturedJobsList extends StatelessWidget {
   }
 }
 
-// 👇 RECENT JOBS LIST EKA MEKEN REPLACE KARANNA
-class RecentJobsList extends StatelessWidget {
-  final String searchQuery;
-  final String category;
-
-  const RecentJobsList({
-    Key? key,
-    required this.searchQuery,
-    required this.category,
-  }) : super(key: key);
+// =========================================================
+// 2. RECENT JOBS LIST (Explore All Jobs)
+// =========================================================
+class RecentJobsList extends ConsumerWidget {
+  const RecentJobsList({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: DatabaseHelper().searchAndFilterJobs(searchQuery, category),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF10C971)),
-          );
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final jobsState = ref.watch(marketplaceViewModelProvider);
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+    return jobsState.when(
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(color: Color(0xFF10C971)),
+        ),
+      ),
+      error: (error, stack) => Center(child: Text('Error: $error')),
+      data: (jobs) {
+        if (jobs.isEmpty) {
           return const Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(40.0),
             child: Center(
               child: Text(
-                'No jobs found for your search.',
+                'No jobs found.',
                 style: TextStyle(color: Colors.grey),
               ),
             ),
@@ -133,28 +106,26 @@ class RecentJobsList extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
-            children: snapshot.data!
+            children: jobs
                 .map(
                   (job) => Padding(
                     padding: const EdgeInsets.only(bottom: 12.0),
                     child: GestureDetector(
-                      // 👇 METHANA THAMAI ALUTHIN DAMME (Click kalama Details page ekata yanawa)
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => JobDetailsScreen(
-                              job: job,
-                            ), // Full job eka pass karanawa
+                            builder: (context) =>
+                                JobDetailsScreen(job: job.toMap()),
                           ),
                         );
                       },
                       child: RecentJobCard(
-                        title: job['title'],
-                        companyInfo: job['companyInfo'],
-                        salary: job['salary'],
-                        tags: (job['tags'] as String).split(','),
-                        logoColor: Color(job['logoColor']),
+                        title: job.title,
+                        companyInfo: job.companyInfo,
+                        salary: job.salary,
+                        tags: job.tags.split(','),
+                        logoColor: Color(job.logoColor),
                       ),
                     ),
                   ),
