@@ -3,8 +3,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // 👇 Path tika hariyata check karaganna
-import 'package:job_market/Test/login_screen.dart';
-import 'package:job_market/db/database_helper.dart';
+import 'package:job_market/features/auth/view/login_screen.dart';
+import 'package:job_market/data/datasources/local/database_helper.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> job;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // 👇 Added
-import 'package:job_market/db/database_helper.dart'; // 👇 Added
+import 'package:job_market/data/datasources/local/database_helper.dart'; // 👇 Added
 
-import 'package:job_market/Screen/Job_market.dart'; // Check your path
-import 'package:job_market/Test/admin_screen.dart'; // Check your path
-import 'package:job_market/Test/sign_up_screen.dart'; // 👇 Added for Sign Up
+import 'package:job_market/features/marketplace/view/Job_market.dart'; // Check your path
+import 'package:job_market/features/jobs/view/admin_screen.dart'; // Check your path
+import 'package:job_market/features/auth/view/sign_up_screen.dart'; // 👇 Added for Sign Up
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);

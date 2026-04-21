@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/Test/login_screen.dart';
-import 'package:job_market/db/database_helper.dart'; 
-import 'package:job_market/widgets/notification_screen.dart'; // 👈 Path eka hariyata danna
+import 'package:job_market/features/auth/view/login_screen.dart'; // Check your path
+import 'package:job_market/data/datasources/local/database_helper.dart'; 
+import 'package:job_market/features/marketplace/view/notification_screen.dart'; // 👈 Path eka hariyata danna
 
 class AdminJobReviewScreen extends StatefulWidget {
   const AdminJobReviewScreen({Key? key}) : super(key: key);

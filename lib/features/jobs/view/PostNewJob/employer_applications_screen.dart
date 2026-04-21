@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/db/database_helper.dart'; // 👈 Path eka check karanna
+import 'package:job_market/data/datasources/local/database_helper.dart'; // 👈 Path eka check karanna
 
 class EmployerApplicationsScreen extends StatefulWidget {
   const EmployerApplicationsScreen({Key? key}) : super(key: key);
