@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/db/database_helper.dart'; // 👈 Path eka check karanna
+import 'package:job_market/data/datasources/local/database_helper.dart';
+import 'package:job_market/features/jobs/view/cv_viewer_screen.dart';
 
 class EmployerApplicationsScreen extends StatefulWidget {
   const EmployerApplicationsScreen({Key? key}) : super(key: key);
@@ -10,8 +11,7 @@ class EmployerApplicationsScreen extends StatefulWidget {
       _EmployerApplicationsScreenState();
 }
 
-class _EmployerApplicationsScreenState
-    extends State<EmployerApplicationsScreen> {
+class _EmployerApplicationsScreenState extends State<EmployerApplicationsScreen> {
   final Color primaryGreen = const Color(0xFF10C971);
 
   // 👇 Log wela inna kenage ID eka aran eyata adala applications gannawa
@@ -56,7 +56,7 @@ class _EmployerApplicationsScreenState
             );
           }
           if (snapshot.hasError) {
-            return Center(
+            return const Center(
               child: Text(
                 "Error loading applications",
                 style: TextStyle(color: Colors.red),
@@ -200,7 +200,7 @@ class _EmployerApplicationsScreenState
                               app['expected_salary'] == null ||
                                       app['expected_salary'].toString().isEmpty
                                   ? 'Not specified'
-                                  : app['expected_salary'],
+                                  : app['expected_salary'].toString(),
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
@@ -209,17 +209,23 @@ class _EmployerApplicationsScreenState
                             ),
                           ],
                         ),
+                        
+                        // 👇 FIX KARAPU BUTTON EKA METHANA THIYENAWA
                         ElevatedButton.icon(
                           onPressed: () {
-                            // CV path eka open wena widiha methana issarahata hadanna puluwan
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('CV Location: ${app['cv_path']}'),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CvViewerScreen(
+                                  // CV file path eka DB eke thiyena widihata gannawa
+                                  cvPath: app['cv_file_path'] ?? app['cv_path'] ?? '', 
+                                  applicantName: app['applicant_name'] ?? 'Applicant',
+                                ),
                               ),
                             );
                           },
                           icon: const Icon(
-                            Icons.download,
+                            Icons.picture_as_pdf,
                             size: 16,
                             color: Colors.white,
                           ),

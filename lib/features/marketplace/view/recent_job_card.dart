@@ -18,7 +18,6 @@ class RecentJobCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 👇 Dark mode check
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(

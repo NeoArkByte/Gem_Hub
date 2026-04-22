@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// 👇 Path tika hariyata check karaganna
-import 'package:job_market/Test/login_screen.dart';
-import 'package:job_market/db/database_helper.dart';
+import 'package:job_market/features/auth/view/login_screen.dart';
+import 'package:job_market/data/datasources/local/database_helper.dart';
 
 class JobDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> job;
@@ -409,14 +407,12 @@ class JobDetailsScreen extends StatelessWidget {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
-                  // 👇 APPLY BUTTON EKE LOGIN CHECK EKA HARIYATA HADUWA
                   onPressed: () async {
                     final prefs = await SharedPreferences.getInstance();
                     // Log welada balanawa
                     bool isLoggedIn = prefs.getString('logged_in_user_id') != null;
 
                     if (isLoggedIn) {
-                      // Log wela nam Form eka open wenawa
                       _showApplyBottomSheet(context, job);
                     } else {
                       // Guest nam Login ekata yawanawa
