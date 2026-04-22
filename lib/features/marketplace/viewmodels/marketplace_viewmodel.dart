@@ -2,38 +2,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/data/models/job_model.dart';
 import 'package:job_market/data/repositories/job_repository.dart';
 
-final marketplaceViewModelProvider = StateNotifierProvider.autoDispose<MarketplaceViewModel, AsyncValue<List<Job>>>((ref) {
-  final repository = ref.watch(jobRepositoryProvider);
-  return MarketplaceViewModel(repository);
-});
+final marketplaceViewModelProvider =
+    AsyncNotifierProvider.autoDispose<MarketplaceViewModel, List<Job>>(() {
+      return MarketplaceViewModel();
+    });
 
-class MarketplaceViewModel extends StateNotifier<AsyncValue<List<Job>>> {
-  final JobRepository _repository;
-
+class MarketplaceViewModel extends AutoDisposeAsyncNotifier<List<Job>> {
   String _currentQuery = '';
   String _currentCategory = 'All Jobs';
 
-  MarketplaceViewModel(this._repository) : super(const AsyncValue.loading()) {
-    fetchJobs(); 
+  @override
+  Future<List<Job>> build() async {
+    return _fetchJobsFromRepo();
+  }
+
+  Future<List<Job>> _fetchJobsFromRepo() async {
+    final repository = ref.read(jobRepositoryProvider);
+    return await repository.searchAndFilterJobs(
+      _currentQuery,
+      _currentCategory,
+    );
+  }
+
+  Future<void> updateSearchQuery(String query) async {
+    _currentQuery = query;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchJobsFromRepo());
+  }
+
+  Future<void> updateCategory(String category) async {
+    _currentCategory = category;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchJobsFromRepo());
   }
 
   Future<void> fetchJobs() async {
-    try {
-      state = const AsyncValue.loading();
-      final jobs = await _repository.searchAndFilterJobs(_currentQuery, _currentCategory);
-      state = AsyncValue.data(jobs);
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-    }
-  }
-
-  void updateSearchQuery(String query) {
-    _currentQuery = query;
-    fetchJobs(); 
-  }
-
-  void updateCategory(String category) {
-    _currentCategory = category;
-    fetchJobs();
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _fetchJobsFromRepo());
   }
 }
