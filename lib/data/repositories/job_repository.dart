@@ -2,7 +2,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/data/datasources/local/database_helper.dart'; // Path eka check karanna
-import 'package:job_market/data/models/job_model.dart';
+import 'package:job_market/data/models/job_market/job_model.dart';
 
 // 👇 Riverpod Provider eka (App eke wena than walin mekata katha karanne meken)
 final jobRepositoryProvider = Provider<JobRepository>((ref) {

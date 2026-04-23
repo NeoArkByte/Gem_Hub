@@ -16,13 +16,30 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    // Aluth version ekak (v6) - Users table eka nisa
-    String path = join(await getDatabasesPath(), 'gemcost_jobs_v6.db');
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    // Increment version to v8 for Foreign Key constraint
+    String path = join(await getDatabasesPath(), 'gemcost_jobs_v8.db');
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _onCreate,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
+    );
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Jobs Table
+    // 1. Users Table (Must be first for Foreign Keys)
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        username TEXT UNIQUE,
+        password TEXT
+      )
+    ''');
+
+    // 2. Jobs Table
     await db.execute('''
       CREATE TABLE jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,11 +50,12 @@ class DatabaseHelper {
         tags TEXT,
         logoColor INTEGER,
         status TEXT,
-        createdAt TEXT 
+        createdAt TEXT,
+        FOREIGN KEY (employer_id) REFERENCES users (username) ON DELETE CASCADE
       )
     ''');
 
-    // 2. Applications Table
+    // 3. Applications Table
     await db.execute('''
       CREATE TABLE applications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,40 +65,71 @@ class DatabaseHelper {
         expected_salary TEXT,
         cv_path TEXT, 
         status TEXT,
-        appliedAt TEXT
+        appliedAt TEXT,
+        FOREIGN KEY (job_id) REFERENCES jobs (id) ON DELETE CASCADE
       )
     ''');
 
-    // 👇 3. ALUTH USERS TABLE EKA
+    // 4. Notifications Table
     await db.execute('''
-      CREATE TABLE users (
+      CREATE TABLE notifications(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        username TEXT UNIQUE,
-        password TEXT
+        user_id TEXT,
+        title TEXT,
+        message TEXT,
+        time TEXT,
+        is_read INTEGER DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES users (username) ON DELETE CASCADE
       )
     ''');
 
-    // Notifications Table එක හදන කැබැල්ල
+    // 5. Gems Table (Added Foreign Key)
     await db.execute('''
-  CREATE TABLE notifications(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id TEXT,        -- කාටද මේක පෙන්වන්න ඕනි (Employer/User ID)
-    title TEXT,
-    message TEXT,
-    time TEXT,
-    is_read INTEGER DEFAULT 0 -- බැලුවද නැද්ද කියලා දැනගන්න (0=No, 1=Yes)
-  )
-''');
+      CREATE TABLE gems (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        owner_id TEXT,
+        name TEXT,
+        type TEXT,
+        carat REAL,
+        price REAL,
+        color TEXT,
+        origin TEXT,
+        image_url TEXT,
+        seller_phone TEXT,
+        video_url TEXT,
+        status TEXT,
+        created_at TEXT,
+        FOREIGN KEY (owner_id) REFERENCES users (username) ON DELETE CASCADE
+      )
+    ''');
 
     await _insertDemoData(db);
   }
 
   Future<void> _insertDemoData(Database db) async {
     final now = DateTime.now();
+
+    // Demo Users (Needed for Foreign Keys)
+    await db.insert('users', {
+      'name': 'John Doe',
+      'username': 'USER_001',
+      'password': 'password123'
+    });
+    await db.insert('users', {
+      'name': 'Jane Smith',
+      'username': 'USER_002',
+      'password': 'password123'
+    });
+    await db.insert('users', {
+      'name': 'Admin User',
+      'username': 'admin',
+      'password': '123'
+    });
+    
+    // Demo Jobs
     List<Map<String, dynamic>> demoJobs = [
       {
-        'employer_id': 'EMP_001',
+        'employer_id': 'USER_001',
         'title': 'Inventory Manager',
         'companyInfo': 'Infinite Mines • London, UK',
         'salary': '\$75k - \$110k',
@@ -93,7 +142,83 @@ class DatabaseHelper {
     for (var job in demoJobs) {
       await db.insert('jobs', job);
     }
+
+    // Demo Gems
+    List<Map<String, dynamic>> demoGems = [
+      {
+        'owner_id': 'USER_001',
+        'name': 'Royal Blue Sapphire',
+        'type': 'Sapphire',
+        'carat': 4.5,
+        'price': 12500.0,
+        'color': 'Blue',
+        'origin': 'Ceylon',
+        'image_url': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000',
+        'seller_phone': '+94771234567',
+        'status': 'active',
+        'created_at': now.subtract(const Duration(days: 1)).toIso8601String(),
+      },
+      {
+        'owner_id': 'USER_002',
+        'name': 'Pigeon Blood Ruby',
+        'type': 'Ruby',
+        'carat': 2.1,
+        'price': 8900.0,
+        'color': 'Red',
+        'origin': 'Burma',
+        'image_url': 'https://images.unsplash.com/photo-1615111784767-4d7c307dc2bc?q=80&w=1000',
+        'seller_phone': '+94779876543',
+        'status': 'active',
+        'created_at': now.subtract(const Duration(hours: 12)).toIso8601String(),
+      },
+    ];
+    for (var gem in demoGems) {
+      await db.insert('gems', gem);
+    }
   }
+
+
+  // --- GEM FUNCTIONS ---
+  Future<int> insertGem(Map<String, dynamic> gem) async {
+    final db = await database;
+    if (!gem.containsKey('created_at'))
+      gem['created_at'] = DateTime.now().toIso8601String();
+    return await db.insert('gems', gem);
+  }
+
+  Future<List<Map<String, dynamic>>> getActiveGems() async {
+    final db = await database;
+    return await db.query(
+      'gems',
+      where: 'status = ?',
+      whereArgs: ['active'],
+      orderBy: 'id DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> searchAndFilterGems(
+    String keyword,
+    String type,
+  ) async {
+    final db = await database;
+    String query = "SELECT * FROM gems WHERE status = 'active'";
+    List<dynamic> args = [];
+
+    if (keyword.isNotEmpty) {
+      query += " AND (LOWER(name) LIKE ? OR LOWER(origin) LIKE ?)";
+      String searchLower = '%${keyword.toLowerCase()}%';
+      args.addAll([searchLower, searchLower]);
+    }
+
+    if (type != 'All Gems') {
+      query += " AND LOWER(type) = ?";
+      args.add(type.toLowerCase());
+    }
+
+    query += " ORDER BY id DESC";
+    return await db.rawQuery(query, args);
+  }
+
 
   // 1. Notification එකක් Insert කරන Function එක
 Future<int> addNotification(String userId, String title, String message) async {
