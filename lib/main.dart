@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
-import 'package:job_market/features/marketplace/view/job_market.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:job_market/features/navigation/view/main_navigation.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
-  runApp(const ProviderScope(child: MyApp())); 
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,8 +23,8 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         primaryColor: const Color(0xFF10C971),
       ),
-      themeMode: ThemeMode.system, 
-      home: const JobMarketplaceScreen(), 
+      themeMode: ThemeMode.system,
+      home: const MainNavigation(),
     );
   }
 }

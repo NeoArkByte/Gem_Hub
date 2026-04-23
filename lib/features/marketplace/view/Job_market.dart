@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // 👇 Screens & ViewModels (Paths hariyatama check karaganna)
 import 'package:job_market/features/auth/view/login_screen.dart';
-import 'package:job_market/features/jobs/view/PostNewJob/post_new_job.dart'; 
+import 'package:job_market/features/jobs/view/PostNewJob/post_new_job.dart';
 import 'package:job_market/features/marketplace/viewmodels/marketplace_viewmodel.dart';
 
 // 👇 Widgets
@@ -16,7 +16,8 @@ class JobMarketplaceScreen extends ConsumerStatefulWidget {
   const JobMarketplaceScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<JobMarketplaceScreen> createState() => _JobMarketplaceScreenState();
+  ConsumerState<JobMarketplaceScreen> createState() =>
+      _JobMarketplaceScreenState();
 }
 
 class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
@@ -49,7 +50,9 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF111827) : const Color(0xFFF5F7FA),
+      backgroundColor: isDark
+          ? const Color(0xFF111827)
+          : const Color(0xFFF5F7FA),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -61,30 +64,34 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
                 controller: _searchController,
                 onSearchChanged: (value) {
                   // 👇 Text eka type karaddi ViewModel ekata yawanawa
-                  ref.read(marketplaceViewModelProvider.notifier).updateSearchQuery(value);
+                  ref
+                      .read(marketplaceViewModelProvider.notifier)
+                      .updateSearchQuery(value);
                 },
               ),
-              
+
               MarketplaceCategories(
                 onCategorySelected: (category) {
                   // 👇 Category eka obaddi ViewModel ekata yawanawa
-                  ref.read(marketplaceViewModelProvider.notifier).updateCategory(category);
+                  ref
+                      .read(marketplaceViewModelProvider.notifier)
+                      .updateCategory(category);
                 },
               ),
-              
+
               const SectionHeader(
                 title: 'Newly Listed Jobs',
                 actionText: 'See All',
               ),
-              
+
               // 👇 Riverpod eken auto aluth jobs 3k gannawa (Parameters epa)
               const FeaturedJobsList(),
-              
+
               const SectionHeader(title: 'Explore All Jobs', icon: Icons.sort),
-              
+
               // 👇 Riverpod eken filter wechcha okkoma gannawa (Parameters epa)
               const RecentJobsList(),
-              
+
               const SizedBox(height: 80),
             ],
           ),
@@ -93,18 +100,21 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           if (_isLoggedIn) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const PostJobScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PostJobScreen()),
+            );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please log in to post a job')));
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please log in to post a job')),
+            );
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            ).then((_) => _checkLoginStatus());
           }
         },
         backgroundColor: primaryGreen,
         child: const Icon(Icons.add, color: Colors.white, size: 32),
-      ),
-      bottomNavigationBar: MarketplaceBottomNav(
-        currentIndex: _bottomNavIndex,
-        onTap: (index) => setState(() => _bottomNavIndex = index),
       ),
     );
   }

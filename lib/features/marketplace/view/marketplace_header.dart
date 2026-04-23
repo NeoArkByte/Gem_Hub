@@ -3,6 +3,7 @@ import 'package:job_market/features/auth/view/login_screen.dart';
 import 'package:job_market/features/marketplace/view/notification_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:job_market/features/jobs/view/PostNewJob/employer_applications_screen.dart';
+import 'package:job_market/features/navigation/view/main_navigation.dart';
 
 class MarketplaceHeader extends StatelessWidget {
   final bool isLoggedIn;
@@ -43,9 +44,8 @@ class MarketplaceHeader extends StatelessWidget {
               await prefs.clear();
 
               if (context.mounted) {
-                Navigator.pushAndRemoveUntil(
-                  ctx,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const MainNavigation()),
                   (route) => false,
                 );
               }
@@ -161,8 +161,7 @@ class MarketplaceHeader extends StatelessWidget {
                   if (isLoggedIn) {
                     _logout(context);
                   } else {
-                    Navigator.push(
-                      context,
+                    Navigator.of(context, rootNavigator: true).push(
                       MaterialPageRoute(
                         builder: (context) => const LoginScreen(),
                       ),
