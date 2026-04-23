@@ -1,101 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:job_market/core/enums/gem_type.dart';
+import 'package:job_market/data/models/gem_market/gem_model.dart';
+import 'package:job_market/features/gem_market/viewmodel/gem_marketplace_viewmodel.dart';
 import 'gem_marketplace_widgets.dart';
-
-// ─── Gem model ────────────────────────────────────────────────────────────────
-class GemItem {
-  final String id;
-  final String name;
-  final String category;
-  final double price;
-  final double rating;
-  final String imageUrl;
-  bool isFavourite;
-
-  GemItem({
-    required this.id,
-    required this.name,
-    required this.category,
-    required this.price,
-    required this.rating,
-    required this.imageUrl,
-    this.isFavourite = false,
-  });
-}
-
-// ─── Sample data ──────────────────────────────────────────────────────────────
-final List<GemItem> _sampleGems = [
-  GemItem(
-    id: '1',
-    name: 'Ceylon Sapphire',
-    category: 'ROYAL BLUE',
-    price: 4250,
-    rating: 4.9,
-    imageUrl:
-        'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=400',
-  ),
-  GemItem(
-    id: '2',
-    name: 'Burmese Ruby 1.8ct',
-    category: 'PIGEON BLOOD',
-    price: 6800,
-    rating: 5.0,
-    imageUrl:
-        'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400',
-    isFavourite: true,
-  ),
-  GemItem(
-    id: '3',
-    name: 'Zambian Emerald',
-    category: 'VIVID GREEN',
-    price: 5900,
-    rating: 4.8,
-    imageUrl:
-        'https://images.unsplash.com/photo-1615751072497-5f5169febe17?w=400',
-  ),
-  GemItem(
-    id: '4',
-    name: 'Pink Diamond 0.9ct',
-    category: 'FANCY INTENSE',
-    price: 12400,
-    rating: 5.0,
-    imageUrl:
-        'https://images.unsplash.com/photo-1585236905953-0c3c03b6a628?w=400',
-  ),
-  GemItem(
-    id: '5',
-    name: 'Alexandrite 1.2ct',
-    category: 'COLOR CHANGE',
-    price: 8750,
-    rating: 4.7,
-    imageUrl:
-        'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400',
-  ),
-  GemItem(
-    id: '6',
-    name: 'Kashmir Sapphire',
-    category: 'CORNFLOWER',
-    price: 18500,
-    rating: 5.0,
-    imageUrl:
-        'https://images.unsplash.com/photo-1601121141461-9d6647bef0a1?w=400',
-  ),
-];
+import 'gem_market_add_entry.dart';
 
 // ─── Category model ────────────────────────────────────────────────────────────
 class _Category {
+  final GemType type;
   final String label;
   final IconData icon;
   final Color accentColor;
-  const _Category(this.label, this.icon, this.accentColor);
+  const _Category(this.type, this.label, this.icon, this.accentColor);
 }
 
 const _categories = [
-  _Category('All Gems', Icons.auto_awesome_rounded, Color(0xFF2563EB)),
-  _Category('Sapphire', Icons.circle, Color(0xFF3B82F6)),
-  _Category('Ruby', Icons.favorite_rounded, Color(0xFFEF4444)),
-  _Category('Emerald', Icons.eco_rounded, Color(0xFF10B981)),
-  _Category('Diamond', Icons.diamond_rounded, Color(0xFF8B5CF6)),
+  _Category(GemType.allGems, 'All Gems', Icons.auto_awesome_rounded, Color(0xFF2563EB)),
+  _Category(GemType.sapphire, 'Sapphire', Icons.circle, Color(0xFF3B82F6)),
+  _Category(GemType.ruby, 'Ruby', Icons.favorite_rounded, Color(0xFFEF4444)),
+  _Category(GemType.emerald, 'Emerald', Icons.eco_rounded, Color(0xFF10B981)),
+  _Category(GemType.diamond, 'Diamond', Icons.diamond_rounded, Color(0xFF8B5CF6)),
 ];
 
 // ─── Light theme design tokens ────────────────────────────────────────────────
@@ -111,29 +37,16 @@ class _T {
 }
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-class GemMarketPlaceScreen extends StatefulWidget {
+class GemMarketPlaceScreen extends ConsumerStatefulWidget {
   const GemMarketPlaceScreen({super.key});
 
   @override
-  State<GemMarketPlaceScreen> createState() => _GemMarketPlaceScreenState();
+  ConsumerState<GemMarketPlaceScreen> createState() => _GemMarketPlaceScreenState();
 }
 
-class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
+class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
   int _selectedCategory = 0;
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  List<GemItem> get _filteredGems {
-    return _sampleGems.where((g) {
-      final matchCat = _selectedCategory == 0 ||
-          g.category.toLowerCase().contains(
-              _categories[_selectedCategory].label.toLowerCase().split(' ').first);
-      final matchSearch = _searchQuery.isEmpty ||
-          g.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          g.category.toLowerCase().contains(_searchQuery.toLowerCase());
-      return matchCat && matchSearch;
-    }).toList();
-  }
 
   @override
   void dispose() {
@@ -219,7 +132,9 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
                     child: TextField(
                       controller: _searchController,
                       style: const TextStyle(color: _T.text, fontSize: 14),
-                      onChanged: (v) => setState(() => _searchQuery = v),
+                      onChanged: (v) {
+                        ref.read(gemMarketplaceViewModelProvider.notifier).updateSearchQuery(v);
+                      },
                       decoration: const InputDecoration(
                         hintText: 'Search rare sapphires, rubies...',
                         hintStyle: TextStyle(color: _T.subText, fontSize: 14),
@@ -269,7 +184,10 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
             return Padding(
               padding: const EdgeInsets.only(right: 10),
               child: GestureDetector(
-                onTap: () => setState(() => _selectedCategory = i),
+                onTap: () {
+                  setState(() => _selectedCategory = i);
+                  ref.read(gemMarketplaceViewModelProvider.notifier).updateType(cat.type);
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
@@ -366,39 +284,52 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
 
   // ─── Gem Grid ─────────────────────────────────────────────────────────────────
   Widget _buildGemGrid() {
-    final gems = _filteredGems;
+    final gemsState = ref.watch(gemMarketplaceViewModelProvider);
 
-    if (gems.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.search_off, color: _T.subText, size: 48),
-            SizedBox(height: 12),
-            Text('No gems found', style: TextStyle(color: _T.subText, fontSize: 16)),
-          ],
-        ),
-      );
-    }
-
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.72,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+    return gemsState.when(
+      loading: () => const Center(
+        child: CircularProgressIndicator(color: _T.accent),
       ),
-      itemCount: gems.length,
-      itemBuilder: (ctx, i) => _buildGemCard(gems[i]),
+      error: (err, stack) => Center(
+        child: Text(
+          'Error loading gems: $err',
+          style: const TextStyle(color: Colors.red),
+        ),
+      ),
+      data: (gems) {
+        if (gems.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.search_off, color: _T.subText, size: 48),
+                SizedBox(height: 12),
+                Text('No gems found',
+                    style: TextStyle(color: _T.subText, fontSize: 16)),
+              ],
+            ),
+          );
+        }
+
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.72,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+          ),
+          itemCount: gems.length,
+          itemBuilder: (ctx, i) => _buildGemCard(gems[i]),
+        );
+      },
     );
   }
 
-  Widget _buildGemCard(GemItem gem) {
+  Widget _buildGemCard(Gem gem) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ListingDetailScreen()),
+      onTap: () => Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute(builder: (_) => ListingDetailScreen(gem: gem)),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -431,7 +362,8 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
                       errorBuilder: (_, __, ___) => Container(
                         color: _T.accentLight,
                         child: const Center(
-                          child: Icon(Icons.diamond, color: _T.accent, size: 40),
+                          child:
+                              Icon(Icons.diamond, color: _T.accent, size: 40),
                         ),
                       ),
                     ),
@@ -441,14 +373,12 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
                     top: 10,
                     right: 10,
                     child: GestureDetector(
-                      onTap: () => setState(() => gem.isFavourite = !gem.isFavourite),
+                      onTap: () {},
                       child: Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          color: gem.isFavourite
-                              ? const Color(0xFFFEE2E2)
-                              : Colors.white.withOpacity(0.9),
+                          color: Colors.white.withOpacity(0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
@@ -457,11 +387,9 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
                             ),
                           ],
                         ),
-                        child: Icon(
-                          gem.isFavourite
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          color: gem.isFavourite ? Colors.red : _T.subText,
+                        child: const Icon(
+                          Icons.favorite_border_rounded,
+                          color: _T.subText,
                           size: 16,
                         ),
                       ),
@@ -477,7 +405,7 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    gem.category,
+                    gem.type.displayName.toUpperCase(),
                     style: const TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
@@ -508,13 +436,13 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
                           color: _T.accent,
                         ),
                       ),
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.star_rounded, color: _T.gold, size: 13),
-                          const SizedBox(width: 2),
+                          Icon(Icons.star_rounded, color: _T.gold, size: 13),
+                          SizedBox(width: 2),
                           Text(
-                            gem.rating.toString(),
-                            style: const TextStyle(
+                            '5.0',
+                            style: TextStyle(
                               fontSize: 11,
                               color: _T.subText,
                               fontWeight: FontWeight.w600,
@@ -553,7 +481,12 @@ class _GemMarketPlaceScreenState extends State<GemMarketPlaceScreen> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
-          onTap: () {},
+          onTap: () {
+             Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AddGemScreen()),
+              );
+          },
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
         ),
       ),

@@ -9,8 +9,13 @@ class Gem {
   final GemType type;
   final double carat;
   final double price;
+  final String description;
   final String color;
+  final String clarity;
+  final String treatment;
+  final String shape;
   final String origin;
+  final String location;
 
   final String imageUrl;
   final String sellerPhone;
@@ -27,8 +32,13 @@ class Gem {
     required this.type,
     required this.carat,
     required this.price,
+    required this.description,
     required this.color,
+    required this.clarity,
+    required this.treatment,
+    required this.shape,
     required this.origin,
+    required this.location,
     required this.imageUrl,
     required this.sellerPhone,
     this.videoUrl,
@@ -40,15 +50,20 @@ class Gem {
   factory Gem.fromMap(Map<String, dynamic> map) {
     return Gem(
       id: map['id'],
-      ownerId: map['owner_id'],
-      name: map['name'],
+      ownerId: map['owner_id'] ?? '',
+      name: map['name'] ?? '',
       type: GemType.fromString(map['type'] ?? 'Other'),
-      carat: (map['carat'] as num).toDouble(),
-      price: (map['price'] as num).toDouble(),
-      color: map['color'],
-      origin: map['origin'],
-      imageUrl: map['image_url'],
-      sellerPhone: map['seller_phone'],
+      carat: (map['carat'] as num?)?.toDouble() ?? 0.0,
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      description: map['description'] ?? '',
+      color: map['color'] ?? '',
+      clarity: map['clarity'] ?? '',
+      treatment: map['treatment'] ?? '',
+      shape: map['shape'] ?? '',
+      origin: map['origin'] ?? '',
+      location: map['location'] ?? '',
+      imageUrl: map['image_url'] ?? '',
+      sellerPhone: map['seller_phone'] ?? '',
       videoUrl: map['video_url'],
       status: GemStatus.values.firstWhere(
         (e) => e.name == map['status'],
@@ -67,8 +82,13 @@ class Gem {
       'type': type.displayName,
       'carat': carat,
       'price': price,
+      'description': description,
       'color': color,
+      'clarity': clarity,
+      'treatment': treatment,
+      'shape': shape,
       'origin': origin,
+      'location': location,
       'image_url': imageUrl,
       'seller_phone': sellerPhone,
       'video_url': videoUrl,

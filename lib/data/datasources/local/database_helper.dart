@@ -16,8 +16,9 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    // Increment version to v8 for Foreign Key constraint
-    String path = join(await getDatabasesPath(), 'gemcost_jobs_v8.db');
+    // Increment version to v9 for schema update
+    // Increment version to v11 for schema update
+    String path = join(await getDatabasesPath(), 'gemcost_jobs_v11.db');
     return await openDatabase(
       path,
       version: 1,
@@ -92,8 +93,10 @@ class DatabaseHelper {
         type TEXT,
         carat REAL,
         price REAL,
+        description TEXT,
         color TEXT,
         origin TEXT,
+        location TEXT,
         image_url TEXT,
         seller_phone TEXT,
         video_url TEXT,
@@ -113,19 +116,19 @@ class DatabaseHelper {
     await db.insert('users', {
       'name': 'John Doe',
       'username': 'USER_001',
-      'password': 'password123'
+      'password': 'password123',
     });
     await db.insert('users', {
       'name': 'Jane Smith',
       'username': 'USER_002',
-      'password': 'password123'
+      'password': 'password123',
     });
     await db.insert('users', {
       'name': 'Admin User',
       'username': 'admin',
-      'password': '123'
+      'password': '123',
     });
-    
+
     // Demo Jobs
     List<Map<String, dynamic>> demoJobs = [
       {
@@ -151,9 +154,13 @@ class DatabaseHelper {
         'type': 'Sapphire',
         'carat': 4.5,
         'price': 12500.0,
+        'description': 'Beautiful sapphire with high clarity',
         'color': 'Blue',
         'origin': 'Ceylon',
-        'image_url': 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000',
+        'location': 'Mayfair, London, UK',
+        'image_url':
+            'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000',
+        'video_url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         'seller_phone': '+94771234567',
         'status': 'active',
         'created_at': now.subtract(const Duration(days: 1)).toIso8601String(),
@@ -164,9 +171,11 @@ class DatabaseHelper {
         'type': 'Ruby',
         'carat': 2.1,
         'price': 8900.0,
+        'description': 'Beautiful ruby with high clarity',
         'color': 'Red',
         'origin': 'Burma',
-        'image_url': 'https://images.unsplash.com/photo-1615111784767-4d7c307dc2bc?q=80&w=1000',
+        'image_url':
+            'https://images.unsplash.com/photo-1615111784767-4d7c307dc2bc?q=80&w=1000',
         'seller_phone': '+94779876543',
         'status': 'active',
         'created_at': now.subtract(const Duration(hours: 12)).toIso8601String(),
@@ -176,7 +185,6 @@ class DatabaseHelper {
       await db.insert('gems', gem);
     }
   }
-
 
   // --- GEM FUNCTIONS ---
   Future<int> insertGem(Map<String, dynamic> gem) async {
@@ -219,26 +227,31 @@ class DatabaseHelper {
     return await db.rawQuery(query, args);
   }
 
-
   // 1. Notification එකක් Insert කරන Function එක
-Future<int> addNotification(String userId, String title, String message) async {
-  final db = await database;
-  return await db.insert('notifications', {
-    'user_id': userId,
-    'title': title,
-    'message': message,
-    'time': DateTime.now().toString(),
-  });
-}
+  Future<int> addNotification(
+    String userId,
+    String title,
+    String message,
+  ) async {
+    final db = await database;
+    return await db.insert('notifications', {
+      'user_id': userId,
+      'title': title,
+      'message': message,
+      'time': DateTime.now().toString(),
+    });
+  }
 
-// 2. ඒ ඒ User ට අදාළ Notifications ටික විතරක් ගන්න Function එක
-Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
-  final db = await database;
-  return await db.query('notifications', 
-    where: 'user_id = ?', 
-    whereArgs: [userId], 
-    orderBy: 'id DESC');
-}
+  // 2. ඒ ඒ User ට අදාළ Notifications ටික විතරක් ගන්න Function එක
+  Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
+    final db = await database;
+    return await db.query(
+      'notifications',
+      where: 'user_id = ?',
+      whereArgs: [userId],
+      orderBy: 'id DESC',
+    );
+  }
 
   // --- JOB & APPLICATION FUNCTIONS ---
   Future<int> insertJob(Map<String, dynamic> job) async {
@@ -351,7 +364,7 @@ Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
     if (keyword.isNotEmpty) {
       query += " AND (LOWER(title) LIKE ? OR LOWER(companyInfo) LIKE ?)";
       // User type karapu ekath simple letters karanawa
-      String searchLower = '%${keyword.toLowerCase()}%'; 
+      String searchLower = '%${keyword.toLowerCase()}%';
       args.addAll([searchLower, searchLower]);
     }
 
@@ -359,7 +372,7 @@ Future<List<Map<String, dynamic>>> getNotifications(String userId) async {
     if (category != 'All Jobs') {
       query += " AND LOWER(tags) LIKE ?";
       // Category ekath simple letters karanawa
-      args.add('%${category.toLowerCase()}%'); 
+      args.add('%${category.toLowerCase()}%');
     }
 
     query += " ORDER BY id DESC";
