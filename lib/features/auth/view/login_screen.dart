@@ -4,7 +4,7 @@ import 'package:job_market/features/auth/view/sign_up_screen.dart';
 import 'package:job_market/features/marketplace/view/job_market.dart';
 import 'package:job_market/features/jobs/view/admin_screen.dart';
 import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart'; 
-
+import 'package:job_market/features/navigation/view/main_navigation.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -45,9 +45,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .login(user, pass);
 
     if (userResult != null && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const JobMarketplaceScreen()),
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainNavigation()),
+        (route) => false,
       );
     } else if (userResult == null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -165,8 +165,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.push(
-                        context,
+                      onPressed: () => Navigator.of(context, rootNavigator: true).push(
                         MaterialPageRoute(builder: (_) => const SignUpScreen()),
                       ),
                       child: Text(

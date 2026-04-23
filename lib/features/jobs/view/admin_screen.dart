@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/features/auth/view/login_screen.dart'; 
 import 'package:job_market/features/jobs/viewmodels/job_viewmodel.dart';
 import 'package:job_market/data/datasources/local/database_helper.dart'; 
-
+import 'package:job_market/features/navigation/view/main_navigation.dart';
 class AdminJobReviewScreen extends ConsumerStatefulWidget {
   const AdminJobReviewScreen({Key? key}) : super(key: key);
 
@@ -38,9 +38,8 @@ class _AdminJobReviewScreenState extends ConsumerState<AdminJobReviewScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const MainNavigation()),
                   (route) => false,
                 );
               },
