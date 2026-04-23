@@ -11,7 +11,7 @@ import 'package:job_market/features/jobs/view/featured_job_card.dart';
 // 1. FEATURED JOBS LIST (Newly Listed Jobs)
 // =========================================================
 class FeaturedJobsList extends ConsumerWidget {
-  const FeaturedJobsList({Key? key}) : super(key: key);
+  const FeaturedJobsList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
