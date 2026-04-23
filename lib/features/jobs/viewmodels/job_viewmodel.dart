@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/data/models/job_model.dart';
+import 'package:job_market/data/models/job_market/job_model.dart';
 import 'package:job_market/data/repositories/job_repository.dart';
 
 final pendingJobsViewModelProvider = AsyncNotifierProvider.autoDispose<PendingJobsViewModel, List<Job>>(() {

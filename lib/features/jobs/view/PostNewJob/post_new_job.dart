@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:job_market/data/models/job_model.dart'; 
+import 'package:job_market/data/models/job_market/job_model.dart'; 
 import 'package:job_market/data/datasources/local/database_helper.dart'; 
 import 'package:job_market/features/jobs/viewmodels/post_job_viewmodel.dart'; 
 import 'package:job_market/features/jobs/view/PostNewJob/post_job_components.dart'; 
