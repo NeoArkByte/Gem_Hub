@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// 👇 Screens & ViewModels (Paths hariyatama check karaganna)
+// 👇 Screens & ViewModels
 import 'package:job_market/features/auth/view/login_screen.dart';
 import 'package:job_market/features/jobs/view/PostNewJob/post_new_job.dart';
 import 'package:job_market/features/marketplace/viewmodels/marketplace_viewmodel.dart';
 
 // 👇 Widgets
-import 'package:job_market/features/marketplace/view/marketplace_header.dart';
 import 'package:job_market/features/marketplace/view/marketplace_components.dart';
 import 'package:job_market/features/marketplace/view/marketplace_lists.dart';
 
@@ -22,7 +21,6 @@ class JobMarketplaceScreen extends ConsumerStatefulWidget {
 
 class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
   final Color primaryGreen = const Color(0xFF10C971);
-  int _bottomNavIndex = 3;
   final TextEditingController _searchController = TextEditingController();
   bool _isLoggedIn = false;
 
@@ -34,9 +32,11 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isLoggedIn = prefs.getString('logged_in_user_id') != null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoggedIn = prefs.getString('logged_in_user_id') != null;
+      });
+    }
   }
 
   @override
@@ -50,51 +50,45 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF111827)
-          : const Color(0xFFF5F7FA),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MarketplaceHeader(isLoggedIn: _isLoggedIn),
+      backgroundColor:
+          isDark ? const Color(0xFF111827) : const Color(0xFFF5F7FA),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ─── Search bar ───
+            const SizedBox(height: 8),
+            MarketplaceSearchBar(
+              controller: _searchController,
+              onSearchChanged: (value) {
+                ref
+                    .read(marketplaceViewModelProvider.notifier)
+                    .updateSearchQuery(value);
+              },
+            ),
 
-              MarketplaceSearchBar(
-                controller: _searchController,
-                onSearchChanged: (value) {
-                  // 👇 Text eka type karaddi ViewModel ekata yawanawa
-                  ref
-                      .read(marketplaceViewModelProvider.notifier)
-                      .updateSearchQuery(value);
-                },
-              ),
+            // ─── Categories ───
+            MarketplaceCategories(
+              onCategorySelected: (category) {
+                ref
+                    .read(marketplaceViewModelProvider.notifier)
+                    .updateCategory(category);
+              },
+            ),
 
-              MarketplaceCategories(
-                onCategorySelected: (category) {
-                  // 👇 Category eka obaddi ViewModel ekata yawanawa
-                  ref
-                      .read(marketplaceViewModelProvider.notifier)
-                      .updateCategory(category);
-                },
-              ),
+            const SectionHeader(
+              title: 'Newly Listed Jobs',
+              actionText: 'See All',
+            ),
 
-              const SectionHeader(
-                title: 'Newly Listed Jobs',
-                actionText: 'See All',
-              ),
+            const FeaturedJobsList(),
 
-              // 👇 Riverpod eken auto aluth jobs 3k gannawa (Parameters epa)
-              const FeaturedJobsList(),
+            const SectionHeader(title: 'Explore All Jobs', icon: Icons.sort),
 
-              const SectionHeader(title: 'Explore All Jobs', icon: Icons.sort),
+            const RecentJobsList(),
 
-              // 👇 Riverpod eken filter wechcha okkoma gannawa (Parameters epa)
-              const RecentJobsList(),
-
-              const SizedBox(height: 80),
-            ],
-          ),
+            const SizedBox(height: 80),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -108,9 +102,9 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Please log in to post a job')),
             );
-            Navigator.of(context, rootNavigator: true).push(
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            ).then((_) => _checkLoginStatus());
+            Navigator.of(context, rootNavigator: true)
+                .push(MaterialPageRoute(builder: (_) => const LoginScreen()))
+                .then((_) => _checkLoginStatus());
           }
         },
         backgroundColor: primaryGreen,
@@ -119,3 +113,4 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
     );
   }
 }
+

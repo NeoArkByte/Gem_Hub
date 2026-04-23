@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/features/gem_market/view/gem_market.dart';
 import 'package:job_market/features/navigation/viewmodel/navigation_viewmodel.dart';
 import 'package:job_market/shared/widgets/bottom_navigation_bar.dart';
+import 'package:job_market/shared/widgets/app_header.dart';
 
 import 'package:job_market/features/marketplace/view/job_market.dart';
 
@@ -33,19 +34,39 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final currentIndex = ref.watch(navigationProvider);
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     final tabs = [
       _buildTab(0, const JobMarketplaceScreen()),
       _buildTab(1, const JobMarketplaceScreen()),
-      _buildTab(2, const JobMarketplaceScreen()),
+      _buildTab(2, const GemMarketPlaceScreen()),
       _buildTab(3, const JobMarketplaceScreen()),
-      _buildTab(4, const GemMarketPlaceScreen()),
+      _buildTab(4, const JobMarketplaceScreen()),
     ];
 
     return PopScope(
       canPop: true,
       child: Scaffold(
-        body: IndexedStack(index: currentIndex, children: tabs),
+        backgroundColor: isDark
+            ? const Color(0xFF111827)
+            : const Color(0xFFF5F7FA),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ─── Persistent header shown on ALL tabs ───
+              Container(
+                color: isDark
+                    ? const Color(0xFF111827)
+                    : const Color(0xFFF5F7FA),
+                child: const AppHeader(),
+              ),
+              // ─── Tab content ───
+              Expanded(
+                child: IndexedStack(index: currentIndex, children: tabs),
+              ),
+            ],
+          ),
+        ),
         bottomNavigationBar: AppBottomNavigationBar(
           currentIndex: currentIndex,
           onTap: (i) => ref.read(navigationProvider.notifier).setIndex(i),
