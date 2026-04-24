@@ -5,8 +5,8 @@ import 'package:job_market/data/models/gem_market/gem_model.dart';
 class GemDetailTheme {
   static const bgSection = Color(0xFFF9FAFB);
   static const border = Color(0xFFE5E7EB);
-  static const accent = Color(0xFF2563EB);
-  static const accentLight = Color(0xFFEFF6FF);
+  static const accent = Color(0xFF10C971);
+  static const accentLight = Color(0xFFDCFCE7);
   static const text = Color(0xFF111827);
   static const subText = Color(0xFF6B7280);
   static const sectionDivider = Color(0xFFE5E7EB);

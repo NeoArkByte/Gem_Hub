@@ -12,7 +12,7 @@ import 'package:job_market/features/marketplace/view/marketplace_components.dart
 import 'package:job_market/features/marketplace/view/marketplace_lists.dart';
 
 class JobMarketplaceScreen extends ConsumerStatefulWidget {
-  const JobMarketplaceScreen({Key? key}) : super(key: key);
+  const JobMarketplaceScreen({super.key});
 
   @override
   ConsumerState<JobMarketplaceScreen> createState() =>

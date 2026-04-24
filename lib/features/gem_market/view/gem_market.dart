@@ -17,11 +17,16 @@ class _Category {
 }
 
 const _categories = [
-  _Category(GemType.allGems, 'All Gems', Icons.auto_awesome_rounded, Color(0xFF2563EB)),
-  _Category(GemType.sapphire, 'Sapphire', Icons.circle, Color(0xFF3B82F6)),
+  _Category(GemType.allGems, 'All Gems', Icons.auto_awesome_rounded, Color(0xFF10C971)),
+  _Category(GemType.sapphire, 'Sapphire', Icons.circle, Color(0xFF10B981)),
   _Category(GemType.ruby, 'Ruby', Icons.favorite_rounded, Color(0xFFEF4444)),
   _Category(GemType.emerald, 'Emerald', Icons.eco_rounded, Color(0xFF10B981)),
   _Category(GemType.diamond, 'Diamond', Icons.diamond_rounded, Color(0xFF8B5CF6)),
+  _Category(GemType.alexandrite, 'Alexandrite', Icons.auto_fix_high_rounded, Color(0xFF8B5CF6)),
+  _Category(GemType.topaz, 'Topaz', Icons.brightness_high_rounded, Color(0xFFF59E0B)),
+  _Category(GemType.spinel, 'Spinel', Icons.grain_rounded, Color(0xFFEC4899)),
+  _Category(GemType.tourmaline, 'Tourmaline', Icons.palette_rounded, Color(0xFFF43F5E)),
+  _Category(GemType.other, 'Other', Icons.more_horiz_rounded, Color(0xFF6B7280)),
 ];
 
 // ─── Light theme design tokens ────────────────────────────────────────────────
@@ -29,8 +34,8 @@ class _T {
   static const bg = Color(0xFFF5F7FA);
   static const card = Colors.white;
   static const border = Color(0xFFE5E7EB);
-  static const accent = Color(0xFF2563EB);
-  static const accentLight = Color(0xFFEFF6FF);
+  static const accent = Color(0xFF10C971);
+  static const accentLight = Color(0xFFDCFCE7);
   static const gold = Color(0xFFF59E0B);
   static const text = Color(0xFF111827);
   static const subText = Color(0xFF6B7280);
@@ -56,13 +61,15 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
     return Scaffold(
-      backgroundColor: _T.bg,
+      backgroundColor: isDark ? const Color(0xFF111827) : _T.bg,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -79,17 +86,19 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   // ─── Hero Header ─────────────────────────────────────────────────────────────
   Widget _buildHeroHeader() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       child: RichText(
-        text: const TextSpan(
+        text: TextSpan(
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.bold,
-            color: _T.text,
+            color: isDark ? Colors.white : _T.text,
             height: 1.25,
           ),
-          children: [
+          children: const [
             TextSpan(text: 'Find Your '),
             TextSpan(
               text: 'Exquisite',
@@ -104,6 +113,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   // ─── Search Bar ───────────────────────────────────────────────────────────────
   Widget _buildSearchBar() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -113,31 +124,33 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
               height: 50,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: _T.card,
+                color: isDark ? const Color(0xFF1F2937) : _T.card,
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(color: _T.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(color: isDark ? const Color(0xFF374151) : _T.border),
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.search_rounded, color: _T.subText, size: 20),
+                  Icon(Icons.search_rounded, color: isDark ? Colors.grey[400] : _T.subText, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: _T.text, fontSize: 14),
+                      style: TextStyle(color: isDark ? Colors.white : _T.text, fontSize: 14),
                       onChanged: (v) {
                         ref.read(gemMarketplaceViewModelProvider.notifier).updateSearchQuery(v);
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'Search rare sapphires, rubies...',
-                        hintStyle: TextStyle(color: _T.subText, fontSize: 14),
+                        hintStyle: TextStyle(color: isDark ? Colors.grey[400] : _T.subText, fontSize: 14),
                         border: InputBorder.none,
                         isDense: true,
                       ),
@@ -152,16 +165,18 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: _T.card,
+              color: isDark ? const Color(0xFF1F2937) : _T.card,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _T.border),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: isDark ? const Color(0xFF374151) : _T.border),
+              boxShadow: isDark
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
             ),
             child: const Icon(Icons.tune_rounded, color: _T.accent, size: 20),
           ),
@@ -172,6 +187,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   // ─── Categories ───────────────────────────────────────────────────────────────
   Widget _buildCategories() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 4),
       child: SingleChildScrollView(
@@ -195,10 +212,10 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                     vertical: 9,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? _T.accent : _T.card,
+                    color: isSelected ? _T.accent : (isDark ? const Color(0xFF1F2937) : _T.card),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected ? _T.accent : _T.border,
+                      color: isSelected ? _T.accent : (isDark ? const Color(0xFF374151) : _T.border),
                     ),
                     boxShadow: isSelected
                         ? [
@@ -210,7 +227,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                           ]
                         : [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
+                              color: isDark ? Colors.transparent : Colors.black.withOpacity(0.03),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -230,7 +247,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : _T.subText,
+                          color: isSelected ? Colors.white : (isDark ? Colors.grey[300] : _T.subText),
                         ),
                       ),
                     ],
@@ -246,33 +263,38 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   // ─── Section Header ───────────────────────────────────────────────────────────
   Widget _buildSectionHeader() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
+          Text(
             'New Arrivals',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: _T.text,
+              color: isDark ? Colors.white : _T.text,
             ),
           ),
           GestureDetector(
-            onTap: () {},
+            onTap: () {
+              setState(() => _selectedCategory = 0);
+              ref.read(gemMarketplaceViewModelProvider.notifier).updateType(GemType.allGems);
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: _T.accentLight,
+                color: isDark ? const Color(0xFF1F2937) : _T.accentLight,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 'View All',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: _T.accent,
+                  color: isDark ? Colors.white : _T.accent,
                 ),
               ),
             ),
@@ -284,6 +306,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   // ─── Gem Grid ─────────────────────────────────────────────────────────────────
   Widget _buildGemGrid() {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final gemsState = ref.watch(gemMarketplaceViewModelProvider);
 
     return gemsState.when(
@@ -293,19 +316,19 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
       error: (err, stack) => Center(
         child: Text(
           'Error loading gems: $err',
-          style: const TextStyle(color: Colors.red),
+          style: TextStyle(color: isDark ? Colors.redAccent.shade100 : Colors.red),
         ),
       ),
       data: (gems) {
         if (gems.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.search_off, color: _T.subText, size: 48),
-                SizedBox(height: 12),
+                Icon(Icons.search_off, color: isDark ? Colors.grey[400] : _T.subText, size: 48),
+                const SizedBox(height: 12),
                 Text('No gems found',
-                    style: TextStyle(color: _T.subText, fontSize: 16)),
+                    style: TextStyle(color: isDark ? Colors.grey[400] : _T.subText, fontSize: 16)),
               ],
             ),
           );
@@ -327,18 +350,20 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
   }
 
   Widget _buildGemCard(Gem gem) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () => Navigator.of(context, rootNavigator: true).push(
         MaterialPageRoute(builder: (_) => ListingDetailScreen(gem: gem)),
       ),
       child: Container(
         decoration: BoxDecoration(
-          color: _T.card,
+          color: isDark ? const Color(0xFF1F2937) : _T.card,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _T.border),
+          border: Border.all(color: isDark ? const Color(0xFF374151) : _T.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: isDark ? Colors.black.withOpacity(0.12) : Colors.black.withOpacity(0.05),
               blurRadius: 14,
               offset: const Offset(0, 4),
             ),
@@ -416,10 +441,10 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                   const SizedBox(height: 3),
                   Text(
                     gem.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: _T.text,
+                      color: isDark ? Colors.white : _T.text,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

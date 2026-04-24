@@ -105,32 +105,34 @@ class RecentJobsList extends ConsumerWidget {
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: jobs
-                .map(
-                  (job) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                JobDetailsScreen(job: job.toMap()),
-                          ),
-                        );
-                      },
-                      child: RecentJobCard(
-                        title: job.title,
-                        companyInfo: job.companyInfo,
-                        salary: job.salary,
-                        tags: job.tags.split(','),
-                        logoColor: Color(job.logoColor),
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: jobs.length,
+            itemBuilder: (context, index) {
+              final job = jobs[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            JobDetailsScreen(job: job.toMap()),
                       ),
-                    ),
+                    );
+                  },
+                  child: RecentJobCard(
+                    title: job.title,
+                    companyInfo: job.companyInfo,
+                    salary: job.salary,
+                    tags: job.tags.split(','),
+                    logoColor: Color(job.logoColor),
                   ),
-                )
-                .toList(),
+                ),
+              );
+            },
           ),
         );
       },

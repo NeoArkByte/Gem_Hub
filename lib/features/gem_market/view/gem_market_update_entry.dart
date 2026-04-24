@@ -7,8 +7,8 @@ class _T {
   static const bg = Color(0xFFF5F7FA);
   static const card = Colors.white;
   static const border = Color(0xFFE5E7EB);
-  static const accent = Color(0xFF2563EB);
-  static const accentLight = Color(0xFFEFF6FF);
+  static const accent = Color(0xFF10C971);
+  static const accentLight = Color(0xFFDCFCE7);
   static const text = Color(0xFF111827);
   static const subText = Color(0xFF6B7280);
 }

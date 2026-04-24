@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:job_market/core/enums/gem_status.dart';
 import 'package:job_market/core/enums/gem_type.dart';
+import 'package:job_market/data/models/gem_market/gem_model.dart';
+import 'package:job_market/features/gem_market/viewmodel/gem_marketplace_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // ─── Light theme tokens ────────────────────────────────────────────────────────
 class _T {
   static const bg = Color(0xFFF5F7FA);
   static const card = Colors.white;
   static const border = Color(0xFFE5E7EB);
-  static const accent = Color(0xFF2563EB);
-  static const accentLight = Color(0xFFEFF6FF);
+  static const accent = Color(0xFF10C971);
+  static const accentLight = Color(0xFFDCFCE7);
   static const text = Color(0xFF111827);
   static const subText = Color(0xFF6B7280);
 }
 
-class AddGemScreen extends StatefulWidget {
+class AddGemScreen extends ConsumerStatefulWidget {
   const AddGemScreen({super.key});
 
   @override
-  State<AddGemScreen> createState() => _AddGemScreenState();
+  ConsumerState<AddGemScreen> createState() => _AddGemScreenState();
 }
 
-class _AddGemScreenState extends State<AddGemScreen> {
+class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -27,10 +32,16 @@ class _AddGemScreenState extends State<AddGemScreen> {
   final _priceController = TextEditingController();
   final _descController = TextEditingController();
   final _colorController = TextEditingController();
+  final _clarityController = TextEditingController();
+  final _treatmentController = TextEditingController();
+  final _shapeController = TextEditingController();
   final _originController = TextEditingController();
   final _sellerPhoneController = TextEditingController();
+  final _imageUrlController = TextEditingController();
   final _videoUrlController = TextEditingController();
   final _locationController = TextEditingController();
+
+  bool _isPublishing = false;
 
   GemType _selectedType = GemType.sapphire;
 
@@ -41,8 +52,12 @@ class _AddGemScreenState extends State<AddGemScreen> {
     _priceController.dispose();
     _descController.dispose();
     _colorController.dispose();
+    _clarityController.dispose();
+    _treatmentController.dispose();
+    _shapeController.dispose();
     _originController.dispose();
     _sellerPhoneController.dispose();
+    _imageUrlController.dispose();
     _videoUrlController.dispose();
     _locationController.dispose();
     super.dispose();
@@ -113,11 +128,32 @@ class _AddGemScreenState extends State<AddGemScreen> {
                   ),
                   const SizedBox(width: 14),
                   Expanded(
-                    child: _buildTextField('Origin', 'e.g. Ceylon', Icons.location_on_outlined, _originController),
+                    child: _buildTextField('Shape', 'e.g. Oval', Icons.shape_line_outlined, _shapeController),
                   ),
                 ],
               ),
-              _buildTextField('Location', 'e.g. Mayfair, London, UK', Icons.map_outlined, _locationController),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField('Clarity', 'e.g. VVS1', Icons.remove_red_eye_outlined, _clarityController),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildTextField('Treatment', 'e.g. Heat', Icons.wb_sunny_outlined, _treatmentController),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField('Origin', 'e.g. Ceylon', Icons.location_on_outlined, _originController),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _buildTextField('Location', 'e.g. Colombo', Icons.map_outlined, _locationController),
+                  ),
+                ],
+              ),
               _buildTextField(
                 'Description',
                 'Describe the gem\'s quality, clarity, and history...',
@@ -129,6 +165,7 @@ class _AddGemScreenState extends State<AddGemScreen> {
               _sectionLabel('Contact & Media (Optional)'),
               const SizedBox(height: 12),
               _buildTextField('Seller Phone', 'e.g. +1 234 567 8900', Icons.phone_outlined, _sellerPhoneController, isOptional: true),
+              _buildTextField('Image URL', 'e.g. https://...', Icons.image_outlined, _imageUrlController),
               _buildVideoUploadArea(),
               const SizedBox(height: 28),
               _buildPublishButton(context),
@@ -340,14 +377,7 @@ class _AddGemScreenState extends State<AddGemScreen> {
       width: double.infinity,
       height: 52,
       child: ElevatedButton.icon(
-        onPressed: () {
-          if (_formKey.currentState!.validate()) {
-            // Form is valid. You would dispatch this data to your ViewModel here.
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Processing Data')),
-            );
-          }
-        },
+        onPressed: _isPublishing ? null : _handlePublish,
         style: ElevatedButton.styleFrom(
           backgroundColor: _T.accent,
           foregroundColor: Colors.white,
@@ -356,12 +386,63 @@ class _AddGemScreenState extends State<AddGemScreen> {
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        icon: const Icon(Icons.publish_rounded, size: 20),
-        label: const Text(
-          'Publish Listing',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        icon: _isPublishing 
+          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          : const Icon(Icons.publish_rounded, size: 20),
+        label: Text(
+          _isPublishing ? 'Publishing...' : 'Publish Listing',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
+  }
+
+  Future<void> _handlePublish() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isPublishing = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ownerId = prefs.getString('logged_in_user_id') ?? 'anonymous';
+
+      final gem = Gem(
+        ownerId: ownerId,
+        name: _nameController.text,
+        type: _selectedType,
+        carat: double.tryParse(_caratController.text) ?? 0,
+        price: double.tryParse(_priceController.text) ?? 0,
+        description: _descController.text,
+        color: _colorController.text,
+        clarity: _clarityController.text,
+        treatment: _treatmentController.text,
+        shape: _shapeController.text,
+        origin: _originController.text,
+        location: _locationController.text,
+        imageUrl: _imageUrlController.text.isNotEmpty 
+          ? _imageUrlController.text 
+          : 'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=700', // Default image
+        sellerPhone: _sellerPhoneController.text,
+        status: GemStatus.active,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      final success = await ref.read(gemMarketplaceViewModelProvider.notifier).addGem(gem);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gem listed successfully!')),
+          );
+          Navigator.pop(context);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to list gem. Please try again.')),
+          );
+        }
+      }
+    } finally {
+      if (mounted) setState(() => _isPublishing = false);
+    }
   }
 }
