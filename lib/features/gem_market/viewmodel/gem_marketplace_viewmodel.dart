@@ -41,5 +41,16 @@ class GemMarketplaceViewModel extends AutoDisposeAsyncNotifier<List<Gem>> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchGemsFromRepo());
   }
+  
+  Future<bool> addGem(Gem gem) async {
+    try {
+      final repository = ref.read(gemRepositoryProvider);
+      await repository.postNewGem(gem);
+      await fetchGems();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
