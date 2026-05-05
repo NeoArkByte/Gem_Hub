@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/data/home/view/home_screen.dart';
+import 'package:job_market/features/home/view/home_screen.dart';
 import 'package:job_market/features/gem_market/view/gem_market.dart';
 import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
 import 'package:job_market/features/navigation/viewmodel/navigation_viewmodel.dart';
