@@ -1,56 +1,87 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:job_market/data/datasources/local/database_helper.dart';
+import 'package:job_market/data/models/auth/user_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/data/repositories/auth_repository.dart';
 
-final authViewModelProvider =
-    AsyncNotifierProvider.autoDispose<AuthViewModel, bool?>(() {
-      return AuthViewModel();
-    });
+// 1. The Provider: This injects DatabaseHelper into the ViewModel
+final authViewModelProvider = StateNotifierProvider<AuthViewModel, AsyncValue<UserModel?>>((ref) {
+  return AuthViewModel(DatabaseHelper());
+});
 
-class AuthViewModel extends AutoDisposeAsyncNotifier<bool?> {
-  @override
-  bool? build() {
+class AuthViewModel extends StateNotifier<AsyncValue<UserModel?>> {
+  final DatabaseHelper _dbHelper;
+
+  AuthViewModel(this._dbHelper) : super(const AsyncValue.data(null));
+
+  // --- LOGIN LOGIC ---
+  Future<UserModel?> login(String username, String password) async {
+  state = const AsyncValue.loading();
+  try {
+    final userMap = await _dbHelper.loginUser(username, password);
+
+    if (userMap != null) {
+      final user = UserModel.fromMap(userMap);
+
+      // This is the critical part for the Profile View to work
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('logged_in_user_id', user.id.toString());
+      await prefs.setString('logged_in_username', user.username);
+
+      state = AsyncValue.data(user);
+      return user;
+    }
+    state = const AsyncValue.data(null);
+    return null;
+  } catch (e, stack) {
+    state = AsyncValue.error(e, stack);
     return null;
   }
+}
 
-  Future<Map<String, dynamic>?> login(String username, String password) async {
+  // --- SIGN UP LOGIC ---
+  Future<UserModel?> signUp(String name, String username, String password) async {
+    state = const AsyncValue.loading();
     try {
-      state = const AsyncValue.loading(); 
-      await Future.delayed(const Duration(milliseconds: 500));
-      final repository = ref.read(authRepositoryProvider);
-      final user = await repository.login(username, password);
+      // Prepare the map for database insertion
+      final newUserMap = {
+        'name': name,
+        'username': username,
+        'password': password,
+        'title': 'GEMOLOGIST', // Default title
+        'items_count': 0,
+        'rating': 0.0,
+        'sales_count': '0',
+        'member_since': _getCurrentMonthYear(),
+      };
 
-      if (user != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('logged_in_user_id', user['username']);
-        await prefs.setString('logged_in_user_name', user['name']);
-
-        state = const AsyncValue.data(true); // Success
+      final id = await _dbHelper.registerUser(newUserMap);
+      
+      if (id > 0) {
+        final user = UserModel.fromMap({...newUserMap, 'id': id});
+        state = AsyncValue.data(user);
         return user;
-      } else {
-        state = const AsyncValue.data(false); // Fail (Wrong credentials)
-        return null;
       }
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace); // System error
+      state = const AsyncValue.data(null);
+      return null;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
       return null;
     }
   }
 
-  Future<bool> signUp(String name, String username, String password) async {
-    try {
-      state = const AsyncValue.loading();
+  String _getCurrentMonthYear() {
+    final now = DateTime.now();
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    return "${months[now.month - 1]} ${now.year}";
+  }
 
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final repository = ref.read(authRepositoryProvider);
-      final isSuccess = await repository.registerUser(name, username, password);
-
-      state = AsyncValue.data(isSuccess);
-      return isSuccess;
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-      return false;
-    }
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('logged_in_user_id');
+    await prefs.remove('logged_in_username');
+    state = const AsyncValue.data(null);
   }
 }

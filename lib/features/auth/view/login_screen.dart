@@ -19,41 +19,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
 
   void _login() async {
-    String user = _usernameCtrl.text.trim();
-    String pass = _passwordCtrl.text;
+  String user = _usernameCtrl.text.trim();
+  String pass = _passwordCtrl.text;
 
-    if (user.isEmpty || pass.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
-      return;
-    }
+  if (user.isEmpty || pass.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fill all fields')),
+    );
+    return;
+  }
 
-    // Admin login (Hardcoded for demo)
-    if (user == 'admin' && pass == '123') {
+  // Use the ViewModel to perform the login and save the session ID
+  final userResult = await ref
+      .read(authViewModelProvider.notifier)
+      .login(user, pass);
+
+  if (userResult != null && mounted) {
+    // Check if the logged-in user is the admin ('aka')
+    if (userResult.username == 'aka') {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const AdminJobReviewScreen()),
       );
-      return;
-    }
-
-    // 👇 ViewModel eken login request eka yawanawa
-    final userResult = await ref
-        .read(authViewModelProvider.notifier)
-        .login(user, pass);
-
-    if (userResult != null && mounted) {
+    } else {
       Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainNavigation()),
         (route) => false,
       );
-    } else if (userResult == null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid username or password')),
-      );
     }
+  } else if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Invalid username or password')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {

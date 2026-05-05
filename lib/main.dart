@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:job_market/features/auth/view/login_screen.dart';
 import 'package:job_market/features/navigation/view/main_navigation.dart';
 
 void main() async {
@@ -14,6 +15,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'GemCost Jobs',
+      initialRoute: '/',
+      routes: {
+    '/login': (context) => const LoginScreen(),
+    // Add other routes here if needed
+  },
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,

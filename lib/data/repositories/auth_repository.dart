@@ -17,18 +17,24 @@ class AuthRepository {
   }
 
   // Aluth User kenek register karanawa
-  Future<bool> registerUser(String name, String username, String password) async {
+  Future<int?> registerUser(String name, String username, String password) async {
     final db = await _dbHelper.database;
     try {
-      await db.insert('users', {
+      // db.insert returns the primary key (id) of the inserted row
+      final int id = await db.insert('users', {
         'name': name,
         'username': username,
-        'password': password
+        'password': password,
+        'title': 'SENIOR GEMOLOGIST', // Default title for your UI
+        'items_count': 0,
+        'rating': 0.0,
+        'sales_count': '0',
+        'member_since': 'May 2026'
       });
-      return true;
+      return id; 
     } catch (e) {
-      // Username eka kalinma thiyenawa nam error eka enawa (UNIQUE constraint)
-      return false; 
+      print("Registration error: $e");
+      return null; 
     }
   }
 }

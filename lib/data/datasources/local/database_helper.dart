@@ -16,16 +16,11 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    // Increment version to v9 for schema update
-    // Increment version to v11 for schema update
-    String path = join(await getDatabasesPath(), 'gemcost_jobs_v11.db');
+    String path = join(await getDatabasesPath(), 'gemcost_jobs_v12.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 1, // If you change the filename (v12.db), keep version at 1.
       onCreate: _onCreate,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
     );
   }
 
@@ -36,9 +31,26 @@ class DatabaseHelper {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         username TEXT UNIQUE,
-        password TEXT
+        password TEXT,
+        title TEXT,
+        items_count INTEGER,
+        rating REAL,
+        sales_count TEXT,
+        member_since TEXT
       )
     ''');
+
+    // Insert Demo Admin
+    await db.insert('users', {
+      'name': 'David Sterling',
+      'username': 'aka',
+      'password': 'aka',
+      'title': 'SENIOR GEMOLOGIST',
+      'items_count': 142,
+      'rating': 4.9,
+      'sales_count': '12k',
+      'member_since': 'August 2021',
+    });
 
     // 2. Jobs Table
     await db.execute('''
@@ -109,25 +121,9 @@ class DatabaseHelper {
     await _insertDemoData(db);
   }
 
+
   Future<void> _insertDemoData(Database db) async {
     final now = DateTime.now();
-
-    // Demo Users (Needed for Foreign Keys)
-    await db.insert('users', {
-      'name': 'John Doe',
-      'username': 'USER_001',
-      'password': 'password123',
-    });
-    await db.insert('users', {
-      'name': 'Jane Smith',
-      'username': 'USER_002',
-      'password': 'password123',
-    });
-    await db.insert('users', {
-      'name': 'Admin User',
-      'username': 'admin',
-      'password': '123',
-    });
 
     // Demo Jobs
     List<Map<String, dynamic>> demoJobs = [
@@ -185,6 +181,45 @@ class DatabaseHelper {
       await db.insert('gems', gem);
     }
   }
+  Future<Map<String, dynamic>?> getUserData(String username) async {
+  final db = await database;
+  final List<Map<String, dynamic>> results = await db.query(
+    'users',
+    where: 'username = ?',
+    whereArgs: [username],
+  );
+  
+  if (results.isNotEmpty) {
+    return results.first; // Returns the specific user found
+  }
+  return null;
+}
+
+  // --- DASHBOARD ANALYTICS ---
+
+  // Calculates Total Portfolio Value (Sum of all gem prices)
+  Future<double> getTotalPortfolioValue(String userId) async {
+    final db = await database;
+    var result = await db.rawQuery(
+      'SELECT SUM(price) as total FROM gems WHERE owner_id = ?', 
+      [userId]
+    );
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  // Calculates Monthly Profit (Dummy logic for now, using recent additions)
+  Future<double> getMonthlyProfit(String userId) async {
+    final db = await database;
+    final firstDayOfMonth = DateTime(DateTime.now().year, DateTime.now().month, 1).toIso8601String();
+    
+    var result = await db.rawQuery(
+      'SELECT SUM(price) as monthly_total FROM gems WHERE owner_id = ? AND created_at >= ?',
+      [userId, firstDayOfMonth]
+    );
+    return (result.first['monthly_total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+
 
   // --- GEM FUNCTIONS ---
   Future<int> insertGem(Map<String, dynamic> gem) async {
@@ -320,22 +355,6 @@ class DatabaseHelper {
     return await db.insert('users', user);
   }
 
-  Future<Map<String, dynamic>?> loginUser(
-    String username,
-    String password,
-  ) async {
-    final db = await database;
-    final List<Map<String, dynamic>> users = await db.query(
-      'users',
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
-    );
-    if (users.isNotEmpty) {
-      return users.first;
-    }
-    return null;
-  }
-
   // 👇 MEKA THAMAI MISSING WELA THIBBE
   Future<List<Map<String, dynamic>>> getFeaturedJobs() async {
     final db = await database;
@@ -377,5 +396,18 @@ class DatabaseHelper {
 
     query += " ORDER BY id DESC";
     return await db.rawQuery(query, args);
+  }
+
+  Future<Map<String, dynamic>?> loginUser(
+    String username,
+    String password,
+  ) async {
+    final db = await database;
+    final List<Map<String, dynamic>> users = await db.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+    return users.isNotEmpty ? users.first : null;
   }
 }

@@ -33,7 +33,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         .signUp(name, username, pass);
 
     if (mounted) {
-      if (isSuccess) {
+      if (isSuccess != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Account created! Please log in.'),
