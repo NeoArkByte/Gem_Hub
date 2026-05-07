@@ -26,5 +26,12 @@ class GemRepository {
   Future<int> postNewGem(Gem gem) async {
     return await _dbHelper.insertGem(gem.toMap());
   }
-}
 
+  Future<int> updateGem(Gem gem) async {
+    return await _dbHelper.updateGem(gem.toMap());
+  }
+
+  Future<int> deleteGem(int id) async {
+    return await _dbHelper.deleteGem(id);
+  }
+}

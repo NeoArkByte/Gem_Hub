@@ -194,6 +194,21 @@ class DatabaseHelper {
     return await db.insert('gems', gem);
   }
 
+  Future<int> updateGem(Map<String, dynamic> gem) async {
+    final db = await database;
+    return await db.update(
+      'gems',
+      gem,
+      where: 'id = ?',
+      whereArgs: [gem['id']],
+    );
+  }
+
+  Future<int> deleteGem(int id) async {
+    final db = await database;
+    return await db.delete('gems', where: 'id = ?', whereArgs: [id]);
+  }
+
   Future<List<Map<String, dynamic>>> getActiveGems() async {
     final db = await database;
     return await db.query(
