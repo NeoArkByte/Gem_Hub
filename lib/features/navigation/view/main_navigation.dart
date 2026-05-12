@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/features/gem_market/view/gem_market.dart';
+import 'package:job_market/features/inventory/view/inventory_screen.dart';
 import 'package:job_market/features/navigation/viewmodel/navigation_viewmodel.dart';
 import 'package:job_market/shared/widgets/bottom_navigation_bar.dart';
 import 'package:job_market/shared/widgets/app_header.dart';
@@ -38,7 +39,7 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
 
     final tabs = [
       _buildTab(0, const JobMarketplaceScreen()),
-      _buildTab(1, const JobMarketplaceScreen()),
+      _buildTab(1, const InventoryScreen()),
       _buildTab(2, const GemMarketPlaceScreen()),
       _buildTab(3, const JobMarketplaceScreen()),
       _buildTab(4, const JobMarketplaceScreen()),
