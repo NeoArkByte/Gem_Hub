@@ -1,9 +1,20 @@
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
+import 'dart:math';
+import 'dart:io'; // <--- This defines 'File'
+import 'dart:typed_data';
+import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
+  
+  // Secure storage for the hardware-backed encryption key
+  final _storage = const FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
+  );
+  final _keyName = 'gemcost_vault_key_v12';
 
   factory DatabaseHelper() => _instance;
 
@@ -15,28 +26,46 @@ class DatabaseHelper {
     return _database!;
   }
 
+  /// Fetches the existing key or generates a cryptographically strong 256-bit key
+  Future<String> _getEncryptionKey() async {
+    String? key = await _storage.read(key: _keyName);
+    if (key == null) {
+      final randomBytes = List<int>.generate(32, (i) => Random.secure().nextInt(256));
+      key = base64Url.encode(randomBytes);
+      await _storage.write(key: _keyName, value: key);
+    }
+    return key;
+  }
+
   Future<Database> _initDatabase() async {
-    // Increment version to v9 for schema update
-    // Increment version to v11 for schema update
-    String path = join(await getDatabasesPath(), 'gemcost_jobs_v11.db');
+    String path = join(await getDatabasesPath(), 'gemcost_jobs_v12_secure.db');
+    final password = await _getEncryptionKey();
+
     return await openDatabase(
       path,
+      password: password, // This activates SQLCipher AES-256 encryption
       version: 1,
-      onCreate: _onCreate,
       onConfigure: (db) async {
+        // Essential: Enables foreign key constraints (Cascade Delete, etc.)
         await db.execute('PRAGMA foreign_keys = ON');
       },
+      onCreate: _onCreate,
     );
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Users Table (Must be first for Foreign Keys)
+    // 1. Users Table
     await db.execute('''
       CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
         username TEXT UNIQUE,
-        password TEXT
+        password TEXT,
+        title TEXT,
+        items_count INTEGER,
+        rating REAL,
+        sales_count TEXT,
+        member_since TEXT
       )
     ''');
 
@@ -84,129 +113,180 @@ class DatabaseHelper {
       )
     ''');
 
-    // 5. Gems Table (Added Foreign Key)
+    // 5. Gemstone Inventory Table
     await db.execute('''
-      CREATE TABLE gems (
+      CREATE TABLE gemstones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        owner_id TEXT,
-        name TEXT,
-        type TEXT,
-        carat REAL,
-        price REAL,
-        description TEXT,
+        date TEXT, 
+        variety TEXT, 
+        is_sold INTEGER DEFAULT 0,
         color TEXT,
-        origin TEXT,
-        location TEXT,
-        image_url TEXT,
-        seller_phone TEXT,
-        video_url TEXT,
-        status TEXT,
-        created_at TEXT,
-        FOREIGN KEY (owner_id) REFERENCES users (username) ON DELETE CASCADE
+        is_rough INTEGER, 
+        is_cut INTEGER,
+        buying_weight REAL, 
+        buying_price REAL,
+        treatment_cost REAL, 
+        recut_cost REAL,
+        other_processing_cost REAL, 
+        other_processing_desc TEXT,
+        final_weight REAL, 
+        transport_cost REAL,
+        other_cost REAL, 
+        other_cost_reason TEXT,
+        target_price REAL, 
+        selling_price REAL,
+        first_image_path TEXT, 
+        final_image_path TEXT
       )
     ''');
 
-    await _insertDemoData(db);
+    // await _insertDemoData(db);
+  
+
+  // Future<void> _insertDemoData(Database db) async {
+  //   await db.insert('users', {
+  //     'name': 'David Sterling',
+  //     'username': 'aka',
+  //     'password': 'aka',
+  //     'title': 'SENIOR GEMOLOGIST',
+  //     'items_count': 142,
+  //     'rating': 4.9,
+  //     'sales_count': '12k',
+  //     'member_since': 'August 2021',
+  //   });
+  // }
+}
+
+  // Future<void> _insertDemoData(Database db) async {
+  //   final now = DateTime.now();
+
+  //   // Demo Jobs
+  //   List<Map<String, dynamic>> demoJobs = [
+  //     {
+  //       'employer_id': 'USER_001',
+  //       'title': 'Inventory Manager',
+  //       'companyInfo': 'Infinite Mines • London, UK',
+  //       'salary': '\$75k - \$110k',
+  //       'tags': 'FULL-TIME,REMOTE',
+  //       'logoColor': 0xFF143029,
+  //       'status': 'approved',
+  //       'createdAt': now.subtract(const Duration(hours: 2)).toIso8601String(),
+  //     },
+  //   ];
+  //   for (var job in demoJobs) {
+  //     await db.insert('jobs', job);
+  //   }
+
+  //   // Demo Gems
+  //   List<Map<String, dynamic>> demoGems = [
+  //     {
+  //       'owner_id': 'USER_001',
+  //       'name': 'Royal Blue Sapphire',
+  //       'type': 'Sapphire',
+  //       'carat': 4.5,
+  //       'price': 12500.0,
+  //       'description': 'Beautiful sapphire with high clarity',
+  //       'color': 'Blue',
+  //       'origin': 'Ceylon',
+  //       'location': 'Mayfair, London, UK',
+  //       'image_url':
+  //           'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000',
+  //       'video_url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  //       'seller_phone': '+94771234567',
+  //       'status': 'active',
+  //       'created_at': now.subtract(const Duration(days: 1)).toIso8601String(),
+  //     },
+  //     {
+  //       'owner_id': 'USER_002',
+  //       'name': 'Pigeon Blood Ruby',
+  //       'type': 'Ruby',
+  //       'carat': 2.1,
+  //       'price': 8900.0,
+  //       'description': 'Beautiful ruby with high clarity',
+  //       'color': 'Red',
+  //       'origin': 'Burma',
+  //       'image_url':
+  //           'https://images.unsplash.com/photo-1615111784767-4d7c307dc2bc?q=80&w=1000',
+  //       'seller_phone': '+94779876543',
+  //       'status': 'active',
+  //       'created_at': now.subtract(const Duration(hours: 12)).toIso8601String(),
+  //     },
+  //   ];
+  //   for (var gem in demoGems) {
+  //     await db.insert('gems', gem);
+  //   }
+  // }
+
+  Future<Map<String, dynamic>?> getUserData(String username) async {
+    final db = await database;
+    final List<Map<String, dynamic>> results = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [username],
+    );
+
+    if (results.isNotEmpty) {
+      return results.first; // Returns the specific user found
+    }
+    return null;
   }
 
-  Future<void> _insertDemoData(Database db) async {
-    final now = DateTime.now();
+Future<void> hexDumpHeader() async {
+  final dbPath = await getDatabasesPath();
+  final path = join(dbPath, 'gemcost_jobs_v12_secure.db');
+  final file = File(path);
 
-    // Demo Users (Needed for Foreign Keys)
-    await db.insert('users', {
-      'name': 'John Doe',
-      'username': 'USER_001',
-      'password': 'password123',
-    });
-    await db.insert('users', {
-      'name': 'Jane Smith',
-      'username': 'USER_002',
-      'password': 'password123',
-    });
-    await db.insert('users', {
-      'name': 'Admin User',
-      'username': 'admin',
-      'password': '123',
-    });
+  if (await file.exists()) {
+    final bytes = await file.openRead(0, 16).first;
+    final hexString = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+    final plainText = String.fromCharCodes(bytes.where((b) => b >= 32 && b <= 126));
 
-    // Demo Jobs
-    List<Map<String, dynamic>> demoJobs = [
-      {
-        'employer_id': 'USER_001',
-        'title': 'Inventory Manager',
-        'companyInfo': 'Infinite Mines • London, UK',
-        'salary': '\$75k - \$110k',
-        'tags': 'FULL-TIME,REMOTE',
-        'logoColor': 0xFF143029,
-        'status': 'approved',
-        'createdAt': now.subtract(const Duration(hours: 2)).toIso8601String(),
-      },
-    ];
-    for (var job in demoJobs) {
-      await db.insert('jobs', job);
+    print("🛠️ FILE HEADER (HEX): $hexString");
+    print("🛠️ FILE HEADER (TEXT): '$plainText'");
+
+    if (plainText.contains("SQLite format 3")) {
+      print("🚨 NOT ENCRYPTED: I can see the SQLite header!");
+    } else {
+      print("🛡️ VERIFIED ENCRYPTED: The header is scrambled gibberish.");
     }
+  }
+}
 
-    // Demo Gems
-    List<Map<String, dynamic>> demoGems = [
-      {
-        'owner_id': 'USER_001',
-        'name': 'Royal Blue Sapphire',
-        'type': 'Sapphire',
-        'carat': 4.5,
-        'price': 12500.0,
-        'description': 'Beautiful sapphire with high clarity',
-        'color': 'Blue',
-        'origin': 'Ceylon',
-        'location': 'Mayfair, London, UK',
-        'image_url':
-            'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=1000',
-        'video_url': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        'seller_phone': '+94771234567',
-        'status': 'active',
-        'created_at': now.subtract(const Duration(days: 1)).toIso8601String(),
-      },
-      {
-        'owner_id': 'USER_002',
-        'name': 'Pigeon Blood Ruby',
-        'type': 'Ruby',
-        'carat': 2.1,
-        'price': 8900.0,
-        'description': 'Beautiful ruby with high clarity',
-        'color': 'Red',
-        'origin': 'Burma',
-        'image_url':
-            'https://images.unsplash.com/photo-1615111784767-4d7c307dc2bc?q=80&w=1000',
-        'seller_phone': '+94779876543',
-        'status': 'active',
-        'created_at': now.subtract(const Duration(hours: 12)).toIso8601String(),
-      },
-    ];
-    for (var gem in demoGems) {
-      await db.insert('gems', gem);
-    }
+  // --- DASHBOARD ANALYTICS ---
+
+  // Calculates Total Portfolio Value (Sum of all gem prices)
+  Future<double> getTotalPortfolioValue(String userId) async {
+    final db = await database;
+    var result = await db.rawQuery(
+      'SELECT SUM(price) as total FROM gems WHERE owner_id = ?',
+      [userId],
+    );
+    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  // Calculates Monthly Profit (Dummy logic for now, using recent additions)
+  Future<double> getMonthlyProfit(String userId) async {
+    final db = await database;
+    final firstDayOfMonth = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      1,
+    ).toIso8601String();
+
+    var result = await db.rawQuery(
+      'SELECT SUM(price) as monthly_total FROM gems WHERE owner_id = ? AND created_at >= ?',
+      [userId, firstDayOfMonth],
+    );
+    return (result.first['monthly_total'] as num?)?.toDouble() ?? 0.0;
   }
 
   // --- GEM FUNCTIONS ---
   Future<int> insertGem(Map<String, dynamic> gem) async {
     final db = await database;
-    if (!gem.containsKey('created_at'))
+    if (!gem.containsKey('created_at')) {
       gem['created_at'] = DateTime.now().toIso8601String();
+    }
     return await db.insert('gems', gem);
-  }
-
-  Future<int> updateGem(Map<String, dynamic> gem) async {
-    final db = await database;
-    return await db.update(
-      'gems',
-      gem,
-      where: 'id = ?',
-      whereArgs: [gem['id']],
-    );
-  }
-
-  Future<int> deleteGem(int id) async {
-    final db = await database;
-    return await db.delete('gems', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<Map<String, dynamic>>> getActiveGems() async {
@@ -271,15 +351,17 @@ class DatabaseHelper {
   // --- JOB & APPLICATION FUNCTIONS ---
   Future<int> insertJob(Map<String, dynamic> job) async {
     final db = await database;
-    if (!job.containsKey('createdAt'))
+    if (!job.containsKey('createdAt')) {
       job['createdAt'] = DateTime.now().toIso8601String();
+    }
     return await db.insert('jobs', job);
   }
 
   Future<int> submitApplication(Map<String, dynamic> application) async {
     final db = await database;
-    if (!application.containsKey('appliedAt'))
+    if (!application.containsKey('appliedAt')) {
       application['appliedAt'] = DateTime.now().toIso8601String();
+    }
     return await db.insert('applications', application);
   }
 
@@ -335,22 +417,6 @@ class DatabaseHelper {
     return await db.insert('users', user);
   }
 
-  Future<Map<String, dynamic>?> loginUser(
-    String username,
-    String password,
-  ) async {
-    final db = await database;
-    final List<Map<String, dynamic>> users = await db.query(
-      'users',
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
-    );
-    if (users.isNotEmpty) {
-      return users.first;
-    }
-    return null;
-  }
-
   // 👇 MEKA THAMAI MISSING WELA THIBBE
   Future<List<Map<String, dynamic>>> getFeaturedJobs() async {
     final db = await database;
@@ -392,5 +458,18 @@ class DatabaseHelper {
 
     query += " ORDER BY id DESC";
     return await db.rawQuery(query, args);
+  }
+
+  Future<Map<String, dynamic>?> loginUser(
+    String username,
+    String password,
+  ) async {
+    final db = await database;
+    final List<Map<String, dynamic>> users = await db.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+    return users.isNotEmpty ? users.first : null;
   }
 }
