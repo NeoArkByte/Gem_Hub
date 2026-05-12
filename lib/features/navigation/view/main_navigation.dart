@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/features/home/view/home_screen.dart';
 import 'package:job_market/features/gem_market/view/gem_market.dart';
-import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
+import 'package:job_market/features/inventory/view/inventory_screen.dart';
 import 'package:job_market/features/navigation/viewmodel/navigation_viewmodel.dart';
-import 'package:job_market/features/profile/view/profile_screen.dart';
 import 'package:job_market/shared/widgets/bottom_navigation_bar.dart';
 import 'package:job_market/shared/widgets/app_header.dart';
 
@@ -40,11 +38,11 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     final tabs = [
-      _buildTab(0, const HomeScreen()),
-      _buildTab(1, const AddNewGemstoneScreen()),
+      _buildTab(0, const JobMarketplaceScreen()),
+      _buildTab(1, const InventoryScreen()),
       _buildTab(2, const GemMarketPlaceScreen()),
       _buildTab(3, const JobMarketplaceScreen()),
-      _buildTab(4, const ProfileScreen()),
+      _buildTab(4, const JobMarketplaceScreen()),
     ];
 
     return PopScope(

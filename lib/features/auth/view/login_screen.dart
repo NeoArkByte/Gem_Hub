@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/features/auth/view/sign_up_screen.dart'; 
-import 'package:job_market/features/jobs/view/admin_screen.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart'; 
-import 'package:job_market/features/navigation/view/main_navigation.dart';
+import 'package:go_router/go_router.dart';
+import 'package:job_market/core/constants/app_colors.dart';
+import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
+
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -13,57 +13,53 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final TextEditingController _usernameCtrl = TextEditingController();
+  final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
-  final Color primaryGreen = const Color(0xFF10C971);
-  bool _obscurePassword = true;
+
+    bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _login() async {
-  String user = _usernameCtrl.text.trim();
-  String pass = _passwordCtrl.text;
+    final email = _emailCtrl.text.trim();
+    final password = _passwordCtrl.text;
 
-  if (user.isEmpty || pass.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please fill all fields')),
-    );
-    return;
-  }
+    final vm = ref.read(authViewModelProvider.notifier);
 
-  // Use the ViewModel to perform the login and save the session ID
-  final userResult = await ref
-      .read(authViewModelProvider.notifier)
-      .login(user, pass);
+    // 🔐 Validation (ViewModel)
+    final error = vm.validateLogin(email, password);
 
-  if (userResult != null && mounted) {
-    // Check if the logged-in user is the admin ('aka')
-    if (userResult.username == 'aka') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const AdminJobReviewScreen()),
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
       );
-    } else {
-      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainNavigation()),
-        (route) => false,
-      );
+      return;
     }
-  } else if (mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Invalid username or password')),
-    );
+
+    // 🌐 Trigger login (NO navigation here anymore)
+    await vm.login(email, password);
+    
   }
-}
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 👇 Loading state eka balanawa
     final authState = ref.watch(authViewModelProvider);
     final isLoading = authState is AsyncLoading;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF111827) : Colors.white,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -71,8 +67,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.diamond_outlined, size: 80, color: primaryGreen),
+                Icon(Icons.diamond_outlined, size: 80, color: AppColors.primaryGreen),
                 const SizedBox(height: 24),
+
                 Text(
                   'Welcome Back',
                   style: TextStyle(
@@ -81,24 +78,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
+
                 const SizedBox(height: 8),
+
                 Text(
                   'Log in to continue to GemCost Jobs',
                   style: TextStyle(color: Colors.grey[500]),
                 ),
+
                 const SizedBox(height: 40),
 
+                // EMAIL
                 TextField(
-                  controller: _usernameCtrl,
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: 'Email',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    prefixIcon: const Icon(Icons.person),
+                    prefixIcon: const Icon(Icons.email),
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
+                // PASSWORD
                 TextField(
                   controller: _passwordCtrl,
                   obscureText: _obscurePassword,
@@ -114,22 +119,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? Icons.visibility_off
                             : Icons.visibility,
                       ),
-                      onPressed: () =>
-                          setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 32),
 
+                // LOGIN BUTTON
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: isLoading
-                        ? null
-                        : _login, // Loading nam button eka disable
+                    onPressed: isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryGreen,
+                      backgroundColor: AppColors.primaryGreen,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -153,23 +161,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                   ),
                 ),
+
                 const SizedBox(height: 24),
 
+                // SIGNUP
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Don\'t have an account? ',
+                      "Don't have an account? ",
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     TextButton(
-                      onPressed: () => Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(builder: (_) => const SignUpScreen()),
-                      ),
+                      onPressed: () {
+                        context.go('/signup');
+                      },
                       child: Text(
                         'Sign Up',
                         style: TextStyle(
-                          color: primaryGreen,
+                          color: AppColors.primaryGreen,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

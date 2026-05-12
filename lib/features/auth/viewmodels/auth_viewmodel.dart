@@ -1,87 +1,79 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/data/datasources/local/database_helper.dart';
-import 'package:job_market/data/models/auth/user_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:job_market/data/repositories/auth/auth_repository_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-// 1. The Provider: This injects DatabaseHelper into the ViewModel
-final authViewModelProvider = StateNotifierProvider<AuthViewModel, AsyncValue<UserModel?>>((ref) {
-  return AuthViewModel(DatabaseHelper());
-});
+part 'auth_viewmodel.g.dart';
 
-class AuthViewModel extends StateNotifier<AsyncValue<UserModel?>> {
-  final DatabaseHelper _dbHelper;
+@riverpod
+class AuthViewModel extends _$AuthViewModel {
+  @override
+  FutureOr<void> build() => null;
 
-  AuthViewModel(this._dbHelper) : super(const AsyncValue.data(null));
+  // ============================
+  // 🔐 AUTH ACTIONS
+  // ============================
 
-  // --- LOGIN LOGIC ---
-  Future<UserModel?> login(String username, String password) async {
-  state = const AsyncValue.loading();
-  try {
-    final userMap = await _dbHelper.loginUser(username, password);
-
-    if (userMap != null) {
-      final user = UserModel.fromMap(userMap);
-
-      // This is the critical part for the Profile View to work
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('logged_in_user_id', user.id.toString());
-      await prefs.setString('logged_in_username', user.username);
-
-      state = AsyncValue.data(user);
-      return user;
-    }
-    state = const AsyncValue.data(null);
-    return null;
-  } catch (e, stack) {
-    state = AsyncValue.error(e, stack);
-    return null;
-  }
-}
-
-  // --- SIGN UP LOGIC ---
-  Future<UserModel?> signUp(String name, String username, String password) async {
-    state = const AsyncValue.loading();
-    try {
-      // Prepare the map for database insertion
-      final newUserMap = {
-        'name': name,
-        'username': username,
-        'password': password,
-        'title': 'GEMOLOGIST', // Default title
-        'items_count': 0,
-        'rating': 0.0,
-        'sales_count': '0',
-        'member_since': _getCurrentMonthYear(),
-      };
-
-      final id = await _dbHelper.registerUser(newUserMap);
-      
-      if (id > 0) {
-        final user = UserModel.fromMap({...newUserMap, 'id': id});
-        state = AsyncValue.data(user);
-        return user;
-      }
-      state = const AsyncValue.data(null);
-      return null;
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      return null;
-    }
+  Future<void> login(String email, String password) async {
+    state = const AsyncLoading();
+    // Guard wraps the repo call and handles success/error automatically
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).login(email, password)
+    );
   }
 
-  String _getCurrentMonthYear() {
-    final now = DateTime.now();
-    final months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return "${months[now.month - 1]} ${now.year}";
+  Future<void> signUp(String email, String password) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).signUp(email, password)
+    );
+  }
+
+  Future<void> signInWithOAuth(OAuthProvider provider) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).signInWithOAuth(provider)
+    );
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('logged_in_user_id');
-    await prefs.remove('logged_in_username');
-    state = const AsyncValue.data(null);
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).logout()
+    );
+  }
+
+  // ============================
+  // ✅ VALIDATION LOGIC
+  // ============================
+
+  /// Returns null if valid, otherwise returns error message
+  String? validateLogin(String email, String password) {
+    final emailError = _checkEmail(email);
+    if (emailError != null) return emailError;
+
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+
+    return null;
+  }
+
+  String? validateSignUp(String email, String password, String confirmPassword) {
+    final emailError = _checkEmail(email);
+    if (emailError != null) return emailError;
+
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (password != confirmPassword) return 'Passwords do not match';
+
+    return null;
+  }
+
+  // Private helper to keep code DRY (Don't Repeat Yourself)
+  String? _checkEmail(String email) {
+    if (email.trim().isEmpty) return 'Email is required';
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email.trim())) return 'Enter a valid email address';
+    return null;
   }
 }
