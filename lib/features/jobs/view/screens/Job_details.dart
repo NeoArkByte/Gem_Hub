@@ -121,7 +121,7 @@ class JobDetailsScreen extends ConsumerWidget {
               child: Container(
                 width: 60,
                 height: 60,
-                color: Color(job.logoColor ?? 0xFF10C971),
+                // color: Color(job.logoColor ?? 0xFF10C971),
                 child: const Icon(
                   Icons.diamond_outlined,
                   color: Colors.white38,
@@ -535,7 +535,7 @@ class _ApplyJobFormState extends State<ApplyJobForm> {
 
     await DatabaseHelper().addNotification(
       widget.job['employer_id'],
-      "New Application! 🎉",
+      "New Application! ",
       "${_nameCtrl.text} applied for your job: ${widget.job['title']}",
     );
 
