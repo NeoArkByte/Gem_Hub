@@ -21,10 +21,9 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // Pre-populate with the main image and dummy placeholders for the carousel
-    _images = [
-      widget.gem.imageUrl,
-    ];
+    _images = widget.gem.imageUrl != null && widget.gem.imageUrl!.isNotEmpty
+        ? [widget.gem.imageUrl!]
+        : [];
   }
 
   @override
@@ -52,14 +51,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    GemOwnerActionTab(gem: widget.gem),
                     GemTitleSection(gem: widget.gem),
-                    _buildDivider(),
                     GemSellerSection(gem: widget.gem),
-                    _buildDivider(),
                     GemSpecificationsSection(gem: widget.gem),
-                    _buildDivider(),
                     GemDescriptionSection(gem: widget.gem),
-                    _buildDivider(),
                     GemLocationSection(gem: widget.gem),
                     const SizedBox(height: 100), // space for bottom bar
                   ],

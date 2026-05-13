@@ -8,13 +8,13 @@ class RecentJobCard extends StatelessWidget {
   final Color logoColor;
 
   const RecentJobCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.companyInfo,
     required this.salary,
     required this.tags,
     required this.logoColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class RecentJobCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? const Color(0xFF1F2937)
-            : Colors.white, // Dynamic Background
+            : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: isDark
             ? []
