@@ -75,14 +75,7 @@ class HomeScreen extends ConsumerWidget {
 
                         const SizedBox(height: 25),
                         // Display the username from the profile
-                        Text(
-                          "Welcome back, ${profile?.username ?? email ?? 'User'}",
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      
 
                         const SizedBox(height: 15),
                         _buildPerformanceTrends(textColor, isDark),
