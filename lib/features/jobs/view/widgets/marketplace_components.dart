@@ -6,10 +6,10 @@ class MarketplaceSearchBar extends StatelessWidget {
   final Function(String) onSearchChanged;
 
   const MarketplaceSearchBar({
-    Key? key, 
+    super.key, 
     required this.controller, 
     required this.onSearchChanged
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,9 +72,9 @@ class MarketplaceCategories extends StatefulWidget {
   final Function(String) onCategorySelected;
 
   const MarketplaceCategories({
-    Key? key, 
+    super.key, 
     required this.onCategorySelected
-  }) : super(key: key);
+  });
 
   @override
   State<MarketplaceCategories> createState() => _MarketplaceCategoriesState();
@@ -158,11 +158,11 @@ class SectionHeader extends StatelessWidget {
   final IconData? icon;
 
   const SectionHeader({
-    Key? key,
+    super.key,
     required this.title,
     this.actionText,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
