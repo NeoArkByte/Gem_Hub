@@ -12,8 +12,6 @@ class GemMarketplaceViewModel extends _$GemMarketplaceViewModel {
 
   @override
   Future<List<Gem>> build() async {
-    // Watch the raw data source.
-    // When rawGemListProvider gets data, this build method re-runs.
     final gemsAsync = ref.watch(approvedGemsProvider);
 
     return gemsAsync.maybeWhen(
@@ -21,7 +19,7 @@ class GemMarketplaceViewModel extends _$GemMarketplaceViewModel {
         _allGems = gems;
         return _applyFilters(_allGems);
       },
-      orElse: () => [], // Returns empty while loading/error
+      orElse: () => [],
     );
   }
 
@@ -38,16 +36,15 @@ class GemMarketplaceViewModel extends _$GemMarketplaceViewModel {
     state = AsyncData(_applyFilters(_allGems));
   }
 
-  // Manually trigger a refresh of the RAW data provider
+
   Future<void> fetchGems() async {
     state = const AsyncLoading();
-    // This forces the 'rawGemListProvider' to fetch from Django again
+
     ref.invalidate(gemListProvider);
     await ref.read(gemListProvider.future);
   }
 
-  // CREATE / UPDATE / DELETE
-  // Use the same pattern: perform action, then invalidate the raw provider
+  
   Future<bool> addGem(Gem gem) async {
     try {
       await ref.read(gemRepositoryProvider).createGem(gem);
