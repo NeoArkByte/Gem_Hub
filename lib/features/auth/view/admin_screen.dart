@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:job_market/features/jobs/viewmodels/job_viewmodel.dart';
+import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
 
 class AdminReviewScreen extends ConsumerStatefulWidget {
   const AdminReviewScreen({super.key});
@@ -12,7 +11,11 @@ class AdminReviewScreen extends ConsumerStatefulWidget {
 }
 
 class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
-        
+  final Color primaryGreen = const Color(0xFF10C971);
+  final Color primaryYellow = const Color(0xFFFDB913);
+  final Color bgColor = const Color(0xFFF8F9FA);
+  final Color greyText = const Color(0xFF6B7280);
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -33,27 +36,19 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: AppColors.greyText, fontWeight: FontWeight.bold),
+                style: TextStyle(color: greyText, fontWeight: FontWeight.bold),
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.dangerRed,
+                backgroundColor: const Color(0xFFEF4444),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
               onPressed: () {
-                // 1. Close Dialog
                 Navigator.pop(dialogContext);
-
-                // 2. ✅ Actual Logout Logic
-                // This triggers the AuthViewModel which GoRouter is listening to
                 ref.read(authViewModelProvider.notifier).logout();
-
-                // 3. Optional: Navigation safety
-                // Your GoRouter redirect handles the switch to /login,
-                // but this check ensures no code runs if the user closed the app.
                 if (!mounted) return;
               },
               child: const Text(
@@ -73,26 +68,21 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final pendingJobsState = ref.watch(pendingJobsViewModelProvider);
-
+    
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      // We removed the generic AppHeader here to allow this screen
-      // to have its own unique Admin navigation/header logic.
+      backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
-            // Your custom admin-style header
             _buildCustomAdminHeader(context),
-
             _buildSectionHeader(
               'Pending Job Post Listings',
               Icons.hourglass_empty,
             ),
-
             Expanded(
               child: pendingJobsState.when(
                 loading: () => const Center(
-                  child: CircularProgressIndicator(color: AppColors.primaryYellow),
+                  child: CircularProgressIndicator(color: Color(0xFFFDB913)),
                 ),
                 error: (error, stack) => Center(child: Text('Error: $error')),
                 data: (pendingJobs) {
@@ -114,8 +104,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final job = pendingJobs[index];
-                      // Return your card here...
-                      return const SizedBox();
+                      // ✅ Kalin SizedBox thibba thanata man aluth Card eka damma
+                      return _buildPendingJobCard(job);
                     },
                   );
                 },
@@ -127,7 +117,119 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     );
   }
 
-  /// Unique Admin Header that replaces the standard app header
+  /// ✅ Aluthin hadapu Job Card eka (Approve / Reject buttons ekkama)
+  Widget _buildPendingJobCard(dynamic job) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Job Title & Salary
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  job.title ?? 'Unknown Job Title',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryYellow.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'LKR ${job.salary ?? 'N/A'}',
+                  style: TextStyle(
+                    color: Colors.orange[800],
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          
+          // Employer Info (Optional: if you have company name)
+          Row(
+            children: [
+              Icon(Icons.business, size: 16, color: greyText),
+              const SizedBox(width: 4),
+              Text(
+                'Employer ID: ${job.employerId ?? 'Unknown'}',
+                style: TextStyle(color: greyText, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Action Buttons (Approve & Reject)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFEF4444), 
+                    side: const BorderSide(color: Color(0xFFEF4444)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    // TODO: Call Reject Action in ViewModel
+                    //ref.read(jobViewModelProvider.notifier).updateJobStatus(job.id, 'REJECTED');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Job Rejected')),
+                    );
+                  },
+                  child: const Text('Reject'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryGreen,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    // TODO: Call Approve Action in ViewModel
+                    ref.read(pendingJobsViewModelProvider.notifier).updateJobStatus(job.id, 'approved');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Job Approved! Visible on market.')),
+                    );
+                  },
+                  child: const Text('Approve'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCustomAdminHeader(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
@@ -136,7 +238,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
           Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
-              color: AppColors.primaryYellow,
+              color: primaryYellow,
               shape: BoxShape.circle,
             ),
             child: const CircleAvatar(
@@ -164,14 +266,14 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.greyText),
+          Icon(icon, size: 20, color: greyText),
           const SizedBox(width: 8),
           Text(
             title,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AppColors.greyText,
+              color: greyText,
             ),
           ),
         ],

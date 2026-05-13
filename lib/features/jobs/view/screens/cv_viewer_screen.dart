@@ -7,10 +7,10 @@ class CvViewerScreen extends StatelessWidget {
   final String applicantName;
 
   const CvViewerScreen({
-    Key? key, 
+    super.key, 
     required this.cvPath, 
     required this.applicantName
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

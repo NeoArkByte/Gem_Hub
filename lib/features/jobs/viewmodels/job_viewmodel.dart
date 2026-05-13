@@ -1,13 +1,12 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/data/models/job_market/job_model.dart';
-import 'package:job_market/data/repositories/job_repository.dart';
+import 'package:job_market/data/repositories/job_market/job_repository.dart';
+import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final pendingJobsViewModelProvider = AsyncNotifierProvider.autoDispose<PendingJobsViewModel, List<Job>>(() {
-  return PendingJobsViewModel();
-});
+part 'job_viewmodel.g.dart';
 
-class PendingJobsViewModel extends AutoDisposeAsyncNotifier<List<Job>> {
-  
+@riverpod
+class PendingJobsViewModel extends _$PendingJobsViewModel {
   @override
   Future<List<Job>> build() async {
     return _fetchPendingJobs();
@@ -23,14 +22,22 @@ class PendingJobsViewModel extends AutoDisposeAsyncNotifier<List<Job>> {
     state = await AsyncValue.guard(() => _fetchPendingJobs());
   }
 
-  Future<void> updateJobStatus(int id, String status) async {
+  Future<void> updateJobStatus(String id, String status) async {
     try {
       final repository = ref.read(jobRepositoryProvider);
-      await repository.updateJobStatus(id, status);
-      await loadPendingJobs();
+      final success = await repository.updateJobStatus(id, status);
       
+      if (success) {
+        print("✅ SUCCESS: Backend updated!");
+        await loadPendingJobs();
+        if (status == 'approved') {
+          ref.invalidate(marketplaceViewModelProvider);
+        }
+      } else {
+        print("ERROR: Backend update failed!");
+      }
     } catch (e) {
-      print("Error updating job status: $e");
+      print("Error: $e");
     }
   }
 }

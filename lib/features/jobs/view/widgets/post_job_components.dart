@@ -4,8 +4,7 @@ import 'package:http/http.dart' as http;
 
 class PostJobHeroSection extends StatelessWidget {
   final Color textColor;
-  const PostJobHeroSection({Key? key, required this.textColor})
-    : super(key: key);
+  const PostJobHeroSection({super.key, required this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +35,11 @@ class PostJobSectionHeader extends StatelessWidget {
   final Color primaryYellow;
 
   const PostJobSectionHeader({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.primaryYellow,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,13 +69,13 @@ class PostJobTextField extends StatelessWidget {
   final TextEditingController? controller;
 
   const PostJobTextField({
-    Key? key,
+    super.key,
     required this.label,
     required this.hint,
     this.maxLines = 1,
     this.prefixIcon,
     this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -134,12 +133,12 @@ class PostJobSkills extends StatelessWidget {
   final Function(int) onRemoveSkill;
 
   const PostJobSkills({
-    Key? key,
+    super.key,
     required this.primaryYellow,
     required this.selectedSkills,
     required this.onAddSkill,
     required this.onRemoveSkill,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -249,11 +248,11 @@ class PostJobBottomAction extends StatelessWidget {
   final Color primaryYellow;
 
   const PostJobBottomAction({
-    Key? key,
+    super.key,
     required this.onPublish,
     required this.bgColor,
     required this.primaryYellow,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -313,15 +312,13 @@ class PostJobBottomAction extends StatelessWidget {
 class PostJobLocationPicker extends StatefulWidget {
   final Function(String) onPlaceSelected;
 
-  const PostJobLocationPicker({Key? key, required this.onPlaceSelected})
-    : super(key: key);
+  const PostJobLocationPicker({super.key, required this.onPlaceSelected});
 
   @override
   State<PostJobLocationPicker> createState() => _PostJobLocationPickerState();
 }
 
 class _PostJobLocationPickerState extends State<PostJobLocationPicker> {
-  // OSM API eken data ganna function eka (No API Key Required!)
   Future<List<String>> _searchPlaces(String query) async {
     if (query.isEmpty || query.length < 3) return [];
 

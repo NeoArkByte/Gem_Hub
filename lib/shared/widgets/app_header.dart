@@ -1,225 +1,162 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/features/auth/view/login_screen.dart';
-import 'package:job_market/features/marketplace/view/notification_screen.dart';
-import 'package:job_market/features/jobs/view/PostNewJob/employer_applications_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:job_market/features/auth/provider/session_provider.dart';
+import 'package:job_market/core/constants/app_colors.dart';
 
-class AppHeader extends StatefulWidget {
+class AppHeader extends ConsumerWidget {
   const AppHeader({super.key});
 
-  @override
-  State<AppHeader> createState() => _AppHeaderState();
-}
-
-class _AppHeaderState extends State<AppHeader> {
-  bool _isLoggedIn = false;
-  String _userName = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadAuthState();
-  }
-
-  Future<void> _loadAuthState() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (mounted) {
-      setState(() {
-        _isLoggedIn = prefs.getString('logged_in_user_id') != null;
-        _userName = prefs.getString('logged_in_user_name') ?? '';
-      });
-    }
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1F2937) : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          'Log Out',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-        content: Text(
-          'Are you sure you want to log out?',
-          style: TextStyle(color: isDark ? Colors.grey[300] : Colors.black87),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-            ),
-            onPressed: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              if (ctx.mounted) {
-                Navigator.pop(ctx);
-                // Refresh the header state
-                _loadAuthState();
-              }
-            },
-            child: const Text('Log Out', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
+  // Dynamic greeting based on the time of day
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'GOOD MORNING';
+    if (hour < 17) return 'GOOD AFTERNOON';
+    return 'GOOD EVENING';
   }
 
   @override
-  Widget build(BuildContext context) {
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
-    double screenWidth = MediaQuery.of(context).size.width;
-    double iconSpacing = screenWidth < 360 ? 4.0 : 8.0;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    // Watch sessionProvider for real-time Supabase user data
+    final sessionAsync = ref.watch(sessionProvider);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-      child: Row(
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 20,
-            backgroundImage: _isLoggedIn
-                ? const NetworkImage('https://i.pravatar.cc/150?img=32')
-                : null,
-            backgroundColor:
-                isDark ? const Color(0xFF374151) : Colors.grey[300],
-            child: !_isLoggedIn
-                ? const Icon(Icons.person, color: Colors.grey, size: 20)
-                : null,
-          ),
-          const SizedBox(width: 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: sessionAsync.when(
+        loading: () => const _HeaderSkeleton(), // Minimal loading state
+        error: (err, stack) => const SizedBox.shrink(),
+        data: (authData) {
+          final profile = authData?.profile;
+          final supabaseUser = authData?.supabaseUser;
 
-          // Greeting
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _isLoggedIn
-                      ? 'Welcome Back${_userName.isNotEmpty ? ', $_userName' : ''}!'
-                      : 'Welcome, Guest',
-                  style: TextStyle(
-                    fontSize: screenWidth < 360 ? 16 : 18,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF111827),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'Find your next gem career',
-                  style: TextStyle(
-                    fontSize: screenWidth < 360 ? 11 : 12,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
+          // Resolve username: Profile > Supabase Email Prefix > Guest
+          final String userName = profile?.username ?? 
+                                  supabaseUser?.email?.split('@')[0] ?? 
+                                  'Guest';
 
-          // Action icons
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          // Resolve avatar: Profile URL > DiceBear/Pravatar fallback
+          final String avatarUrl = profile?.avatarUrl ?? 
+                                  'https://i.pravatar.cc/150?u=${supabaseUser?.id ?? "guest"}';
+
+          return Row(
             children: [
-              if (_isLoggedIn) ...[
-                _iconButton(
-                  Icons.inbox_outlined,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const EmployerApplicationsScreen(),
-                      ),
-                    );
-                  },
-                  isDark,
-                  iconColor: const Color(0xFF3B82F6),
+              // 1. Profile Avatar with the blue ring border
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.blueLight, // Light blue ring
+                    width: 2,
+                  ),
                 ),
-                SizedBox(width: iconSpacing),
-                _iconButton(
-                  Icons.notifications_none,
-                  () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const NotificationScreen(),
-                      ),
-                    );
-                  },
-                  isDark,
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.peach, // Peachy background
+                  backgroundImage: NetworkImage(avatarUrl),
                 ),
-                SizedBox(width: iconSpacing),
-              ],
-              _iconButton(
-                _isLoggedIn ? Icons.logout : Icons.login,
-                () {
-                  if (_isLoggedIn) {
-                    _showLogoutDialog(context);
-                  } else {
-                    // Navigate to login and refresh header state on return
-                    Navigator.of(context, rootNavigator: true)
-                        .push(MaterialPageRoute(
-                          builder: (_) => const LoginScreen(),
-                        ))
-                        .then((_) => _loadAuthState());
-                  }
-                },
-                isDark,
-                iconColor: _isLoggedIn
-                    ? const Color(0xFFEF4444).withOpacity(0.9)
-                    : const Color(0xFF10C971),
+              ),
+              const SizedBox(width: 12),
+
+              // 2. Dynamic Greeting and User Name
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _getGreeting(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        letterSpacing: 1.1,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? Colors.blueGrey[300]
+                            : AppColors.greyTextMuted,
+                      ),
+                    ),
+                    Text(
+                      userName,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : AppColors.textDarkAlt,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Helper for standard action buttons
+  Widget _actionButton(IconData icon, VoidCallback onTap, bool isDark) {
+    return IconButton(
+      onPressed: onTap,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      icon: Icon(
+        icon,
+        color: isDark ? Colors.white70 : AppColors.greyTextSecondary,
+        size: 24,
+      ),
+    );
+  }
+
+  // Helper for the notification button with the red badge
+  Widget _notificationButton(VoidCallback onTap, bool isDark) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkSurface : AppColors.lightBackgroundSoft,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.notifications_none_rounded,
+              color: isDark ? Colors.white : AppColors.textDarkAlt,
+              size: 22,
+            ),
+          ),
+          // The red indicator dot
+          Positioned(
+            top: 4,
+            right: 4,
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: AppColors.dangerRed,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppColors.darkBackground : Colors.white,
+                  width: 1.5,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _iconButton(
-    IconData icon,
-    VoidCallback onTap,
-    bool isDark, {
-    Color? iconColor,
-  }) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1F2937) : Colors.white,
-        shape: BoxShape.circle,
-        boxShadow: isDark
-            ? []
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-      ),
-      child: IconButton(
-        padding: EdgeInsets.zero,
-        icon: Icon(
-          icon,
-          color: iconColor ?? (isDark ? Colors.white : Colors.grey[800]),
-          size: 20,
-        ),
-        onPressed: onTap,
-        splashRadius: 18,
-      ),
-    );
+// Simple placeholder for when the user session is loading
+class _HeaderSkeleton extends StatelessWidget {
+  const _HeaderSkeleton();
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(height: 44, child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))));
   }
 }
