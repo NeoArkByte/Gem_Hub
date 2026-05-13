@@ -295,7 +295,7 @@ class PostJobBottomAction extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'STANDARD LISTING FEE: \$49.00',
+            'Listing will be reviewed within 24 hours.',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,

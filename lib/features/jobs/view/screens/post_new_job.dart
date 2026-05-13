@@ -87,7 +87,32 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     final String currentEmployerId = profile.id;
 
     String companyInfoFormatted = '${_companyNameCtrl.text} • $_selectedLocation';
-    double? parsedSalary = double.tryParse(_minSalaryCtrl.text.replaceAll(',', ''));
+    final minSalary = _minSalaryCtrl.text.trim();
+    final maxSalary = _maxSalaryCtrl.text.trim();
+    final salarySource = minSalary.isNotEmpty ? minSalary : maxSalary;
+
+    String salary = '';
+    if (minSalary.isNotEmpty && maxSalary.isNotEmpty) {
+      salary = '$minSalary - $maxSalary';
+    } else if (minSalary.isNotEmpty) {
+      salary = minSalary;
+    } else if (maxSalary.isNotEmpty) {
+      salary = maxSalary;
+    }
+
+    final parsedSalary = salarySource.isNotEmpty
+        ? num.tryParse(salarySource.replaceAll(',', ''))
+        : null;
+
+    if (parsedSalary == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid numeric salary.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     String finalCategory = _selectedCategory == 'Other (Add Custom)'
         ? _customCategoryCtrl.text.trim()
@@ -95,12 +120,13 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
 
     Job newJob = Job(
       employerId: currentEmployerId,
-      title: _jobTitleCtrl.text,
+      title: _jobTitleCtrl.text.trim(),
       companyInfo: companyInfoFormatted,
-      salary: '$parsedSalary',
+      salary: parsedSalary.toDouble(),
       tags: '$finalCategory,${_skills.join(',')}',
-      logoColor: 0xFF10C971,
+      // logoColor: 0xFF10C971,
       status: 'pending',
+      // description: _descriptionCtrl.text.trim(),
     );
 
     final isSuccess = await ref.read(postJobViewModelProvider.notifier).publishJob(newJob);
@@ -271,7 +297,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                             child: PostJobTextField(
                               label: 'Min Salary',
                               hint: '60000',
-                              prefixIcon: Icons.attach_money,
+                              prefixIcon: Icons.swipe_down_alt_rounded,
                               controller: _minSalaryCtrl,
                             ),
                           ),
@@ -280,7 +306,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                             child: PostJobTextField(
                               label: 'Max Salary',
                               hint: '95000',
-                              prefixIcon: Icons.attach_money,
+                              prefixIcon: Icons.swipe_up_alt_rounded,
                               controller: _maxSalaryCtrl,
                             ),
                           ),

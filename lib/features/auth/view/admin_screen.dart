@@ -68,7 +68,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final pendingJobsState = ref.watch(pendingJobsViewModelProvider);
-    
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -105,6 +105,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                     itemBuilder: (context, index) {
                       final job = pendingJobs[index];
                       // ✅ Kalin SizedBox thibba thanata man aluth Card eka damma
+                      print(job.toMap());
                       return _buildPendingJobCard(job);
                     },
                   );
@@ -117,7 +118,6 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     );
   }
 
-  /// ✅ Aluthin hadapu Job Card eka (Approve / Reject buttons ekkama)
   Widget _buildPendingJobCard(dynamic job) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -150,7 +150,10 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: primaryYellow.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
@@ -167,8 +170,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          
-          // Employer Info (Optional: if you have company name)
+
           Row(
             children: [
               Icon(Icons.business, size: 16, color: greyText),
@@ -181,23 +183,40 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Action Buttons (Approve & Reject)
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFEF4444), 
+                    foregroundColor: const Color(0xFFEF4444),
                     side: const BorderSide(color: Color(0xFFEF4444)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: Call Reject Action in ViewModel
-                    //ref.read(jobViewModelProvider.notifier).updateJobStatus(job.id, 'REJECTED');
+                  onPressed: () async {
+                    final String? currentJobId = job.jobId?.toString();
+                    print('Attempting to reject job with ID: $currentJobId');
+              
+
+                    if (currentJobId == null || currentJobId.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Error: Job ID is missing!'),
+                        ),
+                      );
+                      return;
+                    }
+
+                    final success = await ref
+                        .read(pendingJobsViewModelProvider.notifier)
+                        .updateJobStatus(currentJobId, 'rejected');
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Job Rejected')),
+                      SnackBar(
+                        content: Text(
+                          success ? 'Job Rejected' : 'Failed to reject job',
+                        ),
+                      ),
                     );
                   },
                   child: const Text('Reject'),
@@ -213,11 +232,18 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    // TODO: Call Approve Action in ViewModel
-                    ref.read(pendingJobsViewModelProvider.notifier).updateJobStatus(job.id, 'approved');
+                  onPressed: () async {
+                    final success = await ref
+                        .read(pendingJobsViewModelProvider.notifier)
+                        .updateJobStatus(job.jobId, 'approved');
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Job Approved! Visible on market.')),
+                      SnackBar(
+                        content: Text(
+                          success
+                              ? 'Job Approved! Visible on market.'
+                              : 'Failed to approve job',
+                        ),
+                      ),
                     );
                   },
                   child: const Text('Approve'),
