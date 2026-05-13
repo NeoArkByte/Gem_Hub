@@ -1,6 +1,6 @@
 import 'package:job_market/data/models/inventory/gem_filter.dart';
 import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/provider/inventory_provider.dart';
+import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'report_view_model.g.dart';
@@ -12,7 +12,7 @@ Future<List<GemstoneModel>> filteredGemstones(
   Ref ref, {
   required GemFilter filter,
 }) async {
-  final gems = await ref.watch(inventoryProvider.future);
+  final gems = await ref.watch(inventoryViewModelProvider.future);
 
   return gems.where((gem) {
     if (filter.variety != null && filter.variety != 'All') {
@@ -35,7 +35,7 @@ Future<List<GemstoneModel>> filteredGemstones(
 /// NEW: Provider to fetch unique varieties currently in the database
 @riverpod
 Future<List<String>> gemstoneVarieties(Ref ref) async {
-  final gems = await ref.watch(inventoryProvider.future);
+  final gems = await ref.watch(inventoryViewModelProvider.future);
 
   final varieties = gems
       .map((gem) => gem.variety)

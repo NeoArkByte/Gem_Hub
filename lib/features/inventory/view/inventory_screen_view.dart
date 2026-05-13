@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/provider/inventory_provider.dart';
+import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
@@ -14,20 +14,21 @@ class InventoryScreen extends ConsumerStatefulWidget {
 }
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
-    String _searchQuery = "";
-  String _selectedCategory = "All";
-
   final List<String> _categories = [
-    "All",
-    "Ruby",
-    "Sapphire",
-    "Emerald",
-    "Other",
+    'All',
+    'Ruby',
+    'Sapphire',
+    'Emerald',
+    'Other',
   ];
 
   @override
   Widget build(BuildContext context) {
-    final inventoryAsync = ref.watch(inventoryProvider);
+    final inventoryAsync = ref.watch(inventoryViewModelProvider);
+    final filteredGems = ref.watch(filteredInventoryProvider);
+    final secondaryTextColor = Theme.of(context).brightness == Brightness.dark
+        ? Colors.grey[400]!
+        : Colors.grey[600]!;
 
     // 1. Detect Theme Mode
     bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -38,19 +39,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         : AppColors.lightBackgroundGrey;
     Color cardBg = isDark ? AppColors.darkSurface : Colors.white;
     Color primaryTextColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color secondaryTextColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
 
     return inventoryAsync.when(
-      data: (inventory) {
-        final filteredGems = inventory.where((gem) {
-          final matchesSearch =
-              gem.variety.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-              gem.color.toLowerCase().contains(_searchQuery.toLowerCase());
-          final matchesCategory =
-              _selectedCategory == "All" || gem.variety == _selectedCategory;
-          return matchesSearch && matchesCategory;
-        }).toList();
-
+      data: (_) {
         return Scaffold(
           backgroundColor: scaffoldBg,
           body: SafeArea(
@@ -117,9 +108,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           ),
           TextButton(
             onPressed: () {
-              // Access the provider to delete the item
               ref
-                  .read(inventoryProvider.notifier)
+                  .read(inventoryViewModelProvider.notifier)
                   .deleteGemstone(gem.id!);
               Navigator.pop(context);
             },
@@ -159,20 +149,16 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   Widget _buildSearchBar(bool isDark) {
-    // Add this parameter
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
-        onChanged: (val) => setState(() => _searchQuery = val),
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-        ), // Example usage
+        onChanged: (val) =>
+            ref.read(inventorySearchQueryProvider.notifier).state = val,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
         decoration: InputDecoration(
-          hintText: "Search gemstones...",
+          hintText: 'Search gemstones...',
           filled: true,
-          fillColor: isDark
-              ? AppColors.darkSurfaceAlt
-              : AppColors.lightBorder, // Use it here
+          fillColor: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide.none,
@@ -183,7 +169,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   Widget _buildCategoryFilters(bool isDark) {
-    // Add this parameter
+    final selectedCategory = ref.watch(inventoryCategoryFilterProvider);
+
     return SizedBox(
       height: 60,
       child: ListView.builder(
@@ -191,15 +178,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         itemCount: _categories.length,
         itemBuilder: (context, index) {
-          bool isSelected = _selectedCategory == _categories[index];
+          bool isSelected = selectedCategory == _categories[index];
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
             child: ChoiceChip(
               label: Text(_categories[index]),
               selected: isSelected,
               onSelected: (val) =>
-                  setState(() => _selectedCategory = _categories[index]),
-              // Use isDark to set unselected text/background colors if needed
+                  ref.read(inventoryCategoryFilterProvider.notifier).state =
+                      _categories[index],
               backgroundColor: isDark ? AppColors.darkSurface : Colors.white,
               labelStyle: TextStyle(
                 color: isSelected
@@ -434,7 +421,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBackgroundSoft,
+        color: isDark
+            ? AppColors.darkSurfaceAlt
+            : AppColors.lightBackgroundSoft,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

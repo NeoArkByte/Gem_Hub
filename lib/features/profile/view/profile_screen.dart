@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/data/models/auth/auth_state.dart';
 import 'package:job_market/features/auth/provider/session_provider.dart';
 import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:job_market/features/inventory/provider/inventory_provider.dart';
+import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -124,75 +124,79 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(AuthenticatedUser authData, Color textColor) {
-  final profile = authData.profile;
-  final supabaseUser = authData.supabaseUser;
+    final profile = authData.profile;
+    final supabaseUser = authData.supabaseUser;
 
-  return SizedBox(
-    width: double.infinity, // Force the header to take full width
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center, // Center children horizontally
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 1. Profile Picture
-        Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.yellow.shade600, width: 2),
-          ),
-          child: CircleAvatar(
-            radius: 55,
-            backgroundImage: NetworkImage(
-              profile?.avatarUrl ??
-                  'https://i.pravatar.cc/150?u=${supabaseUser?.id}',
+    return SizedBox(
+      width: double.infinity, // Force the header to take full width
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.center, // Center children horizontally
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // 1. Profile Picture
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.yellow.shade600, width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 55,
+              backgroundImage: NetworkImage(
+                profile?.avatarUrl ??
+                    'https://i.pravatar.cc/150?u=${supabaseUser?.id}',
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 15),
-        
-        // 2. Username
-        Text(
-          profile?.username ??
-              supabaseUser?.email?.split('@')[0] ??
-              "Gem Owner",
-          textAlign: TextAlign.center, // Ensure text internal alignment is centered
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: textColor,
+          const SizedBox(height: 15),
+
+          // 2. Username
+          Text(
+            profile?.username ??
+                supabaseUser?.email?.split('@')[0] ??
+                "Gem Owner",
+            textAlign:
+                TextAlign.center, // Ensure text internal alignment is centered
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        
-        // 3. Description
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0), // Prevent text hitting edges
-          child: Text(
-            profile?.description ?? "No profile description",
-            textAlign: TextAlign.center, // Important for multi-line centering
+          const SizedBox(height: 8),
+
+          // 3. Description
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 32.0,
+            ), // Prevent text hitting edges
+            child: Text(
+              profile?.description ?? "No profile description",
+              textAlign: TextAlign.center, // Important for multi-line centering
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // 4. Member Since
+          Text(
+            "Member since ${_formatDate(profile?.createdAt)}",
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.grey.shade500,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              fontStyle: FontStyle.italic,
             ),
           ),
-        ),
-        const SizedBox(height: 18),
-        
-        // 4. Member Since
-        Text(
-          "Member since ${_formatDate(profile?.createdAt)}",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.grey.shade500,
-            fontSize: 12,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 
   String _formatDate(String? value) {
     if (value == null || value.isEmpty) return 'unknown';
@@ -218,21 +222,21 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildItemsStat(WidgetRef ref, Color textColor) {
-    final inventoryAsync = ref.watch(inventoryProvider);
+    final inventoryAsync = ref.watch(inventoryViewModelProvider);
 
     return inventoryAsync.when(
       data: (gems) {
         // Logic: isSold == 0 means it's available inventory
         final availableItems = gems.where((g) => g.isSold == false).length;
-        
+
         // Logic: isSold != 0 (usually 1) means it has been sold
         final salesCount = gems.where((g) => g.isSold == true).length;
 
         return Container(
           padding: const EdgeInsets.symmetric(vertical: 22),
           decoration: BoxDecoration(
-            color: Theme.of(ref.context).brightness == Brightness.dark 
-                ? AppColors.textDarkAlt 
+            color: Theme.of(ref.context).brightness == Brightness.dark
+                ? AppColors.textDarkAlt
                 : Colors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
@@ -243,7 +247,8 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ],
           ),
-          child: IntrinsicHeight( // Ensures the VerticalDivider matches the text height
+          child: IntrinsicHeight(
+            // Ensures the VerticalDivider matches the text height
             child: Row(
               children: [
                 _statItem(availableItems.toString(), "ITEMS", textColor),
