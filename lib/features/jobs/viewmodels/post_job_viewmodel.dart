@@ -2,6 +2,7 @@ import 'package:job_market/data/models/job_market/job_model.dart';
 import 'package:job_market/data/repositories/job_market/job_repository.dart';
 import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:job_market/data/repositories/job_market/job_repository_provider.dart';
 
 part 'post_job_viewmodel.g.dart';
 
