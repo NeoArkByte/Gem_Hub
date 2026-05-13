@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:job_market/data/models/job_market/job_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:job_market/data/models/gem_market/gem_model.dart';
@@ -7,8 +8,9 @@ import 'package:job_market/core/router/router_notifier.dart';
 
 // View Imports
 import 'package:job_market/features/navigation/view/main_navigation.dart';
-import 'package:job_market/features/marketplace/view/job_market.dart';
-import 'package:job_market/features/jobs/view/PostNewJob/post_new_job.dart';
+import 'package:job_market/features/jobs/view/screens/job_market.dart';
+import 'package:job_market/features/jobs/view/screens/post_new_job.dart';
+import 'package:job_market/features/jobs/view/screens/job_details.dart';
 import 'package:job_market/features/gem_market/view/gem_market_screen.dart';
 import 'package:job_market/features/gem_market/view/gem_listing_screen.dart';
 import 'package:job_market/features/gem_market/view/gem_market_add_entry.dart';
@@ -102,11 +104,30 @@ GoRouter router(Ref ref) {
         name: 'gem_details',
         builder: (context, state) {
           final gem = state.extra as Gem?;
+
           if (gem != null) {
             return GemListingDetailScreen(gem: gem);
           }
+
           return const Scaffold(
             body: Center(child: Text("Gem data not found")),
+          );
+        },
+      ),
+
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/job-details/:id',
+        name: 'job_details',
+        builder: (context, state) {
+          final job = state.extra as Job?;
+          
+          if (job != null) {
+            return JobDetailsScreen(job: job);
+          }
+
+          return const Scaffold(
+            body: Center(child: Text("Job details not found")),
           );
         },
       ),

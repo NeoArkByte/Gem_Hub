@@ -6,7 +6,7 @@ import 'package:job_market/features/auth/provider/session_provider.dart';
 import 'package:job_market/features/jobs/view/screens/cv_viewer_screen.dart';
 
 class EmployerApplicationsScreen extends ConsumerStatefulWidget {
-  const EmployerApplicationsScreen({Key? super.key});
+  const EmployerApplicationsScreen({super.key});
 
   @override
   ConsumerState<EmployerApplicationsScreen> createState() =>

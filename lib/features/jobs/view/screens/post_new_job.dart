@@ -94,11 +94,10 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
         : _selectedCategory;
 
     Job newJob = Job(
-      id: '',
       employerId: currentEmployerId,
       title: _jobTitleCtrl.text,
       companyInfo: companyInfoFormatted,
-      salary: parsedSalary,
+      salary: '$parsedSalary',
       tags: '$finalCategory,${_skills.join(',')}',
       logoColor: 0xFF10C971,
       status: 'pending',
