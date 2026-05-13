@@ -1,85 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/features/gem_market/view/gem_market.dart';
-import 'package:job_market/features/inventory/view/inventory_screen.dart';
-import 'package:job_market/features/navigation/viewmodel/navigation_viewmodel.dart';
+import 'package:go_router/go_router.dart';
+import 'package:job_market/core/enums/user_role.dart';
+import 'package:job_market/features/auth/provider/session_provider.dart'; // Updated import
 import 'package:job_market/shared/widgets/bottom_navigation_bar.dart';
-import 'package:job_market/shared/widgets/app_header.dart';
+import 'package:job_market/core/constants/app_colors.dart';
 
-import 'package:job_market/features/marketplace/view/job_market.dart';
+class MainNavigation extends ConsumerWidget {
+  final Widget child;
 
-class MainNavigation extends ConsumerStatefulWidget {
-  const MainNavigation({super.key});
+  const MainNavigation({super.key, required this.child});
 
   @override
-  ConsumerState<MainNavigation> createState() => _MainNavigationState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sessionAsync = ref.watch(sessionProvider);
+    final user = sessionAsync.value;
+    final location = GoRouterState.of(context).uri.path;
 
-class _MainNavigationState extends ConsumerState<MainNavigation> {
-  final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(
-    5,
-    (_) => GlobalKey<NavigatorState>(),
-  );
+    // 1. Define the order exactly as they appear in your BottomNavBar
+    // final routes = ['/jobs', '/gems', '/inventory', '/profile'];
+    final routes = ['/home', '/inventory', '/gems', '/jobs', '/profile'];
 
-  Future<bool> _onWillPop() async {
-    final index = ref.read(navigationProvider);
-    final navigator = _navigatorKeys[index].currentState!;
-
-    if (navigator.canPop()) {
-      navigator.pop();
-      return false;
+    // 2. Determine index based on the current path
+    int currentIndex = 0;
+    if (location.startsWith('/inventory')) {
+      currentIndex = 1;
+    } else if (location.startsWith('/gems')) {
+      currentIndex = 2;
+    } else if (location.startsWith('/jobs')) {
+      currentIndex = 3;
+    } else if (location.startsWith('/profile')) {
+      currentIndex = 4;
+    } else {
+      currentIndex = 0; // Default to /home
     }
-    return true;
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final currentIndex = ref.watch(navigationProvider);
-    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? AppColors.darkBackground
+        : AppColors.lightBackgroundAlt;
+    final isAdmin = user?.profile?.role == UserRole.ADMIN;
 
-    final tabs = [
-      _buildTab(0, const JobMarketplaceScreen()),
-      _buildTab(1, const InventoryScreen()),
-      _buildTab(2, const GemMarketPlaceScreen()),
-      _buildTab(3, const JobMarketplaceScreen()),
-      _buildTab(4, const JobMarketplaceScreen()),
-    ];
-
-    return PopScope(
-      canPop: true,
-      child: Scaffold(
-        backgroundColor: isDark
-            ? const Color(0xFF111827)
-            : const Color(0xFFF5F7FA),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // ─── Persistent header shown on ALL tabs ───
-              Container(
-                color: isDark
-                    ? const Color(0xFF111827)
-                    : const Color(0xFFF5F7FA),
-                child: const AppHeader(),
-              ),
-              // ─── Tab content ───
-              Expanded(
-                child: IndexedStack(index: currentIndex, children: tabs),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: AppBottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: (i) => ref.read(navigationProvider.notifier).setIndex(i),
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // const AppHeader(), // Cleaner: Color is inherited from Scaffold
+            Expanded(child: child),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTab(int index, Widget screen) {
-    return Navigator(
-      key: _navigatorKeys[index],
-      onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => screen),
+      bottomNavigationBar: isAdmin
+          ? null
+          : AppBottomNavigationBar(
+              currentIndex: currentIndex,
+              onTap: (index) {
+                if (index >= 0 && index < routes.length) {
+                  context.go(routes[index]);
+                }
+              },
+            ),
     );
   }
 }

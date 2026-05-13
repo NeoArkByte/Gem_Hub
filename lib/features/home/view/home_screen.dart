@@ -4,7 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:job_market/features/home/provider/portfolio_provider.dart';
 
 import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
-import 'package:job_market/features/jobs/view/PostNewJob/post_new_job.dart';
+import 'package:job_market/features/jobs/view/screens/post_new_job.dart';
+
 import 'package:job_market/features/reports/presentation/views/reports_screen.dart';
 import 'package:job_market/shared/widgets/app_header.dart';
 // Remove the old manual mock and use the generated one

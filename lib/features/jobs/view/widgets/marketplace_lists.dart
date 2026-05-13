@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:job_market/features/jobs/view/screens/Job_details.dart';
 import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:job_market/features/jobs/view/widgets/recent_job_card.dart';
 import 'package:job_market/features/jobs/view/widgets/featured_job_card.dart';
+import 'package:go_router/go_router.dart';
+
 
 class FeaturedJobsList extends ConsumerWidget {
   const FeaturedJobsList({super.key});
@@ -37,15 +38,7 @@ class FeaturedJobsList extends ConsumerWidget {
                   (job) => Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                JobDetailsScreen(job: job.toJson()),
-                          ),
-                        );
-                      },
+                      onTap: () => context.push('/job-details/${job.id}', extra: job),
                       child: FeaturedJobCard(
                         title: job.title,
                         company: job.companyInfo ?? 'Unknown Company',
@@ -104,15 +97,7 @@ class RecentJobsList extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            JobDetailsScreen(job: job.toJson()),
-                      ),
-                    );
-                  },
+                  onTap: () => context.push('/job-details/${job.id}', extra: job),
                   child: RecentJobCard(
                     title: job.title,
                     companyInfo: job.companyInfo ?? 'Unknown Company',
