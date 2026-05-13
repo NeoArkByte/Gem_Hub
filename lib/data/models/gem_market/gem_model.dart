@@ -1,79 +1,70 @@
 import 'package:job_market/core/enums/gem_status.dart';
-import 'package:job_market/core/enums/gem_type.dart';
 
 class Gem {
-  final int? id;
-  final String ownerId;
-
+  final String? gemId; 
+  final String owner;
   final String name;
-  final GemType type;
-  final double carat;
-  final double price;
-  final String color;
-  final String origin;
-
-  final String imageUrl;
-  final String sellerPhone;
-
-  final String? videoUrl;
-
+  final double? carat;
+  final double? price;
+  final String? description;
+  final String? imageUrl;
+  final String? location;
+  final String? sellerPhone;
+  final String? variety;
+  final String? color;
+  final String? certificateUrl;
   final GemStatus status;
-  final String? createdAt;
 
   Gem({
-    this.id,
-    required this.ownerId,
+    this.gemId,
+    required this.owner,
     required this.name,
-    required this.type,
-    required this.carat,
-    required this.price,
-    required this.color,
-    required this.origin,
-    required this.imageUrl,
-    required this.sellerPhone,
-    this.videoUrl,
-    required this.status,
-    this.createdAt,
+    this.carat,
+    this.price,
+    this.description,
+    this.imageUrl,
+    this.location,
+    this.sellerPhone,
+    this.variety,
+    this.color,
+    this.certificateUrl,
+    this.status = GemStatus.PENDING,
   });
 
-  // DB → Object
   factory Gem.fromMap(Map<String, dynamic> map) {
     return Gem(
-      id: map['id'],
-      ownerId: map['owner_id'],
-      name: map['name'],
-      type: GemType.fromString(map['type'] ?? 'Other'),
-      carat: (map['carat'] as num).toDouble(),
-      price: (map['price'] as num).toDouble(),
-      color: map['color'],
-      origin: map['origin'],
+      gemId: map['gem_id'], 
+      owner: map['owner'] is Map 
+          ? map['owner']['profile'].toString() 
+          : map['owner'].toString(),
+      name: map['name'] ?? '',
+      carat: (map['carat'] as num?)?.toDouble(),
+      price: (map['price'] as num?)?.toDouble(),
+      description: map['description'],
       imageUrl: map['image_url'],
+      location: map['location'],
       sellerPhone: map['seller_phone'],
-      videoUrl: map['video_url'],
-      status: GemStatus.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => GemStatus.active,
-      ),
-      createdAt: map['created_at'],
+      variety: map['variety'],
+      color: map['color'],
+      certificateUrl: map['certificate_url'],
+      status: GemStatus.fromString(map['status']),
     );
   }
 
-  // Object → DB
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'owner_id': ownerId,
+      'owner': owner,
       'name': name,
-      'type': type.displayName,
       'carat': carat,
       'price': price,
-      'color': color,
-      'origin': origin,
+      'description': description,
       'image_url': imageUrl,
+      'location': location,
       'seller_phone': sellerPhone,
-      'video_url': videoUrl,
-      'status': status.name,
-      'created_at': createdAt,
+      'variety': variety,
+      'color': color,
+      'certificate_url': certificateUrl,
+      'status': status.name.toLowerCase(), 
     };
   }
 }

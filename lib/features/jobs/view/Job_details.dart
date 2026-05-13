@@ -420,8 +420,7 @@ class JobDetailsScreen extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Please log in to apply for jobs'))
                         );
-                        Navigator.push(
-                          context, 
+                        Navigator.of(context, rootNavigator: true).push(
                           MaterialPageRoute(builder: (_) => const LoginScreen())
                         );
                       }

@@ -1,56 +1,79 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:job_market/data/repositories/auth_repository.dart';
+import 'dart:async';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:job_market/data/repositories/auth/auth_repository_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-final authViewModelProvider =
-    AsyncNotifierProvider.autoDispose<AuthViewModel, bool?>(() {
-      return AuthViewModel();
-    });
+part 'auth_viewmodel.g.dart';
 
-class AuthViewModel extends AutoDisposeAsyncNotifier<bool?> {
+@riverpod
+class AuthViewModel extends _$AuthViewModel {
   @override
-  bool? build() {
+  FutureOr<void> build() => null;
+
+  // ============================
+  // 🔐 AUTH ACTIONS
+  // ============================
+
+  Future<void> login(String email, String password) async {
+    state = const AsyncLoading();
+    // Guard wraps the repo call and handles success/error automatically
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).login(email, password)
+    );
+  }
+
+  Future<void> signUp(String email, String password) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).signUp(email, password)
+    );
+  }
+
+  Future<void> signInWithOAuth(OAuthProvider provider) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).signInWithOAuth(provider)
+    );
+  }
+
+  Future<void> logout() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => 
+      ref.read(authRepositoryProvider).logout()
+    );
+  }
+
+  // ============================
+  // ✅ VALIDATION LOGIC
+  // ============================
+
+  /// Returns null if valid, otherwise returns error message
+  String? validateLogin(String email, String password) {
+    final emailError = _checkEmail(email);
+    if (emailError != null) return emailError;
+
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+
     return null;
   }
 
-  Future<Map<String, dynamic>?> login(String username, String password) async {
-    try {
-      state = const AsyncValue.loading(); 
-      await Future.delayed(const Duration(milliseconds: 500));
-      final repository = ref.read(authRepositoryProvider);
-      final user = await repository.login(username, password);
+  String? validateSignUp(String email, String password, String confirmPassword) {
+    final emailError = _checkEmail(email);
+    if (emailError != null) return emailError;
 
-      if (user != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('logged_in_user_id', user['username']);
-        await prefs.setString('logged_in_user_name', user['name']);
+    if (password.isEmpty) return 'Password is required';
+    if (password.length < 6) return 'Password must be at least 6 characters';
+    if (password != confirmPassword) return 'Passwords do not match';
 
-        state = const AsyncValue.data(true); // Success
-        return user;
-      } else {
-        state = const AsyncValue.data(false); // Fail (Wrong credentials)
-        return null;
-      }
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace); // System error
-      return null;
-    }
+    return null;
   }
 
-  Future<bool> signUp(String name, String username, String password) async {
-    try {
-      state = const AsyncValue.loading();
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final repository = ref.read(authRepositoryProvider);
-      final isSuccess = await repository.registerUser(name, username, password);
-
-      state = AsyncValue.data(isSuccess);
-      return isSuccess;
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
-      return false;
-    }
+  // Private helper to keep code DRY (Don't Repeat Yourself)
+  String? _checkEmail(String email) {
+    if (email.trim().isEmpty) return 'Email is required';
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email.trim())) return 'Enter a valid email address';
+    return null;
   }
 }
