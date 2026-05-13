@@ -1,19 +1,33 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import 'package:job_market/data/models/job_market/job_model.dart';
 
 class JobRepository {
-  final String baseUrl = 'https://gem-hub-are5gkfgdqf4hyc4.southeastasia-01.azurewebsites.net/api/v1/';
+  final Dio _dio;
+
+  // 1. Dependency Injection: එළියෙන් Dio එක ඇතුළට ගන්නවා
+  JobRepository(this._dio);
 
   Future<List<Job>> getPendingJobs() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/jobs/?status=pending'));
+      final response = await _dio.get(
+        'jobs/',
+        queryParameters: {'status': 'pending'},
+      );
+      
       if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
+        print('🔥 RAW DJANGO DATA: ${response.data}'); 
+        final rawData = response.data;
+        final List data = rawData is List
+            ? rawData
+            : rawData is Map<String, dynamic>
+                ? (rawData['results'] as List<dynamic>?) ?? []
+                : [];
         return data.map((json) => Job.fromMap(json)).toList();
       }
       throw Exception('Failed to load pending jobs');
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return [];
     } catch (e) {
       return [];
     }
@@ -21,76 +35,86 @@ class JobRepository {
 
   Future<List<Job>> getApprovedJobs({String keyword = "", String category = ""}) async {
     try {
-      final uri = Uri.parse('$baseUrl/jobs/').replace(queryParameters: {
-        if (keyword.isNotEmpty) 'search': keyword,
-        if (category.isNotEmpty && category != "All Jobs") 'category': category,
-        'status': 'approved',
-      });
-      final response = await http.get(uri);
+      final queryParams = <String, dynamic>{'status': 'approved'};
+      
+      if (keyword.isNotEmpty) {
+        queryParams['search'] = keyword;
+      }
+      if (category.isNotEmpty && category != "All Jobs") {
+        queryParams['category'] = category;
+      }
+
+      final response = await _dio.get('jobs/', queryParameters: queryParams);
+
       if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
+        final rawData = response.data;
+        final List data = rawData is List
+            ? rawData
+            : rawData is Map<String, dynamic>
+                ? (rawData['results'] as List<dynamic>?) ?? []
+                : [];
         return data.map((json) => Job.fromMap(json)).toList();
       }
       throw Exception('Failed to load jobs');
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return [];
     } catch (e) {
+      print('🔥 JSON MAPPING ERROR එකක්: $e'); 
       return [];
     }
   }
 
   Future<bool> updateJobStatus(String id, String status) async {
     try {
-      final response = await http.patch(
-        Uri.parse('$baseUrl/jobs/$id/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'status': status}),
+      final path = 'jobs/$id/';
+      print('PATCH $path -> status=$status');
+      final response = await _dio.patch(
+        path,
+        data: {'status': status},
       );
-      return response.statusCode == 200 || response.statusCode == 204;
+      return response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 202 ||
+          response.statusCode == 204;
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return false;
     } catch (e) {
+      print('Unexpected error updating job status: $e');
       return false;
     }
   }
 
+  // 👇 මෙන්න මේ කෑල්ල තමයි පට්ටම Clean වුණේ!
   // Post New Job
   Future<bool> insertJob(Job job) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/jobs/'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(job.toMap()),
+      // Model එකේ toMap() එකෙන් ඔක්කොම හරියට හදලා දෙන නිසා කෙලින්ම ඒක ගන්නවා.
+      final payload = Map<String, dynamic>.from(job.toMap());
+
+      // Null තියෙන දේවල් (උදා: company_info දුන්නේ නැත්නම්) අයින් කරලා යවනවා
+      payload.removeWhere((key, value) => value == null);
+
+      final response = await _dio.post(
+        'jobs/',
+        data: payload,
       );
-      return response.statusCode == 201;
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return false;
     } catch (e) {
       return false;
     }
   }
-}
 
-final jobRepositoryProvider = Provider<JobRepository>((ref) => JobRepository());
-
-final pendingJobsProvider = FutureProvider.autoDispose<List<Job>>((ref) async {
-  final repo = ref.watch(jobRepositoryProvider);
-  return repo.getPendingJobs();
-});
-
-final approvedJobsProvider = FutureProvider.autoDispose<List<Job>>((ref) async {
-  final repo = ref.watch(jobRepositoryProvider);
-  return repo.getApprovedJobs();
-});
-
-final jobAdminViewModelProvider = Provider((ref) => JobAdminViewModel(ref));
-
-class JobAdminViewModel {
-  final Ref ref;
-  JobAdminViewModel(this.ref);
-
-  Future<bool> approveJob(String jobId) async {
-    final repo = ref.read(jobRepositoryProvider);
-    final success = await repo.updateJobStatus(jobId, 'approved');
-
-    if (success) {
-      ref.invalidate(pendingJobsProvider);
-      ref.invalidate(approvedJobsProvider);
+  // 2. Gem Repository එකේ තිබ්බ Error Handling Helper එක
+  String _handleError(DioException e) {
+    if (e.response != null) {
+      final errorData = e.response?.data;
+      return 'Error ${e.response?.statusCode}: $errorData';
     }
-    return success;
+    return 'Connection failed: ${e.message}';
   }
 }
