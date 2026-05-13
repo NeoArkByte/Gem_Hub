@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
+import 'package:job_market/data/models/job_market/job_model.dart';
 import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/features/auth/view/login_screen.dart';
 import 'package:job_market/data/datasources/local/database_helper.dart';
 
 class JobDetailsScreen extends ConsumerWidget {
-  final Map<String, dynamic> job;
+  final Job job;
 
   const JobDetailsScreen({super.key, required this.job});
 
@@ -90,7 +90,7 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildHeaderSection(Color textColor, Color greyText, bool isDark) {
-    List<String> companyParts = job['companyInfo'].toString().split(' • ');
+    List<String> companyParts = job.companyInfo.toString().split(' • ');
     String companyName = companyParts[0];
     String location = companyParts.length > 1 ? companyParts[1] : 'Remote';
 
@@ -121,7 +121,7 @@ class JobDetailsScreen extends ConsumerWidget {
               child: Container(
                 width: 60,
                 height: 60,
-                color: Color(job['logoColor'] ?? 0xFF10C971),
+                color: Color(job.logoColor ?? 0xFF10C971),
                 child: const Icon(
                   Icons.diamond_outlined,
                   color: Colors.white38,
@@ -132,7 +132,7 @@ class JobDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            job['title'] ?? 'Job Title',
+            job.title ?? 'Job Title',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -167,7 +167,7 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildTagsRow(bool isDark) {
-    List<String> tagsList = (job['tags'] as String? ?? '').split(',');
+    List<String> tagsList = (job.tags as String? ?? '').split(',');
 
     return Wrap(
       alignment: WrapAlignment.center,
@@ -229,7 +229,7 @@ class JobDetailsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'We are seeking an experienced professional for the ${job['title'] ?? 'position'}. You will be responsible for handling premium gemstones, maintaining high-quality standards, and working closely with our international teams.',
+          'We are seeking an experienced professional for the ${job.title ?? 'position'}. You will be responsible for handling premium gemstones, maintaining high-quality standards, and working closely with our international teams.',
           style: TextStyle(fontSize: 15, color: greyText, height: 1.5),
         ),
       ],
@@ -272,9 +272,9 @@ class JobDetailsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                job['salary'] != null
-                    ? 'LKR ${job['salary']}'
-                    : 'Negotiable',
+                job.salary != null
+                    ? 'LKR ${job.salary}'
+                    : 'Negotiable', 
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -459,13 +459,13 @@ class JobDetailsScreen extends ConsumerWidget {
 
   void _showApplyBottomSheet(
     BuildContext context,
-    Map<String, dynamic> jobData,
+    Job job,
   ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ApplyJobForm(job: jobData),
+      builder: (context) => ApplyJobForm(job: job.toMap()),
     );
   }
 }

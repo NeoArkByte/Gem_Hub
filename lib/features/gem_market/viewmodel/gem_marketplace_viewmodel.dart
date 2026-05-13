@@ -1,56 +1,63 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/data/repositories/gem_repository.dart';
-import 'package:job_market/core/enums/gem_type.dart';
+import 'package:job_market/data/repositories/gem_market/gem_repository_provider.dart';
+import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
 
-final gemMarketplaceViewModelProvider =
-    AsyncNotifierProvider.autoDispose<GemMarketplaceViewModel, List<Gem>>(() {
-      return GemMarketplaceViewModel();
-    });
+part 'gem_marketplace_viewmodel.g.dart';
 
-class GemMarketplaceViewModel extends AutoDisposeAsyncNotifier<List<Gem>> {
-  String _currentQuery = '';
-  GemType _currentType = GemType.allGems;
+@riverpod
+class GemMarketplaceViewModel extends _$GemMarketplaceViewModel {
+  List<Gem> _allGems = [];
+  String _searchQuery = '';
 
   @override
   Future<List<Gem>> build() async {
-    return _fetchGemsFromRepo();
-  }
+    // Watch the raw data source.
+    // When rawGemListProvider gets data, this build method re-runs.
+    final gemsAsync = ref.watch(approvedGemsProvider);
 
-  Future<List<Gem>> _fetchGemsFromRepo() async {
-    final repository = ref.read(gemRepositoryProvider);
-    return await repository.searchAndFilterGems(
-      _currentQuery,
-      _currentType,
+    return gemsAsync.maybeWhen(
+      data: (gems) {
+        _allGems = gems;
+        return _applyFilters(_allGems);
+      },
+      orElse: () => [], // Returns empty while loading/error
     );
   }
 
-  Future<void> updateSearchQuery(String query) async {
-    _currentQuery = query;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchGemsFromRepo());
+  List<Gem> _applyFilters(List<Gem> gems) {
+    if (_searchQuery.isEmpty) return gems;
+    return gems.where((gem) {
+      final query = _searchQuery.toLowerCase();
+      return gem.name.toLowerCase().contains(query);
+    }).toList();
   }
 
-  Future<void> updateType(GemType type) async {
-    _currentType = type;
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchGemsFromRepo());
+  void updateSearchQuery(String query) {
+    _searchQuery = query;
+    state = AsyncData(_applyFilters(_allGems));
   }
 
+  // Manually trigger a refresh of the RAW data provider
   Future<void> fetchGems() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchGemsFromRepo());
+    state = const AsyncLoading();
+    // This forces the 'rawGemListProvider' to fetch from Django again
+    ref.invalidate(gemListProvider);
+    await ref.read(gemListProvider.future);
   }
-  
+
+  // CREATE / UPDATE / DELETE
+  // Use the same pattern: perform action, then invalidate the raw provider
   Future<bool> addGem(Gem gem) async {
     try {
-      final repository = ref.read(gemRepositoryProvider);
-      await repository.postNewGem(gem);
-      await fetchGems();
+      await ref.read(gemRepositoryProvider).createGem(gem);
+      ref.invalidate(gemListProvider); // Forces a fresh fetch
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
-}
 
+  // updateGem and deleteGem follow the same logic as addGem
+  void updateType(dynamic type) {}
+}
