@@ -1,5 +1,5 @@
 import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/provider/inventory_provider.dart';
+import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'portfolio_provider.g.dart';
@@ -7,7 +7,7 @@ part 'portfolio_provider.g.dart';
 @riverpod
 // ignore: deprecated_member_use_from_same_package
 Future<Map<String, double>> portfolioData(Ref ref) async {
-  final gems = await ref.watch(inventoryProvider.future);
+  final gems = await ref.watch(inventoryViewModelProvider.future);
 
   double inventoryValue = 0;
   double realizedProfit = 0;

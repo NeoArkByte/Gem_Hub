@@ -38,14 +38,14 @@ class FeaturedJobsList extends ConsumerWidget {
                   (job) => Padding(
                     padding: const EdgeInsets.only(right: 16.0),
                     child: GestureDetector(
-                      onTap: () => context.push('/job-details/${job.id}', extra: job),
+                      onTap: () => context.push('/job-details/${job.jobId}', extra: job),
                       child: FeaturedJobCard(
                         title: job.title,
                         company: job.companyInfo ?? 'Unknown Company',
                         salary: job.salary != null ? 'LKR ${job.salary}' : 'Negotiable',
                         timePosted: 'New',
                         isPremium: true,
-                        logoColor: Color(job.logoColor ?? 0xFF10C971),
+                        logoColor: Colors.white
                       ),
                     ),
                   ),
@@ -97,13 +97,13 @@ class RecentJobsList extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: GestureDetector(
-                  onTap: () => context.push('/job-details/${job.id}', extra: job),
+                  onTap: () => context.push('/job-details/${job.jobId}', extra: job),
                   child: RecentJobCard(
                     title: job.title,
                     companyInfo: job.companyInfo ?? 'Unknown Company',
                     salary: job.salary != null ? 'LKR ${job.salary}' : 'Negotiable',
                     tags: (job.tags ?? '').split(',').where((t) => t.isNotEmpty).toList(),
-                    logoColor: Color(job.logoColor ?? 0xFF10C971),
+                    logoColor: Colors.white,
                   ),
                 ),
               );
