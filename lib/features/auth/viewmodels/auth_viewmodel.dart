@@ -10,13 +10,9 @@ class AuthViewModel extends _$AuthViewModel {
   @override
   FutureOr<void> build() => null;
 
-  // ============================
-  // 🔐 AUTH ACTIONS
-  // ============================
 
   Future<void> login(String email, String password) async {
     state = const AsyncLoading();
-    // Guard wraps the repo call and handles success/error automatically
     state = await AsyncValue.guard(() => 
       ref.read(authRepositoryProvider).login(email, password)
     );
@@ -43,11 +39,6 @@ class AuthViewModel extends _$AuthViewModel {
     );
   }
 
-  // ============================
-  // ✅ VALIDATION LOGIC
-  // ============================
-
-  /// Returns null if valid, otherwise returns error message
   String? validateLogin(String email, String password) {
     final emailError = _checkEmail(email);
     if (emailError != null) return emailError;
@@ -69,7 +60,6 @@ class AuthViewModel extends _$AuthViewModel {
     return null;
   }
 
-  // Private helper to keep code DRY (Don't Repeat Yourself)
   String? _checkEmail(String email) {
     if (email.trim().isEmpty) return 'Email is required';
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');

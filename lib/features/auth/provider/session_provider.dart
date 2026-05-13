@@ -1,24 +1,41 @@
+import 'package:job_market/core/enums/user_role.dart';
+import 'package:job_market/data/models/auth/profile_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:job_market/data/repositories/auth/auth_repository_provider.dart';
 import 'package:job_market/data/models/auth/auth_state.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 part 'session_provider.g.dart';
 
 @riverpod
-Stream<AuthenticatedUser?> session(Ref ref) {
+Stream<AuthenticatedUser?> session(Ref ref) async* {
   final repo = ref.watch(authRepositoryProvider);
+  final prefs = await SharedPreferences.getInstance();
 
-  // This reacts automatically to Supabase auth changes (login/logout/token refresh)
-  return repo.authState.asyncMap((data) async {
-    final supabaseUser = data.session?.user;
-    if (supabaseUser == null) return null;
-
-    try {
-      final profile = await repo.getUserProfile(supabaseUser.id);
-      return AuthenticatedUser(supabaseUser: supabaseUser, profile: profile);
-    } catch (e) {
-      // Return user with null profile if DB fetch fails
-      return AuthenticatedUser(supabaseUser: supabaseUser, profile: null);
+  await for (final data in repo.authState) {
+    final user = data.session?.user;
+    if (user == null) {
+      yield null;
+      continue;
     }
-  });
+    
+
+    final cachedRole = prefs.getString('user_role');
+    if (cachedRole != null) {
+      yield AuthenticatedUser(
+        supabaseUser: user,
+        profile: ProfileUser(role: UserRole.fromString(cachedRole), id: '', profileId: ''),
+      );
+    }
+
+
+    // Refresh from Database
+    try {
+      final profile = await repo.getUserProfile(user.id);
+      if (profile != null) {
+        await prefs.setString('user_role', profile.role.name);
+        yield AuthenticatedUser(supabaseUser: user, profile: profile);
+      }
+    } catch (_) {
+    }
+  }
 }
