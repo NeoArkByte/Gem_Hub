@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// 👇 Imports tika hariyatama check karaganna bosa
-import 'package:job_market/features/jobs/view/job_details.dart';
-import 'package:job_market/features/marketplace/viewmodels/marketplace_viewmodel.dart';
-import 'package:job_market/features/marketplace/view/recent_job_card.dart';
-import 'package:job_market/features/jobs/view/featured_job_card.dart';
+import 'package:job_market/features/jobs/view/screens/Job_details.dart';
+import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart';
+import 'package:job_market/features/jobs/view/widgets/recent_job_card.dart';
+import 'package:job_market/features/jobs/view/widgets/featured_job_card.dart';
 
-// =========================================================
-// 1. FEATURED JOBS LIST (Newly Listed Jobs)
-// =========================================================
 class FeaturedJobsList extends ConsumerWidget {
   const FeaturedJobsList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 👇 ViewModel eken data tika live gannawa
     final jobsState = ref.watch(marketplaceViewModelProvider);
 
     return jobsState.when(
@@ -27,11 +22,10 @@ class FeaturedJobsList extends ConsumerWidget {
       ),
       error: (error, stack) => Center(child: Text('Error: $error')),
       data: (jobs) {
-        // 👇 Aluthma jobs 3 witharak "Newly Listed" ekata gannawa
         final featuredJobs = jobs.take(3).toList();
 
         if (featuredJobs.isEmpty) {
-          return const SizedBox.shrink(); // Data natham mukuth pennanne na
+          return const SizedBox.shrink();
         }
 
         return SingleChildScrollView(
@@ -48,18 +42,17 @@ class FeaturedJobsList extends ConsumerWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                JobDetailsScreen(job: job.toMap()),
+                                JobDetailsScreen(job: job.toJson()),
                           ),
                         );
                       },
-                      // 👇 ViewModel eken ena real data tika methanata pass karanawa
                       child: FeaturedJobCard(
                         title: job.title,
-                        company: job.companyInfo,
-                        salary: job.salary,
+                        company: job.companyInfo ?? 'Unknown Company',
+                        salary: job.salary != null ? 'LKR ${job.salary}' : 'Negotiable',
                         timePosted: 'New',
                         isPremium: true,
-                        logoColor: Color(job.logoColor),
+                        logoColor: Color(job.logoColor ?? 0xFF10C971),
                       ),
                     ),
                   ),
@@ -72,11 +65,8 @@ class FeaturedJobsList extends ConsumerWidget {
   }
 }
 
-// =========================================================
-// 2. RECENT JOBS LIST (Explore All Jobs)
-// =========================================================
 class RecentJobsList extends ConsumerWidget {
-  const RecentJobsList({Key? key}) : super(key: key);
+  const RecentJobsList({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -119,16 +109,16 @@ class RecentJobsList extends ConsumerWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            JobDetailsScreen(job: job.toMap()),
+                            JobDetailsScreen(job: job.toJson()),
                       ),
                     );
                   },
                   child: RecentJobCard(
                     title: job.title,
-                    companyInfo: job.companyInfo,
-                    salary: job.salary,
-                    tags: job.tags.split(','),
-                    logoColor: Color(job.logoColor),
+                    companyInfo: job.companyInfo ?? 'Unknown Company',
+                    salary: job.salary != null ? 'LKR ${job.salary}' : 'Negotiable',
+                    tags: (job.tags ?? '').split(',').where((t) => t.isNotEmpty).toList(),
+                    logoColor: Color(job.logoColor ?? 0xFF10C971),
                   ),
                 ),
               );

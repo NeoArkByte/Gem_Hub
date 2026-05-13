@@ -1,27 +1,33 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/data/models/job_market/job_model.dart';
-import 'package:job_market/data/repositories/job_repository.dart';
+import 'package:job_market/data/repositories/job_market/job_repository.dart';
+import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final postJobViewModelProvider =
-    AsyncNotifierProvider.autoDispose<PostJobViewModel, bool>(() {
-      return PostJobViewModel();
-    });
+part 'post_job_viewmodel.g.dart';
 
-class PostJobViewModel extends AutoDisposeAsyncNotifier<bool> {
+@riverpod
+class PostJobViewModel extends _$PostJobViewModel {
   @override
-  bool build() {
-    return false;
-  }
+  FutureOr<void> build() {}
 
   Future<bool> publishJob(Job job) async {
-    state = const AsyncValue.loading();
+    state = const AsyncLoading();
 
-    final repository = ref.read(jobRepositoryProvider);
+    try {
+      final repository = ref.read(jobRepositoryProvider);
+      final success = await repository.insertJob(job);
 
-    state = await AsyncValue.guard(() async {
-      await repository.insertJob(job);
-      return true;
-    });
-    return !state.hasError;
+      if (success) {
+        ref.invalidate(marketplaceViewModelProvider);
+        state = const AsyncData(null);
+        return true;
+      } else {
+        state = AsyncError('Failed to publish', StackTrace.current);
+        return false;
+      }
+    } catch (e) {
+      state = AsyncError(e.toString(), StackTrace.current);
+      return false;
+    }
   }
 }

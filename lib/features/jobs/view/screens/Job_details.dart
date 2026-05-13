@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
+import 'package:job_market/features/auth/provider/session_provider.dart';
 import 'package:job_market/features/auth/view/login_screen.dart';
 import 'package:job_market/data/datasources/local/database_helper.dart';
 
-class JobDetailsScreen extends StatelessWidget {
+class JobDetailsScreen extends ConsumerWidget {
   final Map<String, dynamic> job;
 
-  const JobDetailsScreen({Key? key, required this.job}) : super(key: key);
+  const JobDetailsScreen({super.key, required this.job});
 
   final Color primaryGreen = const Color(0xFF10C971);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor = isDark ? const Color(0xFF111827) : Colors.white;
     Color textColor = isDark ? Colors.white : const Color(0xFF111827);
@@ -83,7 +85,7 @@ class JobDetailsScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomActionArea(context, isDark),
+      bottomNavigationBar: _buildBottomActionArea(context, ref, isDark),
     );
   }
 
@@ -270,7 +272,9 @@ class JobDetailsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                job['salary'] ?? 'Negotiable',
+                job['salary'] != null
+                    ? 'LKR ${job['salary']}'
+                    : 'Negotiable',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -373,7 +377,11 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomActionArea(BuildContext context, bool isDark) {
+  Widget _buildBottomActionArea(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -407,22 +415,21 @@ class JobDetailsScreen extends StatelessWidget {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    final prefs = await SharedPreferences.getInstance();
-                    // Log welada balanawa
-                    bool isLoggedIn = prefs.getString('logged_in_user_id') != null;
+                  onPressed: () {
+                    final sessionAsync = ref.read(sessionProvider);
+                    final currentUser = sessionAsync.value;
+                    final bool isLoggedIn = currentUser?.supabaseUser != null;
 
                     if (isLoggedIn) {
                       _showApplyBottomSheet(context, job);
                     } else {
-                      // Guest nam Login ekata yawanawa
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please log in to apply for jobs'))
+                          const SnackBar(
+                            content: Text('Please log in to apply for jobs'),
+                          ),
                         );
-                        Navigator.of(context, rootNavigator: true).push(
-                          MaterialPageRoute(builder: (_) => const LoginScreen())
-                        );
+                        context.go('/login');
                       }
                     }
                   },
@@ -450,7 +457,6 @@ class JobDetailsScreen extends StatelessWidget {
     );
   }
 
-  // --- POPUP FUNCTION EKA ---
   void _showApplyBottomSheet(
     BuildContext context,
     Map<String, dynamic> jobData,
@@ -464,12 +470,9 @@ class JobDetailsScreen extends StatelessWidget {
   }
 }
 
-// ==========================================
-// APPLY JOB FORM (BOTTOM SHEET WIDGET)
-// ==========================================
 class ApplyJobForm extends StatefulWidget {
-  final Map<String, dynamic> job; // 👇 Full job map eka illanawa
-  const ApplyJobForm({Key? key, required this.job}) : super(key: key);
+  final Map<String, dynamic> job;
+  const ApplyJobForm({super.key, required this.job});
 
   @override
   State<ApplyJobForm> createState() => _ApplyJobFormState();
@@ -519,7 +522,6 @@ class _ApplyJobFormState extends State<ApplyJobForm> {
 
     setState(() => _isSubmitting = true);
 
-    // 1. Application eka DB ekata danawa
     Map<String, dynamic> application = {
       'job_id': widget.job['id'],
       'applicant_name': _nameCtrl.text,
@@ -531,9 +533,8 @@ class _ApplyJobFormState extends State<ApplyJobForm> {
 
     await DatabaseHelper().submitApplication(application);
 
-    // 2. 🔥 NOTIFICATION EKA YAWANAWA 🔥
     await DatabaseHelper().addNotification(
-      widget.job['employer_id'], // Job eka dapu Employer ta
+      widget.job['employer_id'],
       "New Application! 🎉",
       "${_nameCtrl.text} applied for your job: ${widget.job['title']}",
     );

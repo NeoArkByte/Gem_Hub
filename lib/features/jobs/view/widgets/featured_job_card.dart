@@ -9,18 +9,17 @@ class FeaturedJobCard extends StatelessWidget {
   final Color logoColor;
 
   const FeaturedJobCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.company,
     required this.salary,
     required this.timePosted,
     required this.isPremium,
     required this.logoColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    // 👇 Dark mode check
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -29,7 +28,7 @@ class FeaturedJobCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark
             ? const Color(0xFF1F2937)
-            : Colors.white, // Dynamic Background
+            : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: isDark
             ? []
@@ -54,7 +53,7 @@ class FeaturedJobCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF374151)
-                      : Colors.grey[100], // Logo Background
+                      : Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
@@ -90,7 +89,7 @@ class FeaturedJobCard extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : const Color(0xFF111827),
             ),
-          ), // Text Color
+          ),
           const SizedBox(height: 4),
           Text(
             company,
