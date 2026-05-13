@@ -35,9 +35,16 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   riverpod_generator: ^4.0.3
   build_runner: ^2.15.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
   assets:
-  - .env
+    - .env
+    - assets/icons/gem_hub_icon.jpeg
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/gem_hub_icon.jpeg"
+  remove_alpha_ios: true
