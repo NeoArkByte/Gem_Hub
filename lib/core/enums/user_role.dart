@@ -3,7 +3,7 @@ enum UserRole {
   USER;
 
   static UserRole fromString(String? role) {
-    final normalized = role?.toUpperCase(); // Handles 'admin', 'Admin', 'ADMIN'
+    final normalized = role?.toUpperCase();
     if (normalized == 'ADMIN') return UserRole.ADMIN;
     return UserRole.USER;
   }
