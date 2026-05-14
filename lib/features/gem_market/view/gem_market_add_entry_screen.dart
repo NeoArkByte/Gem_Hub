@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:job_market/features/gem_market/viewmodel/gem_add_viewmodel.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 
 class AddGemScreen extends ConsumerStatefulWidget {
@@ -49,19 +48,10 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   Future<void> _handlePublish() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final sessionAsync = ref.read(sessionProvider);
-    final currentUser = sessionAsync.value;
-
-    if (currentUser?.supabaseUser == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please log in to list a new gem.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        context.go('/login');
-      }
+    if (_gemImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image for the gem.')),
+      );
       return;
     }
 
@@ -71,6 +61,9 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
         .read(gemAddViewModelProvider.notifier)
         .createGem(
           name: _nameController.text.trim(),
+          imageFile: _gemImage!,
+          certificateFile:
+              _certificateFile,
           carat: double.tryParse(_caratController.text.trim()),
           price: double.tryParse(_priceController.text.trim()),
           description: _descriptionController.text.trim(),
@@ -78,8 +71,6 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
           sellerPhone: _sellerPhoneController.text.trim(),
           variety: _varietyController.text.trim(),
           color: _colorController.text.trim(),
-          imageUrl: _gemImage?.path,
-          certificateUrl: _certificateFile?.path,
         );
 
     if (!mounted) return;
@@ -87,20 +78,25 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
     setState(() => _isPublishing = false);
 
     if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gem listed successfully and is pending approval.'),
-          backgroundColor: AppColors.primaryGreen,
-        ),
-      );
-      context.go('/gems');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gem listed successfully and is pending approval.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        context.pop();
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to list gem. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to list gem. Please check your connection.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -191,11 +187,18 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: BorderSide(color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder),
+              borderSide: BorderSide(
+                color: isDark
+                    ? AppColors.darkSurfaceAlt
+                    : AppColors.lightBorder,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
-              borderSide: const BorderSide(color: AppColors.primaryYellow, width: 2),
+              borderSide: const BorderSide(
+                color: AppColors.primaryYellow,
+                width: 2,
+              ),
             ),
           ),
           validator: optional
@@ -232,7 +235,11 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
             decoration: BoxDecoration(
               color: fieldBg,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.darkSurfaceAlt
+                    : AppColors.lightBorder,
+              ),
             ),
             child: image != null
                 ? ClipRRect(
@@ -275,14 +282,22 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
             decoration: BoxDecoration(
               color: fieldBg,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder),
+              border: Border.all(
+                color: isDark
+                    ? AppColors.darkSurfaceAlt
+                    : AppColors.lightBorder,
+              ),
             ),
             child: file != null
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.picture_as_pdf, color: Colors.red, size: 40),
+                        const Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.red,
+                          size: 40,
+                        ),
                         const SizedBox(height: 8),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -290,7 +305,10 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                             file.path.split(Platform.pathSeparator).last,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 12, color: isDark ? Colors.white70 : Colors.black87),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                            ),
                           ),
                         ),
                       ],
@@ -312,9 +330,13 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    Color bgColor = isDark
+        ? AppColors.darkBackground
+        : AppColors.lightBackground;
     Color textColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color dividerColor = isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
+    Color dividerColor = isDark
+        ? AppColors.darkSurfaceAlt
+        : AppColors.lightBorder;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -323,7 +345,11 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: AppColors.primaryYellow, size: 28),
+          icon: const Icon(
+            Icons.close,
+            color: AppColors.primaryYellow,
+            size: 28,
+          ),
           onPressed: () => context.pop(),
         ),
         title: Text(
@@ -374,7 +400,10 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                     ),
 
                     // --- Stone Details ---
-                    _buildSectionHeader(Icons.diamond_outlined, 'STONE DETAILS'),
+                    _buildSectionHeader(
+                      Icons.diamond_outlined,
+                      'STONE DETAILS',
+                    ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       label: 'Gem Name',
@@ -409,7 +438,9 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                             label: 'Carat',
                             hint: '0.00',
                             controller: _caratController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             suffixText: 'ct',
                             optional: true,
                           ),
@@ -420,7 +451,9 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                             label: 'Price',
                             hint: '0',
                             controller: _priceController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             prefixIcon: Icons.payments_outlined,
                             optional: true,
                           ),
@@ -433,7 +466,10 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                     ),
 
                     // --- Seller & Location ---
-                    _buildSectionHeader(Icons.location_on_outlined, 'SELLER & LOCATION'),
+                    _buildSectionHeader(
+                      Icons.location_on_outlined,
+                      'SELLER & LOCATION',
+                    ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       label: 'Location',
@@ -456,7 +492,10 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                     ),
 
                     // --- Description ---
-                    _buildSectionHeader(Icons.description_outlined, 'DESCRIPTION'),
+                    _buildSectionHeader(
+                      Icons.description_outlined,
+                      'DESCRIPTION',
+                    ),
                     const SizedBox(height: 16),
                     _buildTextField(
                       label: 'Description',

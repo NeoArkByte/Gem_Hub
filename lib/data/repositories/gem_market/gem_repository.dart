@@ -6,7 +6,7 @@ class GemRepository {
 
   GemRepository(this._dio);
 
-  /// Fetches all gems
+  
   Future<List<Gem>> getAllGems() async {
     try {
       final response = await _dio.get('gems/');
@@ -17,7 +17,7 @@ class GemRepository {
     }
   }
 
-  /// Get a single gem
+  
   Future<Gem> getGemById(String id) async {
     try {
       final response = await _dio.get('gems/$id/');
@@ -27,7 +27,7 @@ class GemRepository {
     }
   }
 
-  /// POST: Create a new gem listing
+  
   Future<Gem> createGem(Gem gem) async {
     try {
       final response = await _dio.post('gems/', data: gem.toMap());
@@ -37,7 +37,7 @@ class GemRepository {
     }
   }
 
-  /// PATCH: Update an existing gem
+  
   Future<Gem> updateGem(Gem gem) async {
     if (gem.gemId == null) throw 'Cannot update a gem without an ID';
     
@@ -52,7 +52,7 @@ class GemRepository {
     }
   }
 
-  /// DELETE: Remove a gem listing
+  
   Future<void> deleteGem(String id) async {
     try {
       await _dio.delete('gems/$id/');

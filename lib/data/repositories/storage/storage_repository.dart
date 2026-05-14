@@ -41,7 +41,6 @@ class StorageRepository {
   Future<void> deleteFile({required String bucket, required String urlOrPath}) async {
     try {
       String path = urlOrPath;
-      // If it's a full URL, extract the actual storage path
       if (urlOrPath.contains('http')) {
         final uri = Uri.parse(urlOrPath);
         final segments = uri.pathSegments;
@@ -63,7 +62,6 @@ class StorageRepository {
     required String userId,
   }) async {
     final extension = file.path.split('.').last;
-    // Unique name using timestamp prevents mobile caching bugs
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.$extension';
     final path = '$userId/$fileName';
 

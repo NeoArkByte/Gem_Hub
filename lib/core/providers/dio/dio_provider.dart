@@ -31,7 +31,6 @@ Dio dio(Ref ref) {
     ),
   );
 
-  // Add the Supabase Auth Interceptor
   dio.interceptors.add(SupabaseAuthInterceptor(supabaseClient));
   dio.interceptors.add(PrettyDioLogger(
       requestHeader: true,
