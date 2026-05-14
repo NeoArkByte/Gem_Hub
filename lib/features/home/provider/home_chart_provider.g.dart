@@ -46,4 +46,45 @@ final class ChartTrendDataProvider
   }
 }
 
-String _$chartTrendDataHash() => r'93a07cea8e5be21a2a19121f74e90a9300c6da76';
+String _$chartTrendDataHash() => r'18c956cef4d6803f1e09122aabf0e2f0dd414686';
+
+@ProviderFor(heatmapData)
+final heatmapDataProvider = HeatmapDataProvider._();
+
+final class HeatmapDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<HeatmapCellData>>,
+          List<HeatmapCellData>,
+          FutureOr<List<HeatmapCellData>>
+        >
+    with
+        $FutureModifier<List<HeatmapCellData>>,
+        $FutureProvider<List<HeatmapCellData>> {
+  HeatmapDataProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'heatmapDataProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$heatmapDataHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<HeatmapCellData>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<HeatmapCellData>> create(Ref ref) {
+    return heatmapData(ref);
+  }
+}
+
+String _$heatmapDataHash() => r'b2c1beb8e512a7dea529f920e28c3b9a9b2e0590';

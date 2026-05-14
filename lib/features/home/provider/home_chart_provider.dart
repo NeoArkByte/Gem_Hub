@@ -77,6 +77,18 @@ class ChartTrendData {
   });
 }
 
+class HeatmapCellData {
+  final DateTime date;
+  final bool isCurrentMonth;
+  final double value;
+
+  HeatmapCellData({
+    required this.date,
+    required this.isCurrentMonth,
+    required this.value,
+  });
+}
+
 @riverpod
 Future<ChartTrendData> chartTrendData(Ref ref) async {
   final gems = await ref.watch(inventoryViewModelProvider.future);
@@ -194,6 +206,29 @@ Future<ChartTrendData> chartTrendData(Ref ref) async {
   );
 }
 
+@riverpod
+Future<List<HeatmapCellData>> heatmapData(Ref ref) async {
+  final gems = await ref.watch(inventoryViewModelProvider.future);
+  final now = DateTime.now();
+  final firstDay = DateTime(now.year, now.month, 1);
+  final startDate = firstDay.subtract(Duration(days: firstDay.weekday % 7));
+
+  List<HeatmapCellData> cells = [];
+  for (int i = 0; i < 35; i++) {
+    final day = startDate.add(Duration(days: i));
+    final start = DateTime(day.year, day.month, day.day);
+    final end = DateTime(day.year, day.month, day.day, 23, 59, 59);
+    final val = _profitForRange(gems, start, end);
+
+    cells.add(HeatmapCellData(
+      date: day,
+      isCurrentMonth: day.month == now.month,
+      value: val,
+    ));
+  }
+  return cells;
+}
+
 String _monthAbbreviation(int month) {
   int m = month;
   while (m <= 0) m += 12;
@@ -238,6 +273,19 @@ double _sumForRange(List<GemstoneModel> gems, DateTime start, DateTime end) {
     if (gemDate == null) return sum;
     if (gemDate.isBefore(rangeStart) || gemDate.isAfter(rangeEnd)) return sum;
     return sum + _trendValue(gem);
+  });
+}
+
+double _profitForRange(List<GemstoneModel> gems, DateTime start, DateTime end) {
+  final rangeStart = DateTime(start.year, start.month, start.day);
+  final rangeEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
+
+  return gems.fold(0.0, (sum, gem) {
+    if (!gem.isSold) return sum;
+    final gemDate = _parseGemDate(gem.date);
+    if (gemDate == null) return sum;
+    if (gemDate.isBefore(rangeStart) || gemDate.isAfter(rangeEnd)) return sum;
+    return sum + gem.profit;
   });
 }
 

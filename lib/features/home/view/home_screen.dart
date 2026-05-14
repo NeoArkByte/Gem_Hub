@@ -25,6 +25,7 @@ class HomeScreen extends ConsumerWidget {
     ); // Generated from your gemstone logic
     final chartRange = ref.watch(chartRangeProvider);
     final chartTrendAsync = ref.watch(chartTrendDataProvider);
+    final heatmapAsync = ref.watch(heatmapDataProvider);
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgColor = isDark
@@ -88,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
                           ref,
                         ),
                         const SizedBox(height: 25),
-                        _buildHeatmap(textColor, isDark),
+                        _buildHeatmap(textColor, isDark, heatmapAsync),
                         const SizedBox(height: 25),
                         _buildQuickActions(context, isDark),
                         const SizedBox(height: 30),
@@ -345,7 +346,11 @@ class HomeScreen extends ConsumerWidget {
   }
 
   // --- 4. Heatmap Calendar (Visual Simulation) ---
-  Widget _buildHeatmap(Color textColor, bool isDark) {
+  Widget _buildHeatmap(
+    Color textColor,
+    bool isDark,
+    AsyncValue<List<HeatmapCellData>> heatmapAsync,
+  ) {
     return _buildCardWrapper(
       isDark,
       Column(
@@ -360,30 +365,77 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 15),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-            ),
-            itemCount: 35,
-            itemBuilder: (context, index) {
-              // TODO: Implement actual profit/loss gradient logic later
-              // Dummy logic: random greens for profit, light greys for neutral
-              Color tileColor = [
-                AppColors.primaryGreen,
-                AppColors.mintLight,
-                AppColors.successMint,
-              ][index % 3];
-              return Container(
-                decoration: BoxDecoration(
-                  color: tileColor,
-                  borderRadius: BorderRadius.circular(6),
+          heatmapAsync.when(
+            data: (cells) {
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                 ),
+                itemCount: 35,
+                itemBuilder: (context, index) {
+                  final cell = cells[index];
+                  
+                  // Profit/loss gradient logic
+                  Color tileColor;
+                  if (cell.value > 0) {
+                    // Positive value -> shades of green
+                    tileColor = cell.value > 5000
+                        ? AppColors.primaryGreen
+                        : AppColors.successMint;
+                  } else if (cell.value < 0) {
+                    // Negative value -> shades of red (you can adjust this if needed)
+                    tileColor = Colors.red.shade400;
+                  } else {
+                    // Neutral / No value
+                    tileColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+                  }
+
+                  // Fade out cells not in current month
+                  if (!cell.isCurrentMonth) {
+                    tileColor = tileColor.withOpacity(0.3);
+                  }
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: tileColor,
+                      borderRadius: BorderRadius.circular(6),
+                      border: !cell.isCurrentMonth
+                          ? Border.all(
+                              color: isDark ? Colors.white12 : Colors.black12)
+                          : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${cell.date.day}',
+                      style: TextStyle(
+                        color: cell.isCurrentMonth
+                            ? (tileColor == AppColors.primaryGreen ||
+                                    tileColor == Colors.red.shade400 ||
+                                    (isDark && cell.value == 0)
+                                ? Colors.white
+                                : Colors.black87)
+                            : (isDark ? Colors.white38 : Colors.black38),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
               );
             },
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            error: (e, st) => Center(
+              child: Text(
+                'Error loading heatmap',
+                style: TextStyle(color: textColor),
+              ),
+            ),
           ),
           const SizedBox(height: 15),
           Center(
