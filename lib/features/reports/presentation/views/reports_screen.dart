@@ -41,8 +41,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Expanded(
             child: gemsAsync.when(
               data: (gems) {
-                // 1. Calculate the total using only current inventory value.
-                // Sold gems should not contribute to the active portfolio total.
+              
                 final totalPortfolio = gems.fold<double>(
                   0,
                   (sum, gem) => sum + (gem.isSold ? 0.0 : gem.targetPrice),
@@ -110,7 +109,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildFilterSection() {
-    // Watch the new varieties provider
+   
     final varietiesAsync = ref.watch(gemstoneVarietiesProvider);
 
     return Container(
@@ -198,7 +197,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   );
                 },
               ),
-              // Show a simple text while loading varieties
+              
               loading: () => const LinearProgressIndicator(),
               error: (err, _) => const Text("Error"),
             ),
@@ -239,7 +238,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Future<void> _exportReport(List<GemstoneModel> gems) async {
-    // Explicitly request storage permissions for users who want to see it in App Info
+    
     if (Platform.isAndroid) {
       var status = await Permission.storage.status;
       if (!status.isGranted) {
@@ -261,11 +260,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
 
     if (outputFile == null) {
-      // User canceled the picker
+      
       return;
     }
 
-    // Proceed to create PDF
+    // create PDF
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -320,7 +319,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
     );
 
-    // Save the PDF file to the selected location
+    // Save the PDF file 
     try {
       final file = File(outputFile);
       await file.writeAsBytes(await pdf.save());
@@ -349,7 +348,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 }
 
 Widget _buildGemCard(GemstoneModel gem) {
-  // 1. Calculate Total Cost
+  // Calculate Total Cost
   final double totalCost =
       gem.buyingPrice +
       gem.treatmentCost +
@@ -358,7 +357,7 @@ Widget _buildGemCard(GemstoneModel gem) {
       gem.transportCost +
       gem.otherCost;
 
-  // 2. Logic: If sold, use Selling Price. If not sold, use Target Price for "Potential Profit"
+
   final double displayProfit = gem.isSold
       ? (gem.sellingPrice - totalCost)
       : (gem.targetPrice - totalCost);

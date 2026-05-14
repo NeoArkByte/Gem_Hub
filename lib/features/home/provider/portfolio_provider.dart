@@ -1,4 +1,3 @@
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
 import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

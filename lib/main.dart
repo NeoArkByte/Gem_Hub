@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:job_market/data/datasources/local/database_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
