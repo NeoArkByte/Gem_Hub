@@ -128,10 +128,10 @@ class ProfileScreen extends ConsumerWidget {
     final supabaseUser = authData.supabaseUser;
 
     return SizedBox(
-      width: double.infinity, // Force the header to take full width
+      width: double.infinity, 
       child: Column(
         crossAxisAlignment:
-            CrossAxisAlignment.center, // Center children horizontally
+            CrossAxisAlignment.center, 
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // 1. Profile Picture
@@ -157,7 +157,7 @@ class ProfileScreen extends ConsumerWidget {
                 supabaseUser?.email?.split('@')[0] ??
                 "Gem Owner",
             textAlign:
-                TextAlign.center, // Ensure text internal alignment is centered
+                TextAlign.center, 
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -170,10 +170,10 @@ class ProfileScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 32.0,
-            ), // Prevent text hitting edges
+            ), 
             child: Text(
               profile?.description ?? "No profile description",
-              textAlign: TextAlign.center, // Important for multi-line centering
+              textAlign: TextAlign.center, 
               style: TextStyle(
                 color: Colors.grey.shade500,
                 fontSize: 14,
@@ -226,10 +226,10 @@ class ProfileScreen extends ConsumerWidget {
 
     return inventoryAsync.when(
       data: (gems) {
-        // Logic: isSold == 0 means it's available inventory
+        // Logic: isSold 
         final availableItems = gems.where((g) => g.isSold == false).length;
 
-        // Logic: isSold != 0 (usually 1) means it has been sold
+       
         final salesCount = gems.where((g) => g.isSold == true).length;
 
         return Container(
@@ -248,7 +248,7 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           child: IntrinsicHeight(
-            // Ensures the VerticalDivider matches the text height
+            
             child: Row(
               children: [
                 _statItem(availableItems.toString(), "ITEMS", textColor),
@@ -326,6 +326,7 @@ class ProfileScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
+            // ignore: deprecated_member_use
             color: Colors.black.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
