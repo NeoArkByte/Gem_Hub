@@ -30,7 +30,6 @@ class GemRepository {
   /// POST: Create a new gem listing
   Future<Gem> createGem(Gem gem) async {
     try {
-      // We use toMap() which already converts status to lowercase for Django
       final response = await _dio.post('gems/', data: gem.toMap());
       return Gem.fromMap(response.data);
     } on DioException catch (e) {
@@ -39,7 +38,6 @@ class GemRepository {
   }
 
   /// PATCH: Update an existing gem
-  /// We use the gemId we parsed earlier to target the correct URL
   Future<Gem> updateGem(Gem gem) async {
     if (gem.gemId == null) throw 'Cannot update a gem without an ID';
     
@@ -65,7 +63,6 @@ class GemRepository {
 
   String _handleError(DioException e) {
     if (e.response != null) {
-      // Django often returns errors in a 'detail' field or as a list of field errors
       final errorData = e.response?.data;
       return 'Error ${e.response?.statusCode}: $errorData';
     }
