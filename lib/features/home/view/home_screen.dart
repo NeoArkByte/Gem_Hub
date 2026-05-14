@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:job_market/features/home/provider/home_chart_provider.dart';
 import 'package:job_market/features/home/provider/portfolio_provider.dart';
 
 import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
@@ -17,11 +18,14 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Watch both providers
+    // 1. Watch providers
     final profileState = ref.watch(profileViewModelProvider);
     final portfolioAsync = ref.watch(
       portfolioDataProvider,
     ); // Generated from your gemstone logic
+    final chartRange = ref.watch(chartRangeProvider);
+    final chartTrendAsync = ref.watch(chartTrendDataProvider);
+    final heatmapAsync = ref.watch(heatmapDataProvider);
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgColor = isDark
@@ -74,13 +78,18 @@ class HomeScreen extends ConsumerWidget {
                         ),
 
                         const SizedBox(height: 25),
-                        // Display the username from the profile
-                      
 
+                        // Display the username from the profile
                         const SizedBox(height: 15),
-                        _buildPerformanceTrends(textColor, isDark),
+                        _buildPerformanceTrends(
+                          textColor,
+                          isDark,
+                          chartRange,
+                          chartTrendAsync,
+                          ref,
+                        ),
                         const SizedBox(height: 25),
-                        _buildHeatmap(textColor, isDark),
+                        _buildHeatmap(textColor, isDark, heatmapAsync),
                         const SizedBox(height: 25),
                         _buildQuickActions(context, isDark),
                         const SizedBox(height: 30),
@@ -223,8 +232,14 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  // --- 3. Performance Chart (Visual Simulation) ---
-  Widget _buildPerformanceTrends(Color textColor, bool isDark) {
+  // --- 3. Performance Chart ---
+  Widget _buildPerformanceTrends(
+    Color textColor,
+    bool isDark,
+    ChartRange chartRange,
+    AsyncValue<ChartTrendData> chartTrendAsync,
+    WidgetRef ref,
+  ) {
     return _buildCardWrapper(
       isDark,
       Column(
@@ -241,37 +256,89 @@ class HomeScreen extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                "Last 6 Months",
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
+              DropdownButtonHideUnderline(
+                child: DropdownButton<ChartRange>(
+                  value: chartRange,
+                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.blue.shade700),
+                  isDense: true,
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  onChanged: (ChartRange? newValue) {
+                    if (newValue != null) {
+                      ref.read(chartRangeProvider.notifier).state = newValue;
+                    }
+                  },
+                  items: ChartRange.values.map((ChartRange range) {
+                    return DropdownMenuItem<ChartRange>(
+                      value: range,
+                      child: Text(range.displayName),
+                    );
+                  }).toList(),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
           SizedBox(
-            height: 120,
+            height: 160,
             width: double.infinity,
-            child: CustomPaint(painter: ChartPainter()),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN']
-                .map(
-                  (m) => Text(
-                    m,
-                    style: TextStyle(
-                      color: m == 'MAY' ? Colors.blue : Colors.grey,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
+            child: chartTrendAsync.when(
+              data: (trend) {
+                if (!trend.hasEnoughData) {
+                  return Center(
+                    child: Text(
+                      'Not enough data to display the chart.',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 13,
+                      ),
                     ),
+                  );
+                }
+                return CustomPaint(
+                  painter: TrendChartPainter(
+                    values: trend.values,
+                    lineColor: AppColors.accentBlue,
+                    fillColor: AppColors.accentBlue.withOpacity(0.18),
                   ),
-                )
-                .toList(),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => Center(
+                child: Text(
+                  'Error loading chart data',
+                  style: TextStyle(color: Colors.red.shade400),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          chartTrendAsync.when(
+            data: (trend) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: trend.labels
+                    .map(
+                      (label) => Expanded(
+                        child: Text(
+                          label,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
           ),
         ],
       ),
@@ -279,7 +346,11 @@ class HomeScreen extends ConsumerWidget {
   }
 
   // --- 4. Heatmap Calendar (Visual Simulation) ---
-  Widget _buildHeatmap(Color textColor, bool isDark) {
+  Widget _buildHeatmap(
+    Color textColor,
+    bool isDark,
+    AsyncValue<List<HeatmapCellData>> heatmapAsync,
+  ) {
     return _buildCardWrapper(
       isDark,
       Column(
@@ -294,30 +365,77 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 15),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-            ),
-            itemCount: 35,
-            itemBuilder: (context, index) {
-              // TODO: Implement actual profit/loss gradient logic later
-              // Dummy logic: random greens for profit, light greys for neutral
-              Color tileColor = [
-                AppColors.primaryGreen,
-                AppColors.mintLight,
-                AppColors.successMint,
-              ][index % 3];
-              return Container(
-                decoration: BoxDecoration(
-                  color: tileColor,
-                  borderRadius: BorderRadius.circular(6),
+          heatmapAsync.when(
+            data: (cells) {
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 7,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
                 ),
+                itemCount: 35,
+                itemBuilder: (context, index) {
+                  final cell = cells[index];
+                  
+                  // Profit/loss gradient logic
+                  Color tileColor;
+                  if (cell.value > 0) {
+                    // Positive value -> shades of green
+                    tileColor = cell.value > 5000
+                        ? AppColors.primaryGreen
+                        : AppColors.successMint;
+                  } else if (cell.value < 0) {
+                    // Negative value -> shades of red (you can adjust this if needed)
+                    tileColor = Colors.red.shade400;
+                  } else {
+                    // Neutral / No value
+                    tileColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+                  }
+
+                  // Fade out cells not in current month
+                  if (!cell.isCurrentMonth) {
+                    tileColor = tileColor.withOpacity(0.3);
+                  }
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: tileColor,
+                      borderRadius: BorderRadius.circular(6),
+                      border: !cell.isCurrentMonth
+                          ? Border.all(
+                              color: isDark ? Colors.white12 : Colors.black12)
+                          : null,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${cell.date.day}',
+                      style: TextStyle(
+                        color: cell.isCurrentMonth
+                            ? (tileColor == AppColors.primaryGreen ||
+                                    tileColor == Colors.red.shade400 ||
+                                    (isDark && cell.value == 0)
+                                ? Colors.white
+                                : Colors.black87)
+                            : (isDark ? Colors.white38 : Colors.black38),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  );
+                },
               );
             },
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            error: (e, st) => Center(
+              child: Text(
+                'Error loading heatmap',
+                style: TextStyle(color: textColor),
+              ),
+            ),
           ),
           const SizedBox(height: 15),
           Center(
@@ -431,35 +549,83 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-// Custom Painter for the smooth curve chart
-class ChartPainter extends CustomPainter {
+// Custom Painter for the dynamic performance chart
+class TrendChartPainter extends CustomPainter {
+  final List<double> values;
+  final Color lineColor;
+  final Color fillColor;
+
+  TrendChartPainter({
+    required this.values,
+    required this.lineColor,
+    required this.fillColor,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
+    if (values.isEmpty) return;
+
     final paint = Paint()
-      ..color = Colors.blue
+      ..color = lineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
 
-    final path = Path();
-    path.moveTo(0, size.height * 0.7);
-    path.quadraticBezierTo(
-      size.width * 0.2,
-      size.height * 0.2,
-      size.width * 0.4,
-      size.height * 0.6,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.6,
-      size.height * 0.9,
-      size.width * 0.8,
-      size.height * 0.3,
-    );
-    path.lineTo(size.width, size.height * 0.5);
+    final fillPaint = Paint()
+      ..color = fillColor
+      ..style = PaintingStyle.fill;
 
-    canvas.drawPath(path, paint);
+    final gridPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    const double padding = 16;
+    final chartWidth = size.width - padding * 2;
+    final chartHeight = size.height - padding * 2;
+    final maxValue = values
+        .reduce((a, b) => a > b ? a : b)
+        .clamp(1.0, double.infinity);
+
+    for (var row = 0; row < 3; row++) {
+      final dy = padding + chartHeight / 3 * row;
+      canvas.drawLine(
+        Offset(padding, dy),
+        Offset(size.width - padding, dy),
+        gridPaint,
+      );
+    }
+
+    final points = <Offset>[];
+    for (var i = 0; i < values.length; i++) {
+      final x = padding + (chartWidth / (values.length - 1)) * i;
+      final y = padding + chartHeight * (1 - (values[i] / maxValue));
+      points.add(Offset(x, y));
+    }
+
+    final trendPath = Path()..moveTo(points.first.dx, points.first.dy);
+    for (var point in points.skip(1)) {
+      trendPath.lineTo(point.dx, point.dy);
+    }
+
+    final fillPath = Path.from(trendPath)
+      ..lineTo(points.last.dx, size.height - padding)
+      ..lineTo(points.first.dx, size.height - padding)
+      ..close();
+
+    canvas.drawPath(fillPath, fillPaint);
+    canvas.drawPath(trendPath, paint);
+
+    final dotPaint = Paint()..color = lineColor;
+    for (var point in points) {
+      canvas.drawCircle(point, 4, dotPaint);
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant TrendChartPainter oldDelegate) {
+    return oldDelegate.values != values ||
+        oldDelegate.lineColor != lineColor ||
+        oldDelegate.fillColor != fillColor;
+  }
 }
