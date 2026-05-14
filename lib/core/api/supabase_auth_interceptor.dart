@@ -35,8 +35,6 @@ class SupabaseAuthInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (err.response?.statusCode == 401) {
       print('Auth Error: 401 Unauthorized. User session may have ended.');
-      // Optional: You could trigger a logout event here via an EventBus 
-      // or a specific auth state provider.
     }
     return handler.next(err);
   }
