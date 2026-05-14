@@ -1,4 +1,13 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 part of 'job_viewmodel.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
 @ProviderFor(PendingJobsViewModel)
 final pendingJobsViewModelProvider = PendingJobsViewModelProvider._();
@@ -25,7 +34,7 @@ final class PendingJobsViewModelProvider
 }
 
 String _$pendingJobsViewModelHash() =>
-    r'131cbb0e69994ec6c80fb1f74f1c4bc25b9fc07a';
+    r'19cad408d804995d44344a03fad8c11d68f0f00c';
 
 abstract class _$PendingJobsViewModel extends $AsyncNotifier<List<Job>> {
   FutureOr<List<Job>> build();
