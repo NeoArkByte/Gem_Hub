@@ -6,72 +6,11 @@ import 'package:job_market/core/enums/gem_type.dart';
 import 'package:job_market/data/models/gem_market/gem_model.dart';
 import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
 import 'package:job_market/features/gem_market/viewmodel/gem_marketplace_viewmodel.dart';
-import 'gem_market_add_entry.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-class _Category {
-  final GemType type;
-  final String label;
-  final IconData icon;
-  final Color accentColor;
-  const _Category(this.type, this.label, this.icon, this.accentColor);
-}
 
-const _categories = [
-  _Category(
-    GemType.allGems,
-    'All Gems',
-    Icons.auto_awesome_rounded,
-    AppColors.primaryGreen,
-  ),
-  _Category(GemType.sapphire, 'Sapphire', Icons.circle, AppColors.accentGreen),
-  _Category(GemType.ruby, 'Ruby', Icons.favorite_rounded, AppColors.dangerRed),
-  _Category(
-    GemType.emerald,
-    'Emerald',
-    Icons.eco_rounded,
-    AppColors.accentGreen,
-  ),
-  _Category(
-    GemType.diamond,
-    'Diamond',
-    Icons.diamond_rounded,
-    AppColors.accentPurple,
-  ),
-  _Category(
-    GemType.alexandrite,
-    'Alexandrite',
-    Icons.auto_fix_high_rounded,
-    AppColors.accentPurple,
-  ),
-  _Category(
-    GemType.topaz,
-    'Topaz',
-    Icons.brightness_high_rounded,
-    AppColors.gold,
-  ),
-  _Category(
-    GemType.spinel,
-    'Spinel',
-    Icons.grain_rounded,
-    AppColors.accentPink,
-  ),
-  _Category(
-    GemType.tourmaline,
-    'Tourmaline',
-    Icons.palette_rounded,
-    AppColors.accentRed,
-  ),
-  _Category(
-    GemType.other,
-    'Other',
-    Icons.more_horiz_rounded,
-    AppColors.greyText,
-  ),
-];
-
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+//  Main Screen 
 class GemMarketPlaceScreen extends ConsumerStatefulWidget {
   const GemMarketPlaceScreen({super.key});
 
@@ -105,26 +44,26 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
       backgroundColor: isDark
           ? AppColors.darkBackground
           : AppColors.lightBackgroundAlt,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SearchBar(),
-          _CategoryFilter(),
-          _LatestGemsSection(),
-          _SectionHeader(),
-          Expanded(child: _GemGrid()),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(child: const SizedBox(height: 12)),
+          SliverToBoxAdapter(child: _SearchBar()),
+          SliverToBoxAdapter(child: _CategoryFilter()),
+          SliverToBoxAdapter(child: _LatestGemsSection()),
+          SliverToBoxAdapter(child: _SectionHeader()),
+          _GemGrid(),
         ],
       ),
       floatingActionButton: _MarketFab(),
     );
   }
 
-  // ─── Search Bar ───────────────────────────────────────────────────────────────
+  //  Search Bar 
   Widget _SearchBar() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       child: Row(
         children: [
           Expanded(
@@ -217,7 +156,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  // ─── Latest Gems Section ───────────────────────────────────────────────────
+  //  Latest Gems Section 
   Widget _LatestGemsSection() {
     final latestGemsAsync = ref.watch(latestApprovedGemsProvider);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -421,7 +360,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  // ─── Categories ───────────────────────────────────────────────────────────────
+  //  Categories 
   Widget _CategoryFilter() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -431,8 +370,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
-          children: List.generate(_categories.length, (i) {
-            final cat = _categories[i];
+          children: List.generate(GemType.values.length, (i) {
+            final type = GemType.values[i];
             final isSelected = _selectedCategory == i;
             return Padding(
               padding: const EdgeInsets.only(right: 10),
@@ -441,7 +380,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                   setState(() => _selectedCategory = i);
                   // ref
                   //     .read(gemMarketplaceViewModelProvider.notifier)
-                  //     .updateType(cat.type);
+                  //     .updateType(type);
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -479,28 +418,15 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                             ),
                           ],
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        cat.icon,
-                        size: 13,
-                        color: isSelected ? Colors.white : cat.accentColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        cat.label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : (isDark
-                                    ? Colors.grey[300]
-                                    : AppColors.greyText),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    type.displayName,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.grey[300] : AppColors.greyText),
+                    ),
                   ),
                 ),
               ),
@@ -511,7 +437,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  // ─── Section Header ───────────────────────────────────────────────────────────
+  //  Section Header 
   Widget _SectionHeader() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -558,57 +484,67 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  // ─── Gem Grid ─────────────────────────────────────────────────────────────────
+  //  Gem Grid 
   Widget _GemGrid() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final gemsState = ref.watch(gemMarketplaceViewModelProvider);
 
     return gemsState.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: AppColors.primaryGreen),
+      loading: () => const SliverFillRemaining(
+        child: Center(
+          child: CircularProgressIndicator(color: AppColors.primaryGreen),
+        ),
       ),
-      error: (err, stack) => Center(
-        child: Text(
-          'Error loading gems: $err',
-          style: TextStyle(
-            color: isDark ? Colors.redAccent.shade100 : Colors.red,
+      error: (err, stack) => SliverFillRemaining(
+        child: Center(
+          child: Text(
+            'Error loading gems: $err',
+            style: TextStyle(
+              color: isDark ? Colors.redAccent.shade100 : Colors.red,
+            ),
           ),
         ),
       ),
       data: (gems) {
         if (gems.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.search_off,
-                  color: isDark ? Colors.grey[400] : AppColors.greyText,
-                  size: 48,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'No gems found',
-                  style: TextStyle(
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.search_off,
                     color: isDark ? Colors.grey[400] : AppColors.greyText,
-                    fontSize: 16,
+                    size: 48,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Text(
+                    'No gems found',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : AppColors.greyText,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         }
 
-        return GridView.builder(
+        return SliverPadding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.75,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.75,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              (ctx, i) => _GemCard(gems[i]),
+              childCount: gems.length,
+            ),
           ),
-          itemCount: gems.length,
-          itemBuilder: (ctx, i) => _GemCard(gems[i]),
         );
       },
     );
@@ -737,7 +673,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  // ─── FAB ─────────────────────────────────────────────────────────────────────
+  //  FAB 
   Widget _MarketFab() {
     return Container(
       width: 56,
@@ -758,10 +694,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AddGemScreen()),
-            );
+            context.push('/gems/new');
           },
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
         ),

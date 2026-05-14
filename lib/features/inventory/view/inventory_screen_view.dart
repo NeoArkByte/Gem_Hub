@@ -235,23 +235,31 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(24),
                   ),
-                  child: gem.finalImagePath != null
-                      ? Image.file(
-                          File(gem.finalImagePath!),
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          height: 200,
-                          width: double.infinity,
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.image_not_supported,
-                            size: 40,
-                            color: Colors.grey,
-                          ),
-                        ),
+                  child: (() {
+                    final imagePath = (gem.finalImagePath?.isNotEmpty == true)
+                        ? gem.finalImagePath!
+                        : (gem.firstImagePath?.isNotEmpty == true
+                              ? gem.firstImagePath!
+                              : null);
+                    if (imagePath != null) {
+                      return Image.file(
+                        File(imagePath),
+                        height: 200,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      );
+                    }
+                    return Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                    );
+                  })(),
                 ),
                 // Status Badge (Available/Sold)
                 Positioned(

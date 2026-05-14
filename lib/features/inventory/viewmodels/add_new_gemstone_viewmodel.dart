@@ -8,19 +8,17 @@ part 'add_new_gemstone_viewmodel.g.dart';
 
 @riverpod
 class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
-  late final InventoryRepository _repository;
-
   @override
   Future<void> build() async {}
 
   Future<void> saveGemstone(GemstoneModel gem) async {
-    _repository = ref.read(inventoryRepositoryProvider);
+    final repository = ref.read(inventoryRepositoryProvider);
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       if (gem.id == null) {
-        await _repository.insertGemstone(gem);
+        await repository.insertGemstone(gem);
       } else {
-        await _repository.updateGemstone(gem);
+        await repository.updateGemstone(gem);
       }
       ref.invalidate(inventoryViewModelProvider);
     });

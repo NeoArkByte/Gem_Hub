@@ -8,11 +8,10 @@ part 'inventory_viewmodel.g.dart';
 
 @riverpod
 class InventoryViewModel extends _$InventoryViewModel {
-  late final InventoryRepository _repository;
+  InventoryRepository get _repository => ref.read(inventoryRepositoryProvider);
 
   @override
   Future<List<GemstoneModel>> build() async {
-    _repository = ref.read(inventoryRepositoryProvider);
     return _repository.fetchGemstones();
   }
 

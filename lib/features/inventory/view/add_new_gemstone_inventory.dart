@@ -22,6 +22,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   final ImagePicker _picker = ImagePicker();
 
   bool _isSold = false;
+  String? _firstImageError;
 
   // --- Image State ---
   File? _firstImage;
@@ -114,6 +115,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       // Final Costs & Target
       _transportCostCtrl.text = gem.transportCost.toString();
       _otherExpCostCtrl.text = gem.otherCost.toString();
+      _otherExpDescCtrl.text = gem.otherCostReason;
       _targetPriceCtrl.text = gem.targetPrice.toString();
       _sellingPriceCtrl.text = gem.sellingPrice.toString();
 
@@ -185,66 +187,112 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   void _publishInventoryItem() async {
-    // 1. Check if the form is valid (check your validators!)
-    if (_formKey.currentState!.validate()) {
-      // 2. Safely get the ID
-      // Use ?. instead of !. so it returns null for new items
-      final int? existingId = widget.gemstoneToEdit?.id;
+    setState(() {
+      _firstImageError = null;
+    });
 
-      final newGem = GemstoneModel(
-        id: existingId,
-        date: _dateCtrl.text,
-        variety: _selectedVariety,
-        color: _colorCtrl.text,
-        isRough: _isRough,
-        isCut: _isCut,
-        isSold: _isSold,
-        sellingPrice: _isSold
-            ? (double.tryParse(_sellingPriceCtrl.text) ?? 0.0)
-            : 0.0,
-        buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
-        buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
-        treatmentCost: double.tryParse(_treatmentCostCtrl.text) ?? 0.0,
-        recutCost: double.tryParse(_recutCostCtrl.text) ?? 0.0,
-        otherProcessingDesc: _valueAddDescCtrl.text,
-        finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
-        transportCost: double.tryParse(_transportCostCtrl.text) ?? 0.0,
-        otherCost: double.tryParse(_otherExpCostCtrl.text) ?? 0.0,
-        targetPrice: double.tryParse(_targetPriceCtrl.text) ?? 0.0,
-        firstImagePath:
-            _firstImage?.path ?? widget.gemstoneToEdit?.firstImagePath,
-        finalImagePath:
-            _finalImage?.path ?? widget.gemstoneToEdit?.finalImagePath,
+    final double treatmentCost =
+        double.tryParse(_treatmentCostCtrl.text) ?? 0.0;
+    final double otherProcessingCost =
+        double.tryParse(_otherValueAddCostCtrl.text) ?? 0.0;
+    final double otherExpenses = double.tryParse(_otherExpCostCtrl.text) ?? 0.0;
+
+    if (_firstImage == null && widget.gemstoneToEdit?.firstImagePath == null) {
+      setState(() {
+        _firstImageError = 'First Look image is required.';
+      });
+    }
+
+    if (_treatmentStatusCtrl.text.trim().isEmpty) {
+      _treatmentStatusCtrl.text = treatmentCost > 0 ? 'Heated' : 'Unheated';
+    }
+
+    if (!_formKey.currentState!.validate() || _firstImageError != null) {
+      return;
+    }
+
+    if (otherProcessingCost > 0 && _valueAddDescCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please enter a description for other processing cost.',
+          ),
+        ),
       );
+      return;
+    }
 
-      try {
-        await ref
-            .read(addNewGemstoneViewModelProvider.notifier)
-            .saveGemstone(newGem);
+    if (otherExpenses > 0 && _otherExpDescCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a description for other expenses.'),
+        ),
+      );
+      return;
+    }
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                widget.gemstoneToEdit != null
-                    ? 'Gemstone Updated Successfully! ✅'
-                    : 'Inventory Item Recorded locally 🎉',
-              ),
+    // 2. Safely get the ID
+    // Use ?. instead of !. so it returns null for new items
+    final int? existingId = widget.gemstoneToEdit?.id;
+
+    final newGem = GemstoneModel(
+      id: existingId,
+      date: _dateCtrl.text,
+      variety: _selectedVariety,
+      color: _colorCtrl.text,
+      isRough: _isRough,
+      isCut: _isCut,
+      isSold: _isSold,
+      sellingPrice: _isSold
+          ? (double.tryParse(_sellingPriceCtrl.text) ?? 0.0)
+          : 0.0,
+      buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
+      buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
+      treatmentCost: double.tryParse(_treatmentCostCtrl.text) ?? 0.0,
+      recutCost: double.tryParse(_recutCostCtrl.text) ?? 0.0,
+      otherProcessingCost: double.tryParse(_otherValueAddCostCtrl.text) ?? 0.0,
+      otherProcessingDesc: _valueAddDescCtrl.text,
+      finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
+      transportCost: double.tryParse(_transportCostCtrl.text) ?? 0.0,
+      otherCost: double.tryParse(_otherExpCostCtrl.text) ?? 0.0,
+      otherCostReason: _otherExpDescCtrl.text,
+      targetPrice: double.tryParse(_targetPriceCtrl.text) ?? 0.0,
+      firstImagePath:
+          _firstImage?.path ?? widget.gemstoneToEdit?.firstImagePath,
+      finalImagePath:
+          _finalImage?.path ?? widget.gemstoneToEdit?.finalImagePath,
+    );
+
+    try {
+      await ref
+          .read(addNewGemstoneViewModelProvider.notifier)
+          .saveGemstone(newGem);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.gemstoneToEdit != null
+                  ? 'Gemstone Updated Successfully! ✅'
+                  : 'Inventory Item Recorded locally 🎉',
             ),
-          );
-          Navigator.pop(context);
-        }
-      } catch (e) {
-        // Catch any database errors (like unique constraint failures)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+          ),
+        );
+        Navigator.pop(context);
       }
+    } catch (e) {
+      // Catch any database errors (like unique constraint failures)
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Keep the provider alive while this widget is mounted
+    ref.watch(addNewGemstoneViewModelProvider);
+
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor = isDark
         ? AppColors.darkBackground
@@ -298,6 +346,8 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                             "First Look",
                             _firstImage,
                             () => _pickImage(true),
+                            showError: _firstImageError != null,
+                            errorText: _firstImageError,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -322,7 +372,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                       AppColors.primaryYellow,
                     ),
                     const SizedBox(height: 16),
-                    _buildDatePickerTextField(),
+                    _buildDatePickerTextField(context: context),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
                       child: Divider(),
@@ -338,14 +388,26 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildVarietyDropdown(textColor, dividerColor),
+                          child: _buildVarietyDropdown(
+                            context,
+                            textColor,
+                            dividerColor,
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildTextField(
+                            context: context,
                             label: 'Color/Varietial',
                             hint: 'e.g. Royal Blue',
                             controller: _colorCtrl,
+                            validator: (value) {
+                              if (_selectedVariety == 'Other' &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Please enter a color for Other variety.';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -368,20 +430,42 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                       children: [
                         Expanded(
                           child: _buildTextField(
+                            context: context,
                             label: 'Buying Weight (ct)',
                             hint: '0.00',
                             controller: _buyingWeightCtrl,
                             keyboardType: TextInputType.number,
+                            validator: (value) {
+                              final parsed = double.tryParse(value ?? '');
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Buying weight is required.';
+                              }
+                              if (parsed == null || parsed <= 0) {
+                                return 'Enter a valid buying weight.';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildTextField(
+                            context: context,
                             label: 'Buying Price (Rs)',
                             hint: '0',
                             controller: _buyingPriceCtrl,
                             keyboardType: TextInputType.number,
                             prefixIcon: Icons.currency_rupee,
+                            validator: (value) {
+                              final parsed = double.tryParse(value ?? '');
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Buying price is required.';
+                              }
+                              if (parsed == null || parsed <= 0) {
+                                return 'Enter a valid buying price.';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -402,6 +486,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                       children: [
                         Expanded(
                           child: _buildTextField(
+                            context: context,
                             label: 'Treatment (Cost)',
                             hint: '0',
                             controller: _treatmentCostCtrl,
@@ -411,6 +496,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                         const SizedBox(width: 16),
                         Expanded(
                           child: _buildTextField(
+                            context: context,
                             label: 'Recut (Cost)',
                             hint: '0',
                             controller: _recutCostCtrl,
@@ -421,6 +507,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                     const SizedBox(height: 20),
                     _buildTextField(
+                      context: context,
                       label: 'Other Processing Cost',
                       hint: '0',
                       controller: _otherValueAddCostCtrl,
@@ -428,10 +515,20 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                     const SizedBox(height: 12),
                     _buildTextField(
+                      context: context,
                       label: 'Value Add Description',
                       hint: 'Details about treatment/recutting...',
                       controller: _valueAddDescCtrl,
                       maxLines: 2,
+                      validator: (value) {
+                        final otherCost =
+                            double.tryParse(_otherValueAddCostCtrl.text) ?? 0;
+                        if (otherCost > 0 &&
+                            (value == null || value.trim().isEmpty)) {
+                          return 'Please describe the other processing cost.';
+                        }
+                        return null;
+                      },
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
@@ -446,12 +543,23 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
+                      context: context,
                       label: 'Treatment Status',
                       hint: 'e.g. Unheated',
                       controller: _treatmentStatusCtrl,
+                      validator: (value) {
+                        final treatmentCost =
+                            double.tryParse(_treatmentCostCtrl.text) ?? 0;
+                        if (treatmentCost > 0 &&
+                            (value == null || value.trim().isEmpty)) {
+                          return 'If treatment cost is entered, treatment status is required.';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
                     _buildTextField(
+                      context: context,
                       label: 'Final Carat Weight',
                       hint: '0.00',
                       controller: _finalWeightCtrl,
@@ -471,6 +579,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
+                      context: context,
                       label: 'Transport Cost',
                       hint: '0',
                       controller: _transportCostCtrl,
@@ -479,6 +588,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                     const SizedBox(height: 20),
                     _buildTextField(
+                      context: context,
                       label: 'Other Expenses',
                       hint: '0',
                       controller: _otherExpCostCtrl,
@@ -487,9 +597,19 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                     const SizedBox(height: 12),
                     _buildTextField(
+                      context: context,
                       label: 'Expense Description',
                       hint: 'e.g. Lab reports',
                       controller: _otherExpDescCtrl,
+                      validator: (value) {
+                        final otherExpenses =
+                            double.tryParse(_otherExpCostCtrl.text) ?? 0;
+                        if (otherExpenses > 0 &&
+                            (value == null || value.trim().isEmpty)) {
+                          return 'Please describe the other expenses.';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
 
@@ -534,32 +654,66 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     // Conditionally show Target Price vs Selling Price
                     if (!_isSold) ...[
                       _buildTextField(
+                        context: context,
                         label: 'Target Price',
                         hint: 'Expected selling price',
                         controller: _targetPriceCtrl,
                         keyboardType: TextInputType.number,
                         prefixIcon: Icons.track_changes,
+                        validator: (value) {
+                          final parsed = double.tryParse(value ?? '');
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Target price is required.';
+                          }
+                          if (parsed == null || parsed <= 0) {
+                            return 'Enter a valid target price.';
+                          }
+                          return null;
+                        },
                       ),
                     ] else ...[
                       Row(
                         children: [
                           Expanded(
                             child: _buildTextField(
+                              context: context,
                               label: 'Target Price',
                               hint: '0',
                               controller: _targetPriceCtrl,
                               keyboardType: TextInputType.number,
                               prefixIcon: Icons.track_changes,
+                              validator: (value) {
+                                final parsed = double.tryParse(value ?? '');
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Target price is required.';
+                                }
+                                if (parsed == null || parsed <= 0) {
+                                  return 'Enter a valid target price.';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: _buildTextField(
+                              context: context,
                               label: 'Selling Price',
                               hint: 'Final price',
                               controller: _sellingPriceCtrl,
                               keyboardType: TextInputType.number,
                               prefixIcon: Icons.sell_outlined,
+                              validator: (value) {
+                                if (!_isSold) return null;
+                                final parsed = double.tryParse(value ?? '');
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Selling price is required when sold.';
+                                }
+                                if (parsed == null || parsed <= 0) {
+                                  return 'Enter a valid selling price.';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                         ],
@@ -637,7 +791,13 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
-  Widget _buildImageTile(String label, File? image, VoidCallback onTap) {
+  Widget _buildImageTile(
+    String label,
+    File? image,
+    VoidCallback onTap, {
+    bool showError = false,
+    String? errorText,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -673,6 +833,13 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   ),
           ),
         ),
+        if (showError && errorText != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            errorText,
+            style: const TextStyle(color: Colors.red, fontSize: 12),
+          ),
+        ],
       ],
     );
   }
@@ -696,6 +863,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   Widget _buildTextField({
+    required BuildContext context,
     required String label,
     required String hint,
     required TextEditingController controller,
@@ -703,16 +871,27 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     IconData? prefixIcon,
     int maxLines = 1,
     String? suffixText,
+    String? Function(String?)? validator,
+    Color? fillColor,
+    Color? textColor,
+    Color? labelColor,
+    Color? borderColor,
   }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    fillColor ??= isDark ? const Color(0xFF1F2937) : Colors.white;
+    textColor ??= isDark ? Colors.white : Colors.black;
+    labelColor ??= isDark ? Colors.grey[300]! : Colors.grey;
+    borderColor ??= isDark ? const Color(0xFF374151) : AppColors.lightBorder;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Colors.grey,
+            color: labelColor,
           ),
         ),
         const SizedBox(height: 8),
@@ -720,10 +899,13 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
+          validator: validator,
+          style: TextStyle(color: textColor),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: fillColor,
             hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, color: AppColors.primaryYellow, size: 18)
                 : null,
@@ -734,7 +916,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.lightBorder),
+              borderSide: BorderSide(color: borderColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -746,22 +928,30 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
-  Widget _buildDatePickerTextField() {
+  Widget _buildDatePickerTextField({required BuildContext context}) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color fieldBg = isDark ? const Color(0xFF1F2937) : Colors.white;
+    final Color borderColor = isDark
+        ? const Color(0xFF374151)
+        : AppColors.lightBorder;
+    final Color contentColor = isDark ? Colors.white : AppColors.darkBackground;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Acquisition/Record Date',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Colors.grey,
+            color: isDark ? Colors.grey[300] : Colors.grey,
           ),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: _dateCtrl,
           readOnly: true,
+          style: TextStyle(color: contentColor),
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
@@ -777,11 +967,15 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           },
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: fieldBg,
             suffixIcon: Icon(Icons.event_note, color: AppColors.primaryYellow),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.lightBorder),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: AppColors.primaryYellow, width: 2),
             ),
           ),
         ),
@@ -789,28 +983,39 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
-  Widget _buildVarietyDropdown(Color textColor, Color dividerColor) {
+  Widget _buildVarietyDropdown(
+    BuildContext context,
+    Color textColor,
+    Color dividerColor,
+  ) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color fieldBg = isDark ? const Color(0xFF1F2937) : Colors.white;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Stone Variety',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: Colors.grey,
+            color: isDark ? Colors.grey[300] : Colors.grey,
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: _selectedVariety,
-          dropdownColor: Colors.white,
+          dropdownColor: fieldBg,
+          style: TextStyle(color: textColor, fontSize: 16),
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: fieldBg,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide(color: dividerColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: AppColors.primaryYellow, width: 2),
             ),
           ),
           items: _varieties
@@ -843,6 +1048,9 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   Widget _buildBottomAction(Color bgColor, Color color) {
+    final state = ref.watch(addNewGemstoneViewModelProvider);
+    final isLoading = state.isLoading;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -854,21 +1062,30 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           width: double.infinity,
           height: 54,
           child: ElevatedButton(
-            onPressed: _publishInventoryItem,
+            onPressed: isLoading ? null : _publishInventoryItem,
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: Text(
-              widget.gemstoneToEdit != null ? "Update Details" : "Publish Item",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.black,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    widget.gemstoneToEdit != null ? "Update Details" : "Publish Item",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
           ),
         ),
       ),

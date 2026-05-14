@@ -1,21 +1,25 @@
+import 'dart:io';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'package:job_market/core/enums/gem_status.dart';
 import 'package:job_market/data/models/gem_market/gem_model.dart';
 import 'package:job_market/data/repositories/gem_market/gem_repository_provider.dart';
+import 'package:job_market/data/repositories/storage/storage_repository_provider.dart';
 import 'package:job_market/features/auth/provider/session_provider.dart';
 import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'gem_add_viewmodel.g.dart';
 
 @riverpod
 class GemAddViewModel extends _$GemAddViewModel {
   @override
-  bool build() {
-    return false;
-  }
+  bool build() => false;
 
   Future<bool> createGem({
     required String name,
+    required File imageFile,
+    File? certificateFile,
     double? carat,
     double? price,
     String? description,
@@ -23,43 +27,54 @@ class GemAddViewModel extends _$GemAddViewModel {
     String? sellerPhone,
     String? variety,
     String? color,
-    String? imageUrl,
-    String? certificateUrl,
   }) async {
-    final sessionAsync = ref.read(sessionProvider);
-    final currentUser = sessionAsync.value;
+    final storageRepo = ref.read(storageRepositoryProvider);
+    final gemRepo = ref.read(gemRepositoryProvider);
+    
+    final session = ref.read(sessionProvider).value;
+    final ownerProfileId = session?.profile?.id;
+    final supabaseUid = session?.supabaseUser?.id;
 
-    if (currentUser?.supabaseUser == null) {
-      return false;
-    }
+    if (ownerProfileId == null || supabaseUid == null) return false;
 
-    final owner =
-        currentUser?.profile?.id ??
-        currentUser?.profile?.profileId ??
-        currentUser?.supabaseUser?.id ??
-        'anonymous';
-
-    final gem = Gem(
-      owner: owner,
-      name: name,
-      carat: carat,
-      price: price,
-      description: description,
-      location: location,
-      sellerPhone: sellerPhone,
-      variety: variety,
-      color: color,
-      imageUrl: imageUrl ??
-          'https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=700',
-      certificateUrl: certificateUrl ?? 'https://example.com/dummy-certificate.pdf',
-      status: GemStatus.PENDING,
-    );
+    state = true; 
 
     try {
-      await ref.read(gemRepositoryProvider).createGem(gem);
-      ref.invalidate(gemListProvider);
+      final imageUrl = await storageRepo.uploadListing(imageFile, supabaseUid);
+      
+      String? certUrl;
+      if (certificateFile != null) {
+        certUrl = await storageRepo.uploadDocument(certificateFile, supabaseUid);
+      }
+
+      final gem = Gem(
+        owner: ownerProfileId,
+        name: name,
+        carat: carat,
+        price: price,
+        description: description,
+        location: location,
+        sellerPhone: sellerPhone,
+        variety: variety,
+        color: color,
+        imageUrl: imageUrl, 
+        certificateUrl: certUrl ?? '', 
+        status: GemStatus.APPROVED,
+      );
+
+      await gemRepo.createGem(gem);
+      
+      if (ref.mounted) {
+        ref.invalidate(gemListProvider);
+        state = false;
+      }
+      
       return true;
+
     } catch (e) {
+      if (ref.mounted) {
+        state = false;
+      }
       return false;
     }
   }
