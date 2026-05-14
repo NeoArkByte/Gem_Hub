@@ -10,7 +10,6 @@ import 'gem_market_add_entry.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-// ─── Category model ────────────────────────────────────────────────────────────
 class _Category {
   final GemType type;
   final String label;

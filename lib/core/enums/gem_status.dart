@@ -4,7 +4,6 @@ enum GemStatus {
   REJECTED;
 
   static GemStatus fromString(String? status) {
-    // Django stores as lowercase 'pending', 'approved', 'rejected'
     final normalized = status?.toUpperCase();
     
     switch (normalized) {
@@ -18,6 +17,5 @@ enum GemStatus {
     }
   }
 
-  // Helper to send the value back to Django in the format it expects
   String toDjangoString() => name.toLowerCase();
 }

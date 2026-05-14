@@ -43,7 +43,7 @@ class _GemListingDetailScreenState extends State<GemListingDetailScreen> {
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          // ── Scrollable content ──
+          
           CustomScrollView(
             slivers: [
               GemDetailAppBar(
@@ -68,7 +68,7 @@ class _GemListingDetailScreenState extends State<GemListingDetailScreen> {
               ),
             ],
           ),
-          // ── Sticky bottom bar ──
+
           Positioned(
             left: 0,
             right: 0,
