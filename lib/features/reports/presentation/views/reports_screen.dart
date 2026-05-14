@@ -70,7 +70,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.textDarkAlt,
+        color: AppColors.primaryGreen,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
