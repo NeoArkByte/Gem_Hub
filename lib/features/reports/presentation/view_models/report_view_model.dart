@@ -19,6 +19,11 @@ Future<List<GemstoneModel>> filteredGemstones(
       if (gem.variety != filter.variety) return false;
     }
 
+    if (filter.status != null && filter.status != 'All') {
+      if (filter.status == 'Sold' && !gem.isSold) return false;
+      if (filter.status == 'Available' && gem.isSold) return false;
+    }
+
     if (filter.dateRange != null) {
       final gemDate = DateTime.tryParse(gem.date);
       if (gemDate == null) return false;

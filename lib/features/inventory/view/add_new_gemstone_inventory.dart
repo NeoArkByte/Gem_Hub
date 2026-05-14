@@ -245,6 +245,9 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep the provider alive while this widget is mounted
+    ref.watch(addNewGemstoneViewModelProvider);
+
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor = isDark
         ? AppColors.darkBackground
@@ -843,6 +846,9 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   Widget _buildBottomAction(Color bgColor, Color color) {
+    final state = ref.watch(addNewGemstoneViewModelProvider);
+    final isLoading = state.isLoading;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -854,21 +860,30 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           width: double.infinity,
           height: 54,
           child: ElevatedButton(
-            onPressed: _publishInventoryItem,
+            onPressed: isLoading ? null : _publishInventoryItem,
             style: ElevatedButton.styleFrom(
               backgroundColor: color,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
             ),
-            child: Text(
-              widget.gemstoneToEdit != null ? "Update Details" : "Publish Item",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.black,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Text(
+                    widget.gemstoneToEdit != null ? "Update Details" : "Publish Item",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
           ),
         ),
       ),
