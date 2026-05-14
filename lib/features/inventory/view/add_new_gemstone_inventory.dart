@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/provider/inventory_provider.dart';
+import 'package:job_market/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart';
 
 class AddNewGemstoneScreen extends ConsumerStatefulWidget {
   final GemstoneModel? gemstoneToEdit; // Add this line
@@ -185,75 +185,70 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   void _publishInventoryItem() async {
-  // 1. Check if the form is valid (check your validators!)
-  if (_formKey.currentState!.validate()) {
-    
-    // 2. Safely get the ID
-    // Use ?. instead of !. so it returns null for new items
-    final int? existingId = widget.gemstoneToEdit?.id;
+    // 1. Check if the form is valid (check your validators!)
+    if (_formKey.currentState!.validate()) {
+      // 2. Safely get the ID
+      // Use ?. instead of !. so it returns null for new items
+      final int? existingId = widget.gemstoneToEdit?.id;
 
-    final newGem = GemstoneModel(
-      id: existingId, 
-      date: _dateCtrl.text,
-      variety: _selectedVariety,
-      color: _colorCtrl.text,
-      isRough: _isRough,
-      isCut: _isCut,
-      isSold: _isSold,
-      sellingPrice: _isSold
-          ? (double.tryParse(_sellingPriceCtrl.text) ?? 0.0)
-          : 0.0,
-      buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
-      buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
-      treatmentCost: double.tryParse(_treatmentCostCtrl.text) ?? 0.0,
-      recutCost: double.tryParse(_recutCostCtrl.text) ?? 0.0,
-      otherProcessingDesc: _valueAddDescCtrl.text,
-      finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
-      transportCost: double.tryParse(_transportCostCtrl.text) ?? 0.0,
-      otherCost: double.tryParse(_otherExpCostCtrl.text) ?? 0.0,
-      targetPrice: double.tryParse(_targetPriceCtrl.text) ?? 0.0,
-      firstImagePath: _firstImage?.path ?? widget.gemstoneToEdit?.firstImagePath,
-      finalImagePath: _finalImage?.path ?? widget.gemstoneToEdit?.finalImagePath,
-    );
-
-    try {
-      if (widget.gemstoneToEdit != null) {
-        // UPDATE existing
-        await ref
-            .read(inventoryProvider.notifier)
-            .updateGemstone(newGem);
-      } else {
-        // ADD new
-        await ref
-            .read(inventoryProvider.notifier)
-            .addGemstone(newGem);
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.gemstoneToEdit != null
-                  ? 'Gemstone Updated Successfully! ✅'
-                  : 'Inventory Item Recorded locally 🎉',
-            ),
-          ),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      // Catch any database errors (like unique constraint failures)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+      final newGem = GemstoneModel(
+        id: existingId,
+        date: _dateCtrl.text,
+        variety: _selectedVariety,
+        color: _colorCtrl.text,
+        isRough: _isRough,
+        isCut: _isCut,
+        isSold: _isSold,
+        sellingPrice: _isSold
+            ? (double.tryParse(_sellingPriceCtrl.text) ?? 0.0)
+            : 0.0,
+        buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
+        buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
+        treatmentCost: double.tryParse(_treatmentCostCtrl.text) ?? 0.0,
+        recutCost: double.tryParse(_recutCostCtrl.text) ?? 0.0,
+        otherProcessingDesc: _valueAddDescCtrl.text,
+        finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
+        transportCost: double.tryParse(_transportCostCtrl.text) ?? 0.0,
+        otherCost: double.tryParse(_otherExpCostCtrl.text) ?? 0.0,
+        targetPrice: double.tryParse(_targetPriceCtrl.text) ?? 0.0,
+        firstImagePath:
+            _firstImage?.path ?? widget.gemstoneToEdit?.firstImagePath,
+        finalImagePath:
+            _finalImage?.path ?? widget.gemstoneToEdit?.finalImagePath,
       );
+
+      try {
+        await ref
+            .read(addNewGemstoneViewModelProvider.notifier)
+            .saveGemstone(newGem);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                widget.gemstoneToEdit != null
+                    ? 'Gemstone Updated Successfully! ✅'
+                    : 'Inventory Item Recorded locally 🎉',
+              ),
+            ),
+          );
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        // Catch any database errors (like unique constraint failures)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    Color bgColor = isDark
+        ? AppColors.darkBackground
+        : AppColors.lightBackground;
     Color textColor = isDark ? Colors.white : AppColors.darkBackground;
     Color dividerColor = isDark
         ? AppColors.darkSurfaceAlt
