@@ -255,39 +255,30 @@ class HomeScreen extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                chartRange.displayName,
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: ChartRange.values.map((range) {
-              final selected = range == chartRange;
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: ChoiceChip(
-                  label: Text(range.displayName),
-                  selected: selected,
-                  onSelected: (_) =>
-                      ref.read(chartRangeProvider.notifier).state = range,
-                  selectedColor: AppColors.primaryYellow.withOpacity(0.18),
-                  backgroundColor: isDark
-                      ? AppColors.textDarkAlt
-                      : Colors.grey.shade200,
-                  labelStyle: TextStyle(
-                    color: selected ? AppColors.textDarkAlt : textColor,
+              DropdownButtonHideUnderline(
+                child: DropdownButton<ChartRange>(
+                  value: chartRange,
+                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.blue.shade700),
+                  isDense: true,
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
+                  onChanged: (ChartRange? newValue) {
+                    if (newValue != null) {
+                      ref.read(chartRangeProvider.notifier).state = newValue;
+                    }
+                  },
+                  items: ChartRange.values.map((ChartRange range) {
+                    return DropdownMenuItem<ChartRange>(
+                      value: range,
+                      child: Text(range.displayName),
+                    );
+                  }).toList(),
                 ),
-              );
-            }).toList(),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           SizedBox(

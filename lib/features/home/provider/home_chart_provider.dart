@@ -8,23 +8,59 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_chart_provider.g.dart';
 
-enum ChartRange { thisMonth, last6Months, lastYear }
+enum ChartRange {
+  days7,
+  days28,
+  days90,
+  days365,
+  currentMonth,
+  lastMonth,
+  twoMonthsAgo,
+  currentYear,
+  lastYear,
+  lifetime,
+}
 
 extension ChartRangeLabel on ChartRange {
   String get displayName {
+    final now = DateTime.now();
     switch (this) {
-      case ChartRange.thisMonth:
-        return 'This Month';
-      case ChartRange.last6Months:
-        return 'Last 6 Months';
+      case ChartRange.days7:
+        return '7D';
+      case ChartRange.days28:
+        return '28D';
+      case ChartRange.days90:
+        return '90D';
+      case ChartRange.days365:
+        return '365D';
+      case ChartRange.currentMonth:
+        return _monthAbbrevSafe(now.month);
+      case ChartRange.lastMonth:
+        return _monthAbbrevSafe(now.month - 1);
+      case ChartRange.twoMonthsAgo:
+        return _monthAbbrevSafe(now.month - 2);
+      case ChartRange.currentYear:
+        return '${now.year}';
       case ChartRange.lastYear:
-        return 'Last Year';
+        return '${now.year - 1}';
+      case ChartRange.lifetime:
+        return 'Lifetime';
     }
   }
 }
 
+String _monthAbbrevSafe(int month) {
+  int m = month;
+  while (m <= 0) m += 12;
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ];
+  return months[m - 1];
+}
+
 final chartRangeProvider = StateProvider<ChartRange>(
-  (ref) => ChartRange.last6Months,
+  (ref) => ChartRange.days365,
 );
 
 class ChartTrendData {
@@ -50,29 +86,101 @@ Future<ChartTrendData> chartTrendData(Ref ref) async {
   final List<String> labels = [];
   final List<double> values = [];
 
-  if (range == ChartRange.thisMonth) {
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+  void addWeeksForMonth(int year, int month) {
+    final firstDayOfMonth = DateTime(year, month, 1);
+    final lastDayOfMonth = DateTime(year, month + 1, 0);
     const weeks = 4;
     final weekLength = (lastDayOfMonth.day / weeks).ceil();
 
     for (var i = 0; i < weeks; i++) {
       final segmentStart = firstDayOfMonth.add(Duration(days: i * weekLength));
       final segmentEnd = DateTime(
-        now.year,
-        now.month,
+        year,
+        month,
         min(lastDayOfMonth.day, (i + 1) * weekLength),
       );
       labels.add('W${i + 1}');
       values.add(_sumForRange(gems, segmentStart, segmentEnd));
     }
-  } else {
-    final monthCount = range == ChartRange.last6Months ? 6 : 12;
-    for (var i = monthCount - 1; i >= 0; i--) {
-      final month = DateTime(now.year, now.month - i, 1);
-      labels.add(_monthAbbreviation(month.month));
-      values.add(_sumForMonth(gems, month.year, month.month));
+  }
+
+  void addMonthsForYear(int year) {
+    for (var i = 1; i <= 12; i++) {
+      labels.add(_monthAbbreviation(i));
+      values.add(_sumForMonth(gems, year, i));
     }
+  }
+
+  switch (range) {
+    case ChartRange.days7:
+      for (var i = 6; i >= 0; i--) {
+        final d = now.subtract(Duration(days: i));
+        labels.add('${d.day}/${d.month}');
+        values.add(_sumForRange(gems, d, d));
+      }
+      break;
+    case ChartRange.days28:
+      for (var i = 3; i >= 0; i--) {
+        final end = now.subtract(Duration(days: i * 7));
+        final start = end.subtract(const Duration(days: 6));
+        labels.add('W${4 - i}');
+        values.add(_sumForRange(gems, start, end));
+      }
+      break;
+    case ChartRange.days90:
+      for (var i = 11; i >= 0; i--) {
+        final end = now.subtract(Duration(days: (i * 90) ~/ 12));
+        final start = now.subtract(Duration(days: ((i + 1) * 90) ~/ 12 - 1));
+        labels.add('');
+        values.add(_sumForRange(gems, start, end));
+      }
+      break;
+    case ChartRange.days365:
+      for (var i = 11; i >= 0; i--) {
+        final month = DateTime(now.year, now.month - i, 1);
+        labels.add(_monthAbbreviation(month.month));
+        values.add(_sumForMonth(gems, month.year, month.month));
+      }
+      break;
+    case ChartRange.currentMonth:
+      addWeeksForMonth(now.year, now.month);
+      break;
+    case ChartRange.lastMonth:
+      final d = DateTime(now.year, now.month - 1, 1);
+      addWeeksForMonth(d.year, d.month);
+      break;
+    case ChartRange.twoMonthsAgo:
+      final d = DateTime(now.year, now.month - 2, 1);
+      addWeeksForMonth(d.year, d.month);
+      break;
+    case ChartRange.currentYear:
+      addMonthsForYear(now.year);
+      break;
+    case ChartRange.lastYear:
+      addMonthsForYear(now.year - 1);
+      break;
+    case ChartRange.lifetime:
+      if (gems.isEmpty) {
+        labels.add('${now.year}');
+        values.add(0);
+      } else {
+        var minYear = now.year;
+        for (final g in gems) {
+          final d = _parseGemDate(g.date);
+          if (d != null && d.year < minYear) {
+            minYear = d.year;
+          }
+        }
+        for (var y = minYear; y <= now.year; y++) {
+          labels.add('$y');
+          var sum = 0.0;
+          for (var m = 1; m <= 12; m++) {
+            sum += _sumForMonth(gems, y, m);
+          }
+          values.add(sum);
+        }
+      }
+      break;
   }
 
   final nonZeroCount = values.where((value) => value > 0).length;
@@ -87,6 +195,8 @@ Future<ChartTrendData> chartTrendData(Ref ref) async {
 }
 
 String _monthAbbreviation(int month) {
+  int m = month;
+  while (m <= 0) m += 12;
   const months = [
     'Jan',
     'Feb',
@@ -101,7 +211,7 @@ String _monthAbbreviation(int month) {
     'Nov',
     'Dec',
   ];
-  return months[month - 1];
+  return months[m - 1];
 }
 
 DateTime? _parseGemDate(String date) {
