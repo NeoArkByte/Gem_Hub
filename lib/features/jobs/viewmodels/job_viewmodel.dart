@@ -35,7 +35,7 @@ class PendingJobsViewModel extends _$PendingJobsViewModel {
       final success = await repository.updateJobStatus(jobId, status);
       
       if (success) {
-        print("✅ SUCCESS: Backend updated!");
+        print("SUCCESS: Backend updated!");
         await loadPendingJobs();
         ref.invalidate(marketplaceViewModelProvider);
         return true;

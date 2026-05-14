@@ -4,7 +4,6 @@ import 'package:job_market/data/models/job_market/job_model.dart';
 class JobRepository {
   final Dio _dio;
 
-  // 1. Dependency Injection: එළියෙන් Dio එක ඇතුළට ගන්නවා
   JobRepository(this._dio);
 
   Future<List<Job>> getPendingJobs() async {
@@ -86,14 +85,11 @@ class JobRepository {
     }
   }
 
-  // 👇 මෙන්න මේ කෑල්ල තමයි පට්ටම Clean වුණේ!
-  // Post New Job
+  
   Future<bool> insertJob(Job job) async {
     try {
-      // Model එකේ toMap() එකෙන් ඔක්කොම හරියට හදලා දෙන නිසා කෙලින්ම ඒක ගන්නවා.
       final payload = Map<String, dynamic>.from(job.toMap());
 
-      // Null තියෙන දේවල් (උදා: company_info දුන්නේ නැත්නම්) අයින් කරලා යවනවා
       payload.removeWhere((key, value) => value == null);
 
       final response = await _dio.post(
@@ -109,7 +105,7 @@ class JobRepository {
     }
   }
 
-  // 2. Gem Repository එකේ තිබ්බ Error Handling Helper එක
+  
   String _handleError(DioException e) {
     if (e.response != null) {
       final errorData = e.response?.data;

@@ -1,13 +1,5 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'post_job_viewmodel.dart';
-
-// **************************************************************************
-// RiverpodGenerator
-// **************************************************************************
-
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: type=lint, type=warning
 
 @ProviderFor(PostJobViewModel)
 final postJobViewModelProvider = PostJobViewModelProvider._();
