@@ -104,7 +104,6 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final job = pendingJobs[index];
-                      // ✅ Kalin SizedBox thibba thanata man aluth Card eka damma
                       print(job.toMap());
                       return _buildPendingJobCard(job);
                     },

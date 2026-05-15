@@ -12,10 +12,9 @@ Future<List<Job>> pendingJobs(Ref ref) async {
   return repo.getPendingJobs();
 }
 
-// 2. Approved Jobs Provider (Marketplace එක සඳහා)
+
 @riverpod
 Future<List<Job>> approvedJobs(Ref ref) async {
-  // Repository එකෙන් approved ලිස්ට් එක ඉල්ලනවා
   final repo = ref.watch(jobRepositoryProvider);
   return repo.getApprovedJobs();
 }

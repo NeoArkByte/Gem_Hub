@@ -32,8 +32,6 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 🛡️ WATCH the generated routerProvider
-    // Riverpod takes your 'router' function and generates 'routerProvider'
     final goRouter = ref.watch(routerProvider);
 
     return MaterialApp.router(
@@ -51,8 +49,6 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-
-      // 🔄 Use the configuration provided by the Riverpod provider
       routerConfig: goRouter,
     );
   }
