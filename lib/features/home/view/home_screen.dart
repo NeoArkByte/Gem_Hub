@@ -9,7 +9,7 @@ import 'package:job_market/features/jobs/view/screens/post_new_job.dart';
 
 import 'package:job_market/features/reports/presentation/views/reports_screen.dart';
 import 'package:job_market/shared/widgets/app_header.dart';
-// Remove the old manual mock and use the generated one
+
 import 'package:job_market/features/home/provider/profile_view_model.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 
@@ -18,11 +18,11 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. Watch providers
+  
     final profileState = ref.watch(profileViewModelProvider);
     final portfolioAsync = ref.watch(
       portfolioDataProvider,
-    ); // Generated from your gemstone logic
+    ); 
     final chartRange = ref.watch(chartRangeProvider);
     final chartTrendAsync = ref.watch(chartTrendDataProvider);
     final heatmapAsync = ref.watch(heatmapDataProvider);
@@ -40,13 +40,11 @@ class HomeScreen extends ConsumerWidget {
       error: (err, stack) =>
           Scaffold(body: Center(child: Text("Connection Error: $err"))),
       data: (authenticatedUser) {
-        // sessionProvider returns null if not logged in
+        
         if (authenticatedUser == null) {
           return const Scaffold(body: Center(child: Text("Please Log In")));
         }
 
-        final profile = authenticatedUser.profile;
-        final email = authenticatedUser.supabaseUser?.email;
 
         return Scaffold(
           backgroundColor: bgColor,
@@ -55,7 +53,7 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // You can pass the profile to your header if needed
+                  
                   const AppHeader(),
 
                   Padding(
@@ -65,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: [
-                        // This is your Gemstone Portfolio logic
+                        
                         portfolioAsync.when(
                           data: (portfolio) => _buildGoldenPortfolioCard(
                             totalInventoryValue:
@@ -106,8 +104,8 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildGoldenPortfolioCard({
-    required double totalInventoryValue, // Value of items in stock
-    required double realizedProfit, // Actual profit from sold items
+    required double totalInventoryValue, 
+    required double realizedProfit, 
     required BuildContext context,
   }) {
     return Container(
@@ -232,7 +230,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  // --- 3. Performance Chart ---
+  // Performance Chart
   Widget _buildPerformanceTrends(
     Color textColor,
     bool isDark,
@@ -345,7 +343,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  // --- 4. Heatmap Calendar (Visual Simulation) ---
+  // --- Heatmap Calendar ---
   Widget _buildHeatmap(
     Color textColor,
     bool isDark,
@@ -449,7 +447,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  // --- 5. Bottom Action Buttons ---
+  //  Bottom Action Buttons ---
   Widget _buildQuickActions(BuildContext context, bool isDark) {
     return Row(
       children: [
@@ -549,7 +547,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-// Custom Painter for the dynamic performance chart
+// Custom Painter
 class TrendChartPainter extends CustomPainter {
   final List<double> values;
   final Color lineColor;
