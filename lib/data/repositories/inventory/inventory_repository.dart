@@ -32,4 +32,8 @@ class InventoryRepository {
       whereArgs: [gem.id],
     );
   }
+
+  Future<List<String>> getGemVarieties() async {
+    return await _databaseHelper.getGemVarieties();
+  }
 }

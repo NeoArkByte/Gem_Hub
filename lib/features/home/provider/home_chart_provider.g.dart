@@ -87,4 +87,4 @@ final class HeatmapDataProvider
   }
 }
 
-String _$heatmapDataHash() => r'b2c1beb8e512a7dea529f920e28c3b9a9b2e0590';
+String _$heatmapDataHash() => r'1a181db575b5951e10db2e70d4d35dcbcdd59ed6';

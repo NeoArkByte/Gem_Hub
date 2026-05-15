@@ -29,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // 🔐 Validation (ViewModel)
+    // validation
     final error = vm.validateLogin(email, password);
 
     if (error != null) {
@@ -39,7 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    // 🌐 Trigger login (NO navigation here anymore)
+    // trigger login
     await vm.login(email, password);
     
   }

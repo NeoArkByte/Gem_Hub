@@ -683,16 +683,20 @@ class GemLocationSection extends StatelessWidget {
                             size: 18,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            gem.location != null && gem.location!.isNotEmpty
-                                ? gem.location!
-                                : 'Location Not Specified',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: isDark
-                                  ? Colors.white
-                                  : AppColors.darkBackground,
+                          Expanded(
+                            child: Text(
+                              gem.location != null && gem.location!.isNotEmpty
+                                  ? gem.location!
+                                  : 'Location Not Specified',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppColors.darkBackground,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

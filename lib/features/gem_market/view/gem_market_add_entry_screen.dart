@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:job_market/features/gem_market/viewmodel/gem_add_viewmodel.dart';
 import 'package:job_market/core/constants/app_colors.dart';
+import 'package:job_market/shared/widgets/location_picker.dart';
 
 class AddGemScreen extends ConsumerStatefulWidget {
   const AddGemScreen({super.key});
@@ -26,11 +27,33 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _colorController = TextEditingController();
-  final TextEditingController _varietyController = TextEditingController();
+  String? _selectedVariety;
+  List<String> _varieties = [];
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _sellerPhoneController = TextEditingController();
 
   bool _isPublishing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVarieties();
+  }
+
+  Future<void> _loadVarieties() async {
+    try {
+      final varieties = await ref
+          .read(gemAddViewModelProvider.notifier)
+          .getGemVarieties();
+      if (mounted) {
+        setState(() {
+          _varieties = varieties;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading varieties: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -39,7 +62,6 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
     _priceController.dispose();
     _descriptionController.dispose();
     _colorController.dispose();
-    _varietyController.dispose();
     _locationController.dispose();
     _sellerPhoneController.dispose();
     super.dispose();
@@ -62,14 +84,13 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
         .createGem(
           name: _nameController.text.trim(),
           imageFile: _gemImage!,
-          certificateFile:
-              _certificateFile,
+          certificateFile: _certificateFile,
           carat: double.tryParse(_caratController.text.trim()),
           price: double.tryParse(_priceController.text.trim()),
           description: _descriptionController.text.trim(),
           location: _locationController.text.trim(),
           sellerPhone: _sellerPhoneController.text.trim(),
-          variety: _varietyController.text.trim(),
+          variety: _selectedVariety,
           color: _colorController.text.trim(),
         );
 
@@ -206,6 +227,84 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
               : (value) => (value == null || value.trim().isEmpty)
                     ? 'Please enter $label'
                     : null,
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String hint,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+    IconData? prefixIcon,
+    bool optional = false,
+  }) {
+    bool isDark = Theme.of(context).brightness == Brightness.dark;
+    Color fieldBg = isDark ? AppColors.darkSurface : Colors.white;
+    Color labelColor = isDark ? Colors.grey[400]! : Colors.grey;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: labelColor,
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: value,
+          items: items.map((String variety) {
+            return DropdownMenuItem<String>(
+              value: variety,
+              child: Text(
+                variety,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          dropdownColor: fieldBg,
+          icon: Icon(Icons.arrow_drop_down, color: Colors.grey[400]),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: fieldBg,
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, color: Colors.grey[400], size: 18)
+                : null,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(
+                color: isDark
+                    ? AppColors.darkSurfaceAlt
+                    : AppColors.lightBorder,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: const BorderSide(
+                color: AppColors.primaryYellow,
+                width: 2,
+              ),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+          validator: optional
+              ? null
+              : (value) => value == null ? 'Please select $label' : null,
         ),
         const SizedBox(height: 20),
       ],
@@ -413,10 +512,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildTextField(
+                          child: _buildDropdownField(
                             label: 'Variety',
-                            hint: 'e.g. Sapphire',
-                            controller: _varietyController,
+                            hint: 'Select variety',
+                            value: _selectedVariety,
+                            items: _varieties,
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedVariety = newValue;
+                              });
+                            },
                             optional: true,
                           ),
                         ),
@@ -471,13 +576,12 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                       'SELLER & LOCATION',
                     ),
                     const SizedBox(height: 16),
-                    _buildTextField(
-                      label: 'Location',
-                      hint: 'e.g. Colombo',
-                      controller: _locationController,
-                      prefixIcon: Icons.map_outlined,
-                      optional: true,
+                    AppLocationPicker(
+                      onPlaceSelected: (location) {
+                        _locationController.text = location;
+                      },
                     ),
+                    const SizedBox(height: 20),
                     _buildTextField(
                       label: 'Seller Phone',
                       hint: 'e.g. +94 77 123 4567',

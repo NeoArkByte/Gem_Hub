@@ -26,7 +26,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // 🔐 LOCAL VALIDATION
+    // validation
     final error = vm.validateSignUp(email, password, confirmPassword);
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,8 +35,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    // 🌐 TRIGGER LOGIC
-    // We don't await this because the listener below handles the result
+    // trigger sign up
     vm.signUp(email, password);
   }
 

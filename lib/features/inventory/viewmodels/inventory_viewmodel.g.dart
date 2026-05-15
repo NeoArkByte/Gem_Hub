@@ -34,7 +34,7 @@ final class InventoryViewModelProvider
 }
 
 String _$inventoryViewModelHash() =>
-    r'3e5dbdc3a26e7a14db4dbc5e5b24734936438978';
+    r'aa99bda9d05073f69510d7adf8db2e6b87e5ad01';
 
 abstract class _$InventoryViewModel
     extends $AsyncNotifier<List<GemstoneModel>> {
