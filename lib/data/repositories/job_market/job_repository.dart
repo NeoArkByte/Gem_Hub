@@ -32,16 +32,36 @@ class JobRepository {
     }
   }
 
-  Future<List<Job>> getApprovedJobs({String keyword = "", String category = ""}) async {
+  // 💡 අලුත් Filters ටිකත් ගන්න විදිහට Parameters එකතු කරා
+  Future<List<Job>> getApprovedJobs({
+    String keyword = "", 
+    String category = "",
+    String location = "",
+    double? minSalary,
+    double? maxSalary,
+  }) async {
     try {
       final queryParams = <String, dynamic>{'status': 'approved'};
       
       if (keyword.isNotEmpty) {
-        queryParams['search'] = keyword;
+        queryParams['search'] = keyword; // Django එකේ search පරාමිතියට
       }
       if (category.isNotEmpty && category != "All Jobs") {
         queryParams['category'] = category;
       }
+      
+      // 💡 අලුත් Location සහ Salary ෆිල්ටර්ස් ටික Query එකට දානවා
+      if (location.isNotEmpty && location != "All Locations") {
+        queryParams['location'] = location;
+      }
+      if (minSalary != null) {
+        queryParams['min_salary'] = minSalary.toInt();
+      }
+      if (maxSalary != null) {
+        queryParams['max_salary'] = maxSalary.toInt();
+      }
+
+      print('🚀 Request යවනවා: jobs/ -> Query: $queryParams');
 
       final response = await _dio.get('jobs/', queryParameters: queryParams);
 

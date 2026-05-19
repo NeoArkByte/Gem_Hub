@@ -34,7 +34,7 @@ final class PendingJobsViewModelProvider
 }
 
 String _$pendingJobsViewModelHash() =>
-    r'19cad408d804995d44344a03fad8c11d68f0f00c';
+    r'8b72df0c354fbfc6f7d30ee76f6ff80d379fd939';
 
 abstract class _$PendingJobsViewModel extends $AsyncNotifier<List<Job>> {
   FutureOr<List<Job>> build();
