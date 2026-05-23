@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:gemhub/shared/widgets/google_sign_in_button.dart';
@@ -48,11 +47,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final vm = ref.read(authViewModelProvider.notifier);
 
     try {
-      await vm.signInWithOAuth(OAuthProvider.google);
+      
+      await vm.signInWithGoogleNative();
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Google sign-in started.'),
+            content: Text('Google sign-in complete.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -61,7 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google sign-in failed. ${error.toString()}'),
+            content: Text('Google sign-in failed: ${error.toString()}'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -111,7 +112,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 8),
 
                 Text(
-                  'Log in to continue to GemCost Jobs',
+                  'Log in to continue to GemHub',
                   style: TextStyle(color: Colors.grey[500]),
                 ),
 
@@ -120,6 +121,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // EMAIL
                 TextField(
                   controller: _emailCtrl,
+                  enabled: !isLoading, // Disable fields while logging in
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
@@ -135,6 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // PASSWORD
                 TextField(
                   controller: _passwordCtrl,
+                  enabled: !isLoading, // Disable fields while logging in
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -218,12 +221,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
 
-                GoogleSignInButton(
-                  label: 'Continue with Google',
-                  onPressed: _signInWithGoogle,
-                ),
+                const SizedBox(height: 16),
 
-                // SIGNUP
+                // NATIVE GOOGLE OAUTH BUTTON
+                isLoading 
+                  ? const SizedBox(
+                      height: 50,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    )
+                  : GoogleSignInButton(
+                      label: 'Continue with Google',
+                      onPressed: _signInWithGoogle,
+                    ),
+
+                const SizedBox(height: 16),
+
+                // SIGNUP LINK
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -232,7 +249,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     TextButton(
-                      onPressed: () {
+                      onPressed: isLoading ? null : () {
                         context.go('/signup');
                       },
                       child: Text(
