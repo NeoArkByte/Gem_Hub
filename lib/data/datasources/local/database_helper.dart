@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:job_market/core/enums/gem_type.dart';
+import 'package:gemhub/core/enums/gem_type.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();

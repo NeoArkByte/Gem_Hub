@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:job_market/core/constants/app_colors.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:job_market/shared/widgets/google_sign_in_button.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/shared/widgets/google_sign_in_button.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});

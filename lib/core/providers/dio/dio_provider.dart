@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/core/api/supabase_auth_interceptor.dart';
+import 'package:gemhub/core/api/supabase_auth_interceptor.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-import 'package:job_market/core/providers/supabase/supabase_provider.dart';
+import 'package:gemhub/core/providers/supabase/supabase_provider.dart';
 
 
 part 'dio_provider.g.dart';

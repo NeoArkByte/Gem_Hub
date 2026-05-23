@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/core/providers/dio/dio_provider.dart';
+import 'package:gemhub/core/providers/dio/dio_provider.dart';
 import 'gem_repository.dart';
 
 part 'gem_repository_provider.g.dart';

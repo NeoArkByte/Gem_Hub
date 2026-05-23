@@ -1,13 +1,13 @@
 import 'dart:io';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:job_market/core/enums/gem_status.dart';
-import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/data/repositories/gem_market/gem_repository_provider.dart';
-import 'package:job_market/data/repositories/storage/storage_repository_provider.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
-import 'package:job_market/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/core/enums/gem_status.dart';
+import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/data/repositories/gem_market/gem_repository_provider.dart';
+import 'package:gemhub/data/repositories/storage/storage_repository_provider.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart';
+import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
 
 part 'gem_add_viewmodel.g.dart';
 

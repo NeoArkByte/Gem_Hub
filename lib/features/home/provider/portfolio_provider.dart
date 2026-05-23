@@ -1,4 +1,4 @@
-import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
+import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'portfolio_provider.g.dart';

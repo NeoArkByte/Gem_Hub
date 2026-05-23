@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart';
 
 class AddNewGemstoneScreen extends ConsumerStatefulWidget {
   final GemstoneModel? gemstoneToEdit; // Add this line

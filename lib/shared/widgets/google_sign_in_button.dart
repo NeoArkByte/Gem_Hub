@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class GoogleSignInButton extends StatefulWidget {
   final Future<void> Function() onPressed;

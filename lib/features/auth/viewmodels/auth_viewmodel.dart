@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/data/repositories/auth/auth_repository_provider.dart';
+import 'package:gemhub/data/repositories/auth/auth_repository_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'auth_viewmodel.g.dart';

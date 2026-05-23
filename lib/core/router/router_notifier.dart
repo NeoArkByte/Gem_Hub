@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/core/enums/user_role.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
+import 'package:gemhub/core/enums/user_role.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart';
 
 part 'router_notifier.g.dart';
 

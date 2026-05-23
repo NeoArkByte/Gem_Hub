@@ -1,8 +1,8 @@
-import 'package:job_market/core/enums/user_role.dart';
-import 'package:job_market/data/models/auth/profile_model.dart';
+import 'package:gemhub/core/enums/user_role.dart';
+import 'package:gemhub/data/models/auth/profile_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/data/repositories/auth/auth_repository_provider.dart';
-import 'package:job_market/data/models/auth/auth_state.dart';
+import 'package:gemhub/data/repositories/auth/auth_repository_provider.dart';
+import 'package:gemhub/data/models/auth/auth_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 part 'session_provider.g.dart';
 
