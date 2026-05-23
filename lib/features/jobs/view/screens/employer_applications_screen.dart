@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:job_market/data/datasources/local/database_helper.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/features/jobs/view/screens/cv_viewer_screen.dart';
+import 'package:gemhub/data/datasources/local/database_helper.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart';
+import 'package:gemhub/features/jobs/view/screens/cv_viewer_screen.dart';
 
 class EmployerApplicationsScreen extends ConsumerStatefulWidget {
   const EmployerApplicationsScreen({super.key});

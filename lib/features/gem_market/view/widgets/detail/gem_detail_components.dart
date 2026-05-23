@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/features/gem_market/view/screens/certificate_view_screen.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/features/gem_market/view/screens/certificate_view_screen.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 // Helper for price formatting in GemTitleSection
 String _formatPrice(double? v) {

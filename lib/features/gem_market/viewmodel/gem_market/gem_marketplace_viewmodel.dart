@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/data/repositories/gem_market/gem_repository_provider.dart';
-import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
+import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/data/repositories/gem_market/gem_repository_provider.dart';
+import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
 
 part 'gem_marketplace_viewmodel.g.dart';
 

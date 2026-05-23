@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:job_market/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/data/models/gem_market/gem_model.dart';
 
 class GemRepository {
   final Dio _dio;

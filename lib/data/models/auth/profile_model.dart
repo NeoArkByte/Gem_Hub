@@ -1,4 +1,4 @@
-import 'package:job_market/core/enums/user_role.dart';
+import 'package:gemhub/core/enums/user_role.dart';
 
 class ProfileUser {
   final String id;

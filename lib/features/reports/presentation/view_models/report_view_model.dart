@@ -1,6 +1,6 @@
-import 'package:job_market/data/models/inventory/gem_filter.dart';
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
+import 'package:gemhub/data/models/inventory/gem_filter.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'report_view_model.g.dart';

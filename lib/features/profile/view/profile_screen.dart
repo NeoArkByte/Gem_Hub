@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/data/models/auth/auth_state.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/data/models/auth/auth_state.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart';
+import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});

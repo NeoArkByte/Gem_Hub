@@ -4,14 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:job_market/features/gem_market/viewmodel/gem_add/gem_add_viewmodel.dart';
-import 'package:job_market/core/constants/app_colors.dart';
-import 'package:job_market/features/gem_market/view/widgets/shared/gem_image_picker_tile.dart';
-import 'package:job_market/features/gem_market/view/widgets/shared/gem_file_picker_tile.dart';
-import 'package:job_market/features/gem_market/view/widgets/shared/gem_form_section_header.dart';
-import 'package:job_market/features/gem_market/view/widgets/shared/gem_form_text_field.dart';
-import 'package:job_market/features/gem_market/view/widgets/shared/gem_form_dropdown_field.dart';
-import 'package:job_market/shared/widgets/location_picker.dart';
+import 'package:gemhub/features/gem_market/viewmodel/gem_add/gem_add_viewmodel.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/features/gem_market/view/widgets/shared/gem_image_picker_tile.dart';
+import 'package:gemhub/features/gem_market/view/widgets/shared/gem_file_picker_tile.dart';
+import 'package:gemhub/features/gem_market/view/widgets/shared/gem_form_section_header.dart';
+import 'package:gemhub/features/gem_market/view/widgets/shared/gem_form_text_field.dart';
+import 'package:gemhub/features/gem_market/view/widgets/shared/gem_form_dropdown_field.dart';
+import 'package:gemhub/shared/widgets/location_picker.dart';
 
 class AddGemScreen extends ConsumerStatefulWidget {
   const AddGemScreen({super.key});

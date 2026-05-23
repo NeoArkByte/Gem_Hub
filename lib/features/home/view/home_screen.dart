@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:job_market/features/home/provider/home_chart_provider.dart';
-import 'package:job_market/features/home/provider/portfolio_provider.dart';
+import 'package:gemhub/features/home/provider/home_chart_provider.dart';
+import 'package:gemhub/features/home/provider/portfolio_provider.dart';
 
-import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
-import 'package:job_market/features/jobs/view/screens/post_new_job.dart';
+import 'package:gemhub/features/inventory/view/add_new_gemstone_inventory.dart';
+import 'package:gemhub/features/jobs/view/screens/post_new_job.dart';
 
-import 'package:job_market/features/reports/presentation/views/reports_screen.dart';
-import 'package:job_market/shared/widgets/app_header.dart';
+import 'package:gemhub/features/reports/presentation/views/reports_screen.dart';
+import 'package:gemhub/shared/widgets/app_header.dart';
 
-import 'package:job_market/features/home/provider/profile_view_model.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/features/home/provider/profile_view_model.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});

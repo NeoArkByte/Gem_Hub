@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class GemFilePickerTile extends StatelessWidget {
   final String label;

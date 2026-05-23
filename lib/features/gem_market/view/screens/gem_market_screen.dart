@@ -2,11 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/core/enums/gem_type.dart';
-import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
-import 'package:job_market/features/gem_market/viewmodel/gem_market/gem_marketplace_viewmodel.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/enums/gem_type.dart';
+import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
+import 'package:gemhub/features/gem_market/viewmodel/gem_market/gem_marketplace_viewmodel.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
 
