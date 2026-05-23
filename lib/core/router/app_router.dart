@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:job_market/data/models/job_market/job_model.dart';
+import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/core/router/router_notifier.dart';
+import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/core/router/router_notifier.dart';
 
-import 'package:job_market/features/navigation/view/main_navigation.dart';
-import 'package:job_market/features/jobs/view/screens/job_market.dart';
-import 'package:job_market/features/jobs/view/screens/post_new_job.dart';
-import 'package:job_market/features/jobs/view/screens/job_details.dart';
-import 'package:job_market/features/gem_market/view/gem_market_screen.dart';
-import 'package:job_market/features/gem_market/view/gem_listing_screen.dart';
-import 'package:job_market/features/gem_market/view/gem_market_add_entry_screen.dart';
-import 'package:job_market/features/auth/view/admin_screen.dart';
-import 'package:job_market/features/auth/view/login_screen.dart';
-import 'package:job_market/features/auth/view/sign_up_screen.dart';
-import 'package:job_market/features/inventory/view/inventory_screen_view.dart';
-import 'package:job_market/features/home/view/home_screen.dart';
-import 'package:job_market/features/profile/view/profile_screen.dart';
+import 'package:gemhub/features/navigation/view/main_navigation.dart';
+import 'package:gemhub/features/jobs/view/screens/job_market.dart';
+import 'package:gemhub/features/jobs/view/screens/post_new_job.dart';
+import 'package:gemhub/features/jobs/view/screens/job_details.dart';
+import 'package:gemhub/features/gem_market/view/screens/gem_market_screen.dart';
+import 'package:gemhub/features/gem_market/view/screens/gem_listing_screen.dart';
+import 'package:gemhub/features/gem_market/view/screens/gem_market_add_entry_screen.dart';
+import 'package:gemhub/features/auth/view/admin_screen.dart';
+import 'package:gemhub/features/auth/view/login_screen.dart';
+import 'package:gemhub/features/auth/view/sign_up_screen.dart';
+import 'package:gemhub/features/inventory/view/inventory_screen_view.dart';
+import 'package:gemhub/features/home/view/home_screen.dart';
+import 'package:gemhub/features/profile/view/profile_screen.dart';
 
 part 'app_router.g.dart';
 

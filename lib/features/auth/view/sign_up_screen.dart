@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:job_market/core/constants/app_colors.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/shared/widgets/google_sign_in_button.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -16,7 +18,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final TextEditingController _passwordCtrl = TextEditingController();
   final TextEditingController _confirmPasswordCtrl = TextEditingController();
 
-    bool _obscurePassword = true;
+  bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
   void _signUp() {
@@ -26,7 +28,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // 🔐 LOCAL VALIDATION
+    // validation
     final error = vm.validateSignUp(email, password, confirmPassword);
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,9 +37,33 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    // 🌐 TRIGGER LOGIC
-    // We don't await this because the listener below handles the result
+    // trigger sign up
     vm.signUp(email, password);
+  }
+
+  Future<void> _signUpWithGoogle() async {
+    final vm = ref.read(authViewModelProvider.notifier);
+
+    try {
+      await vm.signInWithOAuth(OAuthProvider.google);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google sign-up started.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google sign-up failed. ${error.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -156,6 +182,38 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         ),
                 ),
               ),
+
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Or continue with',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                  ),
+                ],
+              ),
+
+              GoogleSignInButton(
+                label: 'Sign up with Google',
+                onPressed: _signUpWithGoogle,
+              ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

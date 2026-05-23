@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'home_chart_provider.g.dart';

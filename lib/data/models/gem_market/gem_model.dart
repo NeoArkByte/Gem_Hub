@@ -1,4 +1,4 @@
-import 'package:job_market/core/enums/gem_status.dart';
+import 'package:gemhub/core/enums/gem_status.dart';
 
 class Gem {
   final String? gemId; 

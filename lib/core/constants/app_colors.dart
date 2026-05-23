@@ -34,6 +34,12 @@ class AppColors {
   static const Color lightSurface = Color(0xFFF9FAFB);
   static const Color lightBorder = Color(0xFFE5E7EB);
   static const Color lightBorderAlt = Color(0xFFCBD5E1);
+  static const Color googleButtonLightBorder = Color(0xFF747775);
+  static const Color googleButtonLightText = Color(0xFF1F1F1F);
+  static const Color googleButtonDarkBackground = Color(0xFF131314);
+  static const Color googleButtonDarkBorder = Color(0xFF8E918F);
+  static const Color googleButtonDarkText = Color(0xFFE3E3E3);
+  static const Color googleButtonDarkIconBox = Color(0xFF1A1A1A);
   static const Color blueSoft = Color(0xFFE0E7FF);
   static const Color blueSky = Color(0xFFE8F0FE);
   static const Color blueLight = Color(0xFFD1E9FF);

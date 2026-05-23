@@ -1,4 +1,4 @@
-package com.example.based_application
+package com.neoarkbyte.gemhub
 
 import io.flutter.embedding.android.FlutterActivity
 

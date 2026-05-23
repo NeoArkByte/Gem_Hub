@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
-import 'package:job_market/core/router/app_router.dart'; 
+import 'package:gemhub/core/router/app_router.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

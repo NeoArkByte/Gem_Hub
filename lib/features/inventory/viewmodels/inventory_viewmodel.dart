@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/data/repositories/inventory/inventory_repository.dart';
-import 'package:job_market/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'inventory_viewmodel.g.dart';
