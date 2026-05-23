@@ -10,6 +10,12 @@ class AuthViewModel extends _$AuthViewModel {
   @override
   FutureOr<void> build() => null;
 
+  Future<void> signInWithGoogleNative() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(authRepositoryProvider).signInWithGoogleNative();
+    });
+  }
 
   Future<void> login(String email, String password) async {
     state = const AsyncLoading();
@@ -34,9 +40,13 @@ class AuthViewModel extends _$AuthViewModel {
 
   Future<void> logout() async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => 
+    final result = await AsyncValue.guard(() => 
       ref.read(authRepositoryProvider).logout()
     );
+    
+    if (ref.mounted) {
+      state = result;
+    }
   }
 
   String? validateLogin(String email, String password) {
