@@ -41,7 +41,7 @@ final class GemAddViewModelProvider
   }
 }
 
-String _$gemAddViewModelHash() => r'37904112041621e58d3942b172ac4cfe3eddcfa7';
+String _$gemAddViewModelHash() => r'f854dffca0724ce7ff25806147ecfef5f4f6b3de';
 
 abstract class _$GemAddViewModel extends $Notifier<bool> {
   bool build();

@@ -15,7 +15,7 @@ String _formatPrice(double? v) {
       );
 }
 
-// ─── App Bar & Carousel ───────────────────────────────────────────────────
+// App Bar & Carousel ─────────
 class GemDetailAppBar extends StatelessWidget {
   final Gem gem;
   final List<String> images;
@@ -172,7 +172,7 @@ class GemDetailAppBar extends StatelessWidget {
   }
 }
 
-// ─── Owner Action Tab (Below Image) ──────────────────────────────────────────
+// Owner Action Tab (Below Image) 
 class GemOwnerActionTab extends StatelessWidget {
   final Gem gem;
   const GemOwnerActionTab({super.key, required this.gem});
@@ -238,7 +238,7 @@ class GemOwnerActionTab extends StatelessWidget {
   }
 }
 
-// ─── Title Section ────────────────────────────────────────────────────────
+// Title Section 
 class GemTitleSection extends StatelessWidget {
   final Gem gem;
 
@@ -303,7 +303,7 @@ class GemTitleSection extends StatelessWidget {
   }
 }
 
-// ─── Seller Section ───────────────────────────────────────────────────────
+// Seller Section 
 class GemSellerSection extends StatelessWidget {
   final Gem gem;
   const GemSellerSection({super.key, required this.gem});
@@ -390,7 +390,7 @@ class GemSellerSection extends StatelessWidget {
   }
 }
 
-// ─── Specifications Section ───────────────────────────────────────────────
+// Specifications Section 
 class GemSpecificationsSection extends StatelessWidget {
   final Gem gem;
 
@@ -536,7 +536,7 @@ class GemSpecificationsSection extends StatelessWidget {
   }
 }
 
-// ─── Description Section ──────────────────────────────────────────────────
+// Description Section 
 class GemDescriptionSection extends StatelessWidget {
   final Gem gem;
 
@@ -600,7 +600,7 @@ class GemDescriptionSection extends StatelessWidget {
   }
 }
 
-// ─── Location Section ─────────────────────────────────────────────────────
+// Location Section 
 class GemLocationSection extends StatelessWidget {
   final Gem gem;
   const GemLocationSection({super.key, required this.gem});
@@ -709,7 +709,7 @@ class GemLocationSection extends StatelessWidget {
   }
 }
 
-// ─── Bottom Action Bar ────────────────────────────────────────────────────
+// Bottom Action Bar 
 class GemBottomActionBar extends StatelessWidget {
   final bool isFavourite;
   final VoidCallback onFavouriteToggle;

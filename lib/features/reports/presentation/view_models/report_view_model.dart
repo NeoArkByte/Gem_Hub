@@ -5,10 +5,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'report_view_model.g.dart';
 
-/// Provider to fetch and filter gemstones based on UI selection
 @riverpod
 Future<List<GemstoneModel>> filteredGemstones(
-  // ignore: deprecated_member_use_from_same_package
   Ref ref, {
   required GemFilter filter,
 }) async {
@@ -17,6 +15,11 @@ Future<List<GemstoneModel>> filteredGemstones(
   return gems.where((gem) {
     if (filter.variety != null && filter.variety != 'All') {
       if (gem.variety != filter.variety) return false;
+    }
+
+    if (filter.status != null && filter.status != 'All') {
+      if (filter.status == 'Sold' && !gem.isSold) return false;
+      if (filter.status == 'Available' && gem.isSold) return false;
     }
 
     if (filter.dateRange != null) {
@@ -32,7 +35,6 @@ Future<List<GemstoneModel>> filteredGemstones(
   }).toList();
 }
 
-/// NEW: Provider to fetch unique varieties currently in the database
 @riverpod
 Future<List<String>> gemstoneVarieties(Ref ref) async {
   final gems = await ref.watch(inventoryViewModelProvider.future);

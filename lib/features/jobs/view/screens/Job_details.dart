@@ -4,7 +4,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:job_market/data/models/job_market/job_model.dart';
 import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/data/datasources/local/database_helper.dart';
 
 class JobDetailsScreen extends ConsumerWidget {
   final Job job;
@@ -530,14 +529,6 @@ class _ApplyJobFormState extends State<ApplyJobForm> {
       'cv_path': _cvFilePath,
       'status': 'pending',
     };
-
-    await DatabaseHelper().submitApplication(application);
-
-    await DatabaseHelper().addNotification(
-      widget.job['employer_id'],
-      "New Application! ",
-      "${_nameCtrl.text} applied for your job: ${widget.job['title']}",
-    );
 
     if (mounted) {
       Navigator.pop(context);

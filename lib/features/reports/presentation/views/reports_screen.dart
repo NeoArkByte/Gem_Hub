@@ -6,6 +6,10 @@ import 'package:job_market/data/models/inventory/gem_filter.dart';
 import 'package:job_market/data/models/inventory/gemstone_model.dart';
 import 'package:job_market/features/reports/presentation/view_models/report_view_model.dart';
 import 'package:job_market/core/constants/app_colors.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -26,14 +30,18 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: const Text("Inventory Report"), elevation: 0),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.picture_as_pdf, color: Colors.white),
+        onPressed: () => _exportReport(gemsAsync.value ?? []),
+      ),
       body: Column(
         children: [
           _buildFilterSection(),
           Expanded(
             child: gemsAsync.when(
               data: (gems) {
-                // 1. Calculate the total using only current inventory value.
-                // Sold gems should not contribute to the active portfolio total.
+              
                 final totalPortfolio = gems.fold<double>(
                   0,
                   (sum, gem) => sum + (gem.isSold ? 0.0 : gem.targetPrice),
@@ -70,7 +78,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       padding: const EdgeInsets.all(20),
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.textDarkAlt,
+        color: AppColors.primaryGreen,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -101,7 +109,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildFilterSection() {
-    // Watch the new varieties provider
+   
     final varietiesAsync = ref.watch(gemstoneVarietiesProvider);
 
     return Container(
@@ -116,11 +124,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       child: Row(
         children: [
-          // Date Filter (as before)
+          // Date Filter
           Expanded(
             flex: 2,
-            child: OutlinedButton.icon(
-              onPressed: () async {
+            child: InkWell(
+              onTap: () async {
                 final picked = await showDateRangePicker(
                   context: context,
                   firstDate: DateTime(2020),
@@ -134,10 +142,26 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   );
                 }
               },
-              icon: const Icon(Icons.calendar_month, size: 16),
-              label: Text(
-                _currentFilter.dateRange == null ? "Month" : "Filtered",
-                style: const TextStyle(fontSize: 12),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  labelText: "Month",
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.calendar_month,
+                      size: 20,
+                      color: _currentFilter.dateRange != null
+                          ? AppColors.primaryYellow
+                          : Theme.of(context).iconTheme.color,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -173,19 +197,158 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   );
                 },
               ),
-              // Show a simple text while loading varieties
+              
               loading: () => const LinearProgressIndicator(),
               error: (err, _) => const Text("Error"),
+            ),
+          ),
+          const SizedBox(width: 8),
+
+          // Status Dropdown
+          Expanded(
+            flex: 3,
+            child: DropdownButtonFormField<String>(
+              initialValue: _currentFilter.status ?? 'All',
+              isExpanded: true,
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                labelText: "Status",
+              ),
+              items: ['All', 'Available', 'Sold']
+                  .map(
+                    (val) => DropdownMenuItem(
+                      value: val,
+                      child: Text(val, style: const TextStyle(fontSize: 12)),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(
+                  () => _currentFilter = _currentFilter.copyWith(status: value),
+                );
+              },
             ),
           ),
         ],
       ),
     );
   }
+
+  Future<void> _exportReport(List<GemstoneModel> gems) async {
+    
+    if (Platform.isAndroid) {
+      var status = await Permission.storage.status;
+      if (!status.isGranted) {
+        status = await Permission.storage.request();
+      }
+      
+      var manageStatus = await Permission.manageExternalStorage.status;
+      if (!manageStatus.isGranted) {
+        manageStatus = await Permission.manageExternalStorage.request();
+      }
+    }
+
+    // Ask user to select export location and filename
+    String? outputFile = await FilePicker.platform.saveFile(
+      dialogTitle: 'Save Report As',
+      fileName: 'Gem_Hub_Inventory_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (outputFile == null) {
+      
+      return;
+    }
+
+    // create PDF
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (pw.Context context) {
+          return [
+            pw.Header(
+              level: 0,
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text('Gem Hub Inventory Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                  pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now())),
+                ]
+              )
+            ),
+            pw.SizedBox(height: 10),
+            pw.Text('User: Gem Hub Admin', style: const pw.TextStyle(fontSize: 14)), 
+            pw.Text('Status Filter: ${_currentFilter.status ?? 'All'}', style: const pw.TextStyle(fontSize: 14)),
+            pw.Text('Variety Filter: ${_currentFilter.variety ?? 'All'}', style: const pw.TextStyle(fontSize: 14)),
+            if (_currentFilter.dateRange != null)
+              pw.Text('Date Range: ${DateFormat('yyyy-MM-dd').format(_currentFilter.dateRange!.start)} to ${DateFormat('yyyy-MM-dd').format(_currentFilter.dateRange!.end)}', style: const pw.TextStyle(fontSize: 14)),
+            pw.SizedBox(height: 20),
+            pw.TableHelper.fromTextArray(
+              context: context,
+              headers: ['Gem Name', 'Date', 'Status', 'Cost', 'Target/Sold Price', 'Profit'],
+              data: gems.map((gem) {
+                final double totalCost = gem.buyingPrice + gem.treatmentCost + gem.recutCost + gem.otherProcessingCost + gem.transportCost + gem.otherCost;
+                final double displayProfit = gem.isSold ? (gem.sellingPrice - totalCost) : (gem.targetPrice - totalCost);
+                
+                return [
+                  '${gem.variety} (${gem.color})',
+                  gem.date,
+                  gem.isSold ? 'Sold' : 'Available',
+                  'Rs. ${NumberFormat('#,###').format(totalCost)}',
+                  'Rs. ${NumberFormat('#,###').format(gem.isSold ? gem.sellingPrice : gem.targetPrice)}',
+                  'Rs. ${NumberFormat('#,###').format(displayProfit)}',
+                ];
+              }).toList(),
+            ),
+          ];
+        },
+        footer: (pw.Context context) {
+          return pw.Container(
+            alignment: pw.Alignment.center,
+            margin: const pw.EdgeInsets.only(top: 10),
+            child: pw.Text('© ${DateTime.now().year} Gem Hub Application. All rights reserved.', style: const pw.TextStyle(color: PdfColors.grey)),
+          );
+        },
+      ),
+    );
+
+    // Save the PDF file 
+    try {
+      final file = File(outputFile);
+      await file.writeAsBytes(await pdf.save());
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Report successfully saved to $outputFile'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save report: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
 }
 
 Widget _buildGemCard(GemstoneModel gem) {
-  // 1. Calculate Total Cost
+  // Calculate Total Cost
   final double totalCost =
       gem.buyingPrice +
       gem.treatmentCost +
@@ -194,7 +357,7 @@ Widget _buildGemCard(GemstoneModel gem) {
       gem.transportCost +
       gem.otherCost;
 
-  // 2. Logic: If sold, use Selling Price. If not sold, use Target Price for "Potential Profit"
+
   final double displayProfit = gem.isSold
       ? (gem.sellingPrice - totalCost)
       : (gem.targetPrice - totalCost);
