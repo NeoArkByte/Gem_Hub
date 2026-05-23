@@ -33,7 +33,7 @@ final class AuthViewModelProvider
   AuthViewModel create() => AuthViewModel();
 }
 
-String _$authViewModelHash() => r'efa8406b0692d7c5655b01ba0a5f5a81ced854e3';
+String _$authViewModelHash() => r'2db004810726ea516d79e46c8579e87923dc2cc1';
 
 abstract class _$AuthViewModel extends $AsyncNotifier<void> {
   FutureOr<void> build();
