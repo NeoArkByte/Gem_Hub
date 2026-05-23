@@ -34,7 +34,7 @@ final class AddNewGemstoneViewModelProvider
 }
 
 String _$addNewGemstoneViewModelHash() =>
-    r'71d088bad879a4090bda490abc34d77d5e76a97e';
+    r'77bc96a491ab93e34aa62992480992c3ec7740d1';
 
 abstract class _$AddNewGemstoneViewModel extends $AsyncNotifier<void> {
   FutureOr<void> build();

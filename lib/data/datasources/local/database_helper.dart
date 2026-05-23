@@ -1,16 +1,15 @@
 import 'dart:convert';
 import 'dart:math';
-import 'dart:io'; // <--- This defines 'File'
-import 'dart:typed_data';
+import 'dart:io';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:job_market/core/enums/gem_type.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
-  
-  // Secure storage for the hardware-backed encryption key
+
   final _storage = const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
@@ -26,7 +25,6 @@ class DatabaseHelper {
     return _database!;
   }
 
-  /// Fetches the existing key or generates a cryptographically strong 256-bit key
   Future<String> _getEncryptionKey() async {
     String? key = await _storage.read(key: _keyName);
     if (key == null) {
@@ -38,15 +36,14 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'gemcost_jobs_v12_secure.db');
+    String path = join(await getDatabasesPath(), 'gemcost_inventory_v12_secure.db');
     final password = await _getEncryptionKey();
 
     return await openDatabase(
       path,
-      password: password, // This activates SQLCipher AES-256 encryption
+      password: password,
       version: 1,
       onConfigure: (db) async {
-        // Essential: Enables foreign key constraints (Cascade Delete, etc.)
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _onCreate,
@@ -54,8 +51,16 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    // 1. Gem Varieties Table
+    await db.execute('''
+      CREATE TABLE gem_varieties (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        display_name TEXT NOT NULL
+      )
+    ''');
 
-    // Gemstone Inventory Table
+    // 2. Main Inventory Table
     await db.execute('''
       CREATE TABLE gemstones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,98 +87,55 @@ class DatabaseHelper {
       )
     ''');
 
+    // 3. Seed Varieties
+    for (var type in GemType.values) {
+      await db.insert('gem_varieties', {
+        'name': type.name,
+        'display_name': type.displayName,
+      });
+    }
+  }
 
+  // --- VARIETY FUNCTIONS ---
+  Future<List<String>> getGemVarieties() async {
+  final db = await database;
+  
+  final List<Map<String, dynamic>> maps = await db.query(
+    'gem_varieties', 
+    columns: ['display_name'],
+    orderBy: 'id ASC'
+  );
+
+  return maps.map((row) => row['display_name'] as String).toList();
 }
 
-Future<void> hexDumpHeader() async {
-  final dbPath = await getDatabasesPath();
-  final path = join(dbPath, 'gemcost_jobs_v12_secure.db');
-  final file = File(path);
+  // --- INVENTORY FUNCTIONS ---
+  Future<int> insertGemstone(Map<String, dynamic> gemstone) async {
+    final db = await database;
+    return await db.insert('gemstones', gemstone);
+  }
 
-  if (await file.exists()) {
-    final bytes = await file.openRead(0, 16).first;
-    final hexString = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
-    final plainText = String.fromCharCodes(bytes.where((b) => b >= 32 && b <= 126));
+  Future<List<Map<String, dynamic>>> getAllGemstones() async {
+    final db = await database;
+    return await db.query('gemstones', orderBy: 'id DESC');
+  }
 
-    print("🛠️ FILE HEADER (HEX): $hexString");
-    print("🛠️ FILE HEADER (TEXT): '$plainText'");
+  Future<List<Map<String, dynamic>>> getUnsoldGemstones() async {
+    final db = await database;
+    return await db.query('gemstones', where: 'is_sold = 0', orderBy: 'id DESC');
+  }
 
-    if (plainText.contains("SQLite format 3")) {
-      print("🚨 NOT ENCRYPTED: I can see the SQLite header!");
-    } else {
-      print("🛡️ VERIFIED ENCRYPTED: The header is scrambled gibberish.");
+
+  // --- SECURITY UTILITY ---
+  Future<void> hexDumpHeader() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'gemcost_inventory_v12_secure.db');
+    final file = File(path);
+
+    if (await file.exists()) {
+      final bytes = await file.openRead(0, 16).first;
+      final hexString = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+      print("🛡️ FILE HEADER (HEX): $hexString");
     }
   }
-}
-
-  // --- DASHBOARD ANALYTICS ---
-
-  // Calculates Total Portfolio Value (Sum of all gem prices)
-  Future<double> getTotalPortfolioValue(String userId) async {
-    final db = await database;
-    var result = await db.rawQuery(
-      'SELECT SUM(price) as total FROM gems WHERE owner_id = ?',
-      [userId],
-    );
-    return (result.first['total'] as num?)?.toDouble() ?? 0.0;
-  }
-
-  // Calculates Monthly Profit (Dummy logic for now, using recent additions)
-  Future<double> getMonthlyProfit(String userId) async {
-    final db = await database;
-    final firstDayOfMonth = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      1,
-    ).toIso8601String();
-
-    var result = await db.rawQuery(
-      'SELECT SUM(price) as monthly_total FROM gems WHERE owner_id = ? AND created_at >= ?',
-      [userId, firstDayOfMonth],
-    );
-    return (result.first['monthly_total'] as num?)?.toDouble() ?? 0.0;
-  }
-
-  // --- GEM FUNCTIONS ---
-  Future<int> insertGem(Map<String, dynamic> gem) async {
-    final db = await database;
-    if (!gem.containsKey('created_at')) {
-      gem['created_at'] = DateTime.now().toIso8601String();
-    }
-    return await db.insert('gems', gem);
-  }
-
-  Future<List<Map<String, dynamic>>> getActiveGems() async {
-    final db = await database;
-    return await db.query(
-      'gems',
-      where: 'status = ?',
-      whereArgs: ['active'],
-      orderBy: 'id DESC',
-    );
-  }
-
-  Future<List<Map<String, dynamic>>> searchAndFilterGems(
-    String keyword,
-    String type,
-  ) async {
-    final db = await database;
-    String query = "SELECT * FROM gems WHERE status = 'active'";
-    List<dynamic> args = [];
-
-    if (keyword.isNotEmpty) {
-      query += " AND (LOWER(name) LIKE ? OR LOWER(origin) LIKE ?)";
-      String searchLower = '%${keyword.toLowerCase()}%';
-      args.addAll([searchLower, searchLower]);
-    }
-
-    if (type != 'All Gems') {
-      query += " AND LOWER(type) = ?";
-      args.add(type.toLowerCase());
-    }
-
-    query += " ORDER BY id DESC";
-    return await db.rawQuery(query, args);
-  }
-
 }

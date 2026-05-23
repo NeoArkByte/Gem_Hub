@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:job_market/core/enums/gem_type.dart';
 import 'package:job_market/data/models/gem_market/gem_model.dart';
 import 'package:job_market/features/gem_market/provider/gem_list_provider.dart';
-import 'package:job_market/features/gem_market/viewmodel/gem_marketplace_viewmodel.dart';
+import 'package:job_market/features/gem_market/viewmodel/gem_market/gem_marketplace_viewmodel.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 

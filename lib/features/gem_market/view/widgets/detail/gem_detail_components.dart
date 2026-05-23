@@ -1,10 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/features/gem_market/view/certificate_view_screen.dart';
+import 'package:job_market/features/gem_market/view/screens/certificate_view_screen.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 
-// Shared styling tokens for the detail screen components
+// Helper for price formatting in GemTitleSection
 String _formatPrice(double? v) {
   if (v == null) return '0.00';
   return v
@@ -15,164 +14,7 @@ String _formatPrice(double? v) {
       );
 }
 
-// App Bar & Carousel ─────────
-class GemDetailAppBar extends StatelessWidget {
-  final Gem gem;
-  final List<String> images;
-  final int currentImage;
-  final ValueChanged<int> onPageChanged;
-
-  const GemDetailAppBar({
-    super.key,
-    required this.gem,
-    required this.images,
-    required this.currentImage,
-    required this.onPageChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return SliverAppBar(
-      expandedHeight: 280,
-      pinned: true,
-      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
-      elevation: 0,
-      foregroundColor: isDark ? Colors.white : AppColors.darkBackground,
-      leading: Padding(
-        padding: const EdgeInsets.all(8),
-        child: _circleBtn(
-          Icons.arrow_back_ios_new_rounded,
-          isDark ? Colors.white : AppColors.darkBackground,
-          () => Navigator.of(context).pop(),
-          isDark,
-        ),
-      ),
-      title: null,
-      centerTitle: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Stack(
-          fit: StackFit.expand,
-          children: [
-            PageView.builder(
-              itemCount: images.length,
-              onPageChanged: onPageChanged,
-              itemBuilder: (_, i) => Image.network(
-                images[i],
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: AppColors.accentGreenLight,
-                  child: const Center(
-                    child: Icon(
-                      Icons.diamond,
-                      size: 72,
-                      color: AppColors.primaryGreen,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // Subtle Bottom Gradient
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 60,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.4),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Category Glass Badge
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 12,
-              right: 16,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: Text(
-                      gem.variety?.toUpperCase() ?? 'GEM',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 14,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  images.length,
-                  (i) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: currentImage == i ? 18 : 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: currentImage == i ? Colors.white : Colors.white54,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _circleBtn(
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-    bool isDark,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkSurface : Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8),
-          ],
-        ),
-        child: Icon(icon, color: color, size: 18),
-      ),
-    );
-  }
-}
-
-// Owner Action Tab (Below Image) 
+// 1. GemOwnerActionTab
 class GemOwnerActionTab extends StatelessWidget {
   final Gem gem;
   const GemOwnerActionTab({super.key, required this.gem});
@@ -238,7 +80,7 @@ class GemOwnerActionTab extends StatelessWidget {
   }
 }
 
-// Title Section 
+// 2. GemTitleSection
 class GemTitleSection extends StatelessWidget {
   final Gem gem;
 
@@ -303,7 +145,7 @@ class GemTitleSection extends StatelessWidget {
   }
 }
 
-// Seller Section 
+// 3. GemSellerSection
 class GemSellerSection extends StatelessWidget {
   final Gem gem;
   const GemSellerSection({super.key, required this.gem});
@@ -382,7 +224,7 @@ class GemSellerSection extends StatelessWidget {
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: isDark ? Colors.grey[600] : AppColors.greyText),
+                color: isDark ? AppColors.greyText : AppColors.greyText),
           ],
         ),
       ),
@@ -390,7 +232,7 @@ class GemSellerSection extends StatelessWidget {
   }
 }
 
-// Specifications Section 
+// 4. GemSpecificationsSection
 class GemSpecificationsSection extends StatelessWidget {
   final Gem gem;
 
@@ -502,7 +344,7 @@ class GemSpecificationsSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.grey[400] : AppColors.greyText,
+                    color: isDark ? AppColors.greyTextLight : AppColors.greyText,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -536,7 +378,7 @@ class GemSpecificationsSection extends StatelessWidget {
   }
 }
 
-// Description Section 
+// 5. GemDescriptionSection
 class GemDescriptionSection extends StatelessWidget {
   final Gem gem;
 
@@ -567,7 +409,7 @@ class GemDescriptionSection extends StatelessWidget {
                 : 'No description provided.',
             style: TextStyle(
               fontSize: 15,
-              color: isDark ? Colors.grey[400] : AppColors.greyText,
+              color: isDark ? AppColors.greyTextLight : AppColors.greyText,
               height: 1.6,
             ),
           ),
@@ -575,32 +417,9 @@ class GemDescriptionSection extends StatelessWidget {
       ),
     );
   }
-
-  String _formatDate(String isoDate) {
-    try {
-      final d = DateTime.parse(isoDate);
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      return '${months[d.month - 1]} ${d.day}, ${d.year}';
-    } catch (e) {
-      return isoDate.split('T').first; // Fallback to YYYY-MM-DD
-    }
-  }
 }
 
-// Location Section 
+// 6. GemLocationSection
 class GemLocationSection extends StatelessWidget {
   final Gem gem;
   const GemLocationSection({super.key, required this.gem});
@@ -645,7 +464,7 @@ class GemLocationSection extends StatelessWidget {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: AppColors.bluePale,
                       child: const Center(
                         child: Icon(
@@ -683,16 +502,19 @@ class GemLocationSection extends StatelessWidget {
                             size: 18,
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            gem.location != null && gem.location!.isNotEmpty
-                                ? gem.location!
-                                : 'Location Not Specified',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              color: isDark
-                                  ? Colors.white
-                                  : AppColors.darkBackground,
+                          Expanded(
+                            child: Text(
+                              gem.location != null && gem.location!.isNotEmpty
+                                  ? gem.location!
+                                  : 'Location Not Specified',
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.darkBackground),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -700,106 +522,6 @@ class GemLocationSection extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// Bottom Action Bar 
-class GemBottomActionBar extends StatelessWidget {
-  final bool isFavourite;
-  final VoidCallback onFavouriteToggle;
-
-  const GemBottomActionBar({
-    super.key,
-    required this.isFavourite,
-    required this.onFavouriteToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: onFavouriteToggle,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 220),
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: isFavourite
-                    ? AppColors.redPale
-                    : (isDark
-                          ? AppColors.darkSurfaceAlt
-                          : AppColors.lightBackgroundGrey),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                isFavourite
-                    ? Icons.favorite_rounded
-                    : Icons.favorite_border_rounded,
-                color: isFavourite
-                    ? Colors.red
-                    : (isDark ? Colors.grey[400] : AppColors.greyText),
-                size: 22,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primaryGreen, AppColors.accentGreen],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  shadowColor: Colors.transparent,
-                  minimumSize: const Size.fromHeight(50),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-                label: const Text(
-                  'Contact Seller',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
               ),
             ),
           ),
