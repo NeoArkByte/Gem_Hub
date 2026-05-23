@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:job_market/data/models/gem_market/gem_model.dart';
-import 'package:job_market/features/gem_market/view/components/gem_detail_components.dart';
+import 'package:job_market/features/gem_market/view/widgets/detail/gem_bottom_action_bar.dart';
+import 'package:job_market/features/gem_market/view/widgets/detail/gem_detail_app_bar.dart';
+import 'package:job_market/features/gem_market/view/widgets/detail/gem_detail_components.dart';
 import 'package:job_market/core/constants/app_colors.dart';
 
 class GemListingDetailScreen extends StatefulWidget {
