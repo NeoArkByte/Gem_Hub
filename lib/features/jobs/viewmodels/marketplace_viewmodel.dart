@@ -16,11 +16,17 @@ class MarketplaceViewModel extends _$MarketplaceViewModel {
   double _minSalary = 0;
   double _maxSalary = 300000;
 
+  String get currentCategory => _category;
+  String get currentLocation => _location;
+  double get currentMinSalary => _minSalary;
+  double get currentMaxSalary => _maxSalary;
+
   @override
   Future<List<Job>> build() async {
     // මුලින්ම ඇප් එක ලෝඩ් වෙද්දී සේරම ජොබ් ටික Backend එකෙන් ගන්නවා
     final repository = ref.read(jobRepositoryProvider);
-    _allJobs = await repository.getApprovedJobs(); // කිසිම ෆිල්ටර් එකක් යවන්නේ නෑ
+    _allJobs = await repository
+        .getApprovedJobs(); // කිසිම ෆිල්ටර් එකක් යවන්නේ නෑ
     return _allJobs;
   }
 
@@ -29,11 +35,12 @@ class MarketplaceViewModel extends _$MarketplaceViewModel {
   // =========================================================
   void _applyFilters() {
     print("🔍 [FILTER START] ------------------------");
-    print("🎯 යූසර් තෝරපු Filters: Category='$_category', Location='$_location', Salary='$_minSalary - $_maxSalary'");
+    print(
+      "🎯 යූසර් තෝරපු Filters: Category='$_category', Location='$_location', Salary='$_minSalary - $_maxSalary'",
+    );
     print("📦 මුළු ජොබ්ස් ගාණ: ${_allJobs.length}");
 
     final filteredList = _allJobs.where((job) {
-      
       // 1. Search Check
       bool matchesQuery = true;
       if (_query.isNotEmpty) {
@@ -43,8 +50,12 @@ class MarketplaceViewModel extends _$MarketplaceViewModel {
       // 2. Category Check
       bool matchesCategory = true;
       if (_category.isNotEmpty && _category != 'All Jobs') {
-        matchesCategory = job.tags.toLowerCase().contains(_category.toLowerCase());
-        print("   🏷️ ජොබ් එක: '${job.title}' | Model එකේ Tags: '${job.tags}' | Category Match ද? $matchesCategory");
+        matchesCategory = job.tags.toLowerCase().contains(
+          _category.toLowerCase(),
+        );
+        print(
+          "   🏷️ ජොබ් එක: '${job.title}' | Model එකේ Tags: '${job.tags}' | Category Match ද? $matchesCategory",
+        );
       }
 
       // 3. Location Check
@@ -52,18 +63,29 @@ class MarketplaceViewModel extends _$MarketplaceViewModel {
       if (_location.isNotEmpty && _location != 'All Locations') {
         final jobLocation = job.companyInfo?.toLowerCase() ?? '';
         matchesLocation = jobLocation.contains(_location.toLowerCase());
-        print("   📍 ජොබ් එක: '${job.title}' | Model එකේ Location: '$jobLocation' | Location Match ද? $matchesLocation");
+        print(
+          "   📍 ජොබ් එක: '${job.title}' | Model එකේ Location: '$jobLocation' | Location Match ද? $matchesLocation",
+        );
       }
 
-      // 4. Salary Check
+      // 4. Salary Check (💡 අලුත් Min/Max රේන්ජ් ලොජික් එක)
       bool matchesSalary = true;
-      if (job.salary != null) {
-        matchesSalary = job.salary! >= _minSalary && job.salary! <= _maxSalary;
+      if (job.minSalary != null || job.maxSalary != null) {
+        
+        // ජොබ් එකේ දීලා තියෙන අවම සහ උපරිම පඩි ගන්නවා. එකක් නැත්නම් 0 හෝ අසීමිත (infinity) අගයක් දෙනවා.
+        double jobMin = job.minSalary ?? 0;
+        double jobMax = job.maxSalary ?? double.infinity;
+
+        // ෆිල්ටර් රේන්ජ් එකයි ජොබ් එකේ රේන්ජ් එකයි ගැළපෙනවද (overlap වෙනවද) බලනවා
+        matchesSalary = (jobMin <= _maxSalary) && (jobMax >= _minSalary);
       }
 
-      bool isPassed = matchesQuery && matchesCategory && matchesLocation && matchesSalary;
+      bool isPassed =
+          matchesQuery && matchesCategory && matchesLocation && matchesSalary;
       if (!isPassed) {
-        print("   ❌ '${job.title}' කැපිලා ගියා! (Query:$matchesQuery, Cat:$matchesCategory, Loc:$matchesLocation, Sal:$matchesSalary)");
+        print(
+          "   ❌ '${job.title}' කැපිලා ගියා! (Query:$matchesQuery, Cat:$matchesCategory, Loc:$matchesLocation, Sal:$matchesSalary)",
+        );
       } else {
         print("   ✅ '${job.title}' තේරුණා!");
       }
@@ -92,7 +114,7 @@ class MarketplaceViewModel extends _$MarketplaceViewModel {
     _location = 'All Locations';
     _minSalary = 0;
     _maxSalary = 300000;
-    
+
     _applyFilters();
   }
 
@@ -114,7 +136,7 @@ class MarketplaceViewModel extends _$MarketplaceViewModel {
     _location = location;
     _minSalary = minSalary;
     _maxSalary = maxSalary;
-    
+
     // ෆිල්ටර් එක රන් කරනවා
     _applyFilters();
   }

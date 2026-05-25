@@ -5,20 +5,26 @@ class Job {
   final String employerId;
   final String title;
   final String? companyInfo; 
-  final double? salary;      
+  ///final double? salary;      
   final String tags;
   final String status;
   final String? createdAt;
+  final String? description;
+
+  final double? minSalary;
+  final double? maxSalary;
 
   Job({
     this.jobId,
     required this.employerId,
     required this.title,
     this.companyInfo,
-    this.salary,
+    this.minSalary,
+    this.maxSalary,
     required this.tags,
     required this.status,
     this.createdAt,
+    this.description,
   });
 
   static double? _parseNullableDouble(dynamic value) {
@@ -38,11 +44,13 @@ class Job {
       title: map['title']?.toString() ?? 'No Title',
       companyInfo: map['company_info']?.toString() ?? map['company']?.toString(),
       
-      salary: _parseNullableDouble(map['salary']),
+      minSalary: _parseNullableDouble(map['min_salary']),
+      maxSalary: _parseNullableDouble(map['max_salary']),
       
       tags: map['tags']?.toString() ?? '',
       status: map['status']?.toString() ?? 'pending',
       createdAt: map['created_at']?.toString() ?? map['createdAt']?.toString(),
+      description: map['description']?.toString(),
     );
   }
 
@@ -52,10 +60,12 @@ class Job {
       'employer': employerId,
       'title': title,
       'company_info': companyInfo,
-      'salary': salary,
+      'min_salary': minSalary,
+      'max_salary': maxSalary,
       'tags': tags,
       'status': status,
       'created_at': createdAt,
+      'description': description,
     };
   }
 }

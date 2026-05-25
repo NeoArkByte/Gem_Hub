@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // 💡 Riverpod අනිවාර්යයි
-
-// 🚨 මේ Imports දෙක ඔයාගේ ඇප් එකේ තියෙන තැන් වලට හරියන්න හදාගන්න:
+import 'package:flutter_riverpod/flutter_riverpod.dart'; 
 import 'package:job_market/features/jobs/view/widgets/post_job_components.dart'; // PostJobLocationPicker එක තියෙන තැන
 import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
 
-// =====================================================================
-// 1. SEARCH BAR WIDGET
-// =====================================================================
 class MarketplaceSearchBar extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onSearchChanged;
@@ -45,18 +40,11 @@ class MarketplaceSearchBar extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 onChanged: onSearchChanged,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black,
-                ),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 decoration: InputDecoration(
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.grey[400],
-                  ),
+                  icon: Icon(Icons.search, color: Colors.grey[400]),
                   hintText: 'Search jobs...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[400],
-                  ),
+                  hintStyle: TextStyle(color: Colors.grey[400]),
                   border: InputBorder.none,
                 ),
               ),
@@ -72,10 +60,7 @@ class MarketplaceSearchBar extends StatelessWidget {
             ),
             child: IconButton(
               padding: EdgeInsets.zero,
-              icon: const Icon(
-                Icons.tune,
-                color: Colors.white,
-              ),
+              icon: const Icon(Icons.tune, color: Colors.white),
               onPressed: () {
                 _showFilterBottomSheet(context);
               },
@@ -87,9 +72,6 @@ class MarketplaceSearchBar extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// 2. FILTER BOTTOM SHEET FUNCTION & UI (RIVERPOD එක්ක)
-// =====================================================================
 void _showFilterBottomSheet(BuildContext context) {
   showModalBottomSheet(
     context: context,
@@ -99,20 +81,22 @@ void _showFilterBottomSheet(BuildContext context) {
   );
 }
 
-// 💡 මෙතන ConsumerStatefulWidget පාවිච්චි කරලා තියෙන්නේ ref එක ගන්න පුළුවන් වෙන්නයි
+
 class JobFilterBottomSheet extends ConsumerStatefulWidget {
   const JobFilterBottomSheet({super.key});
 
   @override
-  ConsumerState<JobFilterBottomSheet> createState() => _JobFilterBottomSheetState();
+  ConsumerState<JobFilterBottomSheet> createState() =>
+      _JobFilterBottomSheetState();
 }
 
 class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
   final Color primaryGreen = const Color(0xFF10C971);
 
-  String _selectedCategory = 'All Jobs';
-  String _selectedLocation = 'All Locations';
-  RangeValues _salaryRange = const RangeValues(20000, 150000);
+  
+  late String _selectedCategory;
+  late String _selectedLocation;
+  late RangeValues _salaryRange;
 
   final List<String> _categories = [
     'All Jobs',
@@ -125,229 +109,241 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    final viewModel = ref.read(marketplaceViewModelProvider.notifier);
+
+    
+    _selectedCategory = viewModel.currentCategory.isEmpty
+        ? 'All Jobs'
+        : viewModel.currentCategory;
+
+    
+    _selectedLocation = viewModel.currentLocation.isEmpty
+        ? 'All Locations'
+        : viewModel.currentLocation;
+
+    _salaryRange = RangeValues(
+      viewModel.currentMinSalary,
+      viewModel.currentMaxSalary,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
     Color bgColor = isDark ? const Color(0xFF1F2937) : Colors.white;
     Color textColor = isDark ? Colors.white : Colors.black;
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          //// HEADER
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Filter Jobs',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //// HEADER
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Filter Jobs',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: textColor,
+                  ),
                 ),
-              ),
-              
-              // 💡 මෙන්න අලුත් කෑල්ල! Clear බටන් එකයි Close බටන් එකයි දෙකම දැම්මා
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      // 1. ViewModel එකේ ෆිල්ටර් ටික අයින් කරනවා
-                      ref.read(marketplaceViewModelProvider.notifier).clearFilters();
-                      
-                      // 2. Bottom sheet එක වහනවා
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      'Clear All',
-                      style: TextStyle(
-                        color: Colors.redAccent, // කැපිලා පේන්න රතු පාටක් දුන්නා
-                        fontWeight: FontWeight.bold,
+
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        ref
+                            .read(marketplaceViewModelProvider.notifier)
+                            .clearFilters();
+
+                        Navigator.pop(context);
+                      },
+                      child: const Text(
+                        'Clear All',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      color: textColor,
+                    IconButton(
+                      icon: Icon(Icons.close, color: textColor),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          /// CATEGORY
-          Text(
-            'Job Category',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF111827) : Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _selectedCategory,
-                isExpanded: true,
-                dropdownColor: isDark ? const Color(0xFF1F2937) : Colors.white,
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
+                  ],
                 ),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value!;
-                  });
-                },
-              ),
+              ],
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-          /// LOCATION (Auto City එක කපලා ගන්නවා)
-          Text(
-            'Location',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          
-          PostJobLocationPicker(
-            onPlaceSelected: (String place) {
-              setState(() {
-                // 💡 පළවෙනි කොමාවෙන් කපලා 'City' එක විතරක් ගන්නවා
-                _selectedLocation = place.split(',').first.trim();
-              });
-            },
-          ),
-          
-          // තෝරපු නගරය යටින් පෙන්නන්න
-          if (_selectedLocation != 'All Locations') ...[
-            const SizedBox(height: 8),
+            /// CATEGORY
             Text(
-              'Selected: $_selectedLocation',
-              style: TextStyle(color: primaryGreen, fontWeight: FontWeight.bold),
+              'Job Category',
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
             ),
-          ],
-          
-          const SizedBox(height: 24),
-
-          /// SALARY
-          Text(
-            'Monthly Salary (LKR)',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'LKR ${_salaryRange.start.round()}',
-                style: TextStyle(
-                  color: primaryGreen,
-                  fontWeight: FontWeight.bold,
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedCategory,
+                  isExpanded: true,
+                  dropdownColor: isDark
+                      ? const Color(0xFF1F2937)
+                      : Colors.white,
+                  style: TextStyle(color: textColor, fontSize: 16),
+                  items: _categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value!;
+                    });
+                  },
                 ),
               ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Location',
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+            ),
+            const SizedBox(height: 8),
+
+            PostJobLocationPicker(
+              onPlaceSelected: (String place) {
+                setState(() {
+                  _selectedLocation = place.split(',').first.trim();
+                });
+              },
+            ),
+
+            if (_selectedLocation != 'All Locations') ...[
+              const SizedBox(height: 8),
               Text(
-                'LKR ${_salaryRange.end.round()}',
+                'Selected: $_selectedLocation',
                 style: TextStyle(
                   color: primaryGreen,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
-          ),
-          RangeSlider(
-            values: _salaryRange,
-            min: 0,
-            max: 300000,
-            divisions: 30,
-            activeColor: primaryGreen,
-            inactiveColor: primaryGreen.withOpacity(0.2),
-            labels: RangeLabels(
-              'LKR ${_salaryRange.start.round()}',
-              'LKR ${_salaryRange.end.round()}',
+
+            const SizedBox(height: 24),
+
+            /// SALARY
+            Text(
+              'Monthly Salary (LKR)',
+              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
             ),
-            onChanged: (values) {
-              setState(() {
-                _salaryRange = values;
-              });
-            },
-          ),
-          const SizedBox(height: 24),
-
-          /// APPLY BUTTON 
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: () {
-                // 💡 Riverpod හරහා ViewModel එකට දත්ත ටික යවනවා
-                ref.read(marketplaceViewModelProvider.notifier).updateFilters(
-                      category: _selectedCategory == 'All Jobs' ? '' : _selectedCategory,
-                      location: _selectedLocation == 'All Locations' ? '' : _selectedLocation,
-                      minSalary: _salaryRange.start,
-                      maxSalary: _salaryRange.end,
-                    );
-
-                Navigator.pop(context); // Bottom Sheet එක වහනවා
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'LKR ${_salaryRange.start.round()}',
+                  style: TextStyle(
+                    color: primaryGreen,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'LKR ${_salaryRange.end.round()}',
+                  style: TextStyle(
+                    color: primaryGreen,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            RangeSlider(
+              values: _salaryRange,
+              min: 0,
+              max: 300000,
+              divisions: 30,
+              activeColor: primaryGreen,
+              inactiveColor: primaryGreen.withOpacity(0.2),
+              labels: RangeLabels(
+                'LKR ${_salaryRange.start.round()}',
+                'LKR ${_salaryRange.end.round()}',
+              ),
+              onChanged: (values) {
+                setState(() {
+                  _salaryRange = values;
+                });
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryGreen,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  ref
+                      .read(marketplaceViewModelProvider.notifier)
+                      .updateFilters(
+                        category: _selectedCategory == 'All Jobs'
+                            ? ''
+                            : _selectedCategory,
+                        location: _selectedLocation == 'All Locations'
+                            ? ''
+                            : _selectedLocation,
+                        minSalary: _salaryRange.start,
+                        maxSalary: _salaryRange.end,
+                      );
+
+                  Navigator.pop(context); // Bottom Sheet එක වහනවා
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryGreen,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Apply Filters',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                child: const Text(
+                  'Apply Filters',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+            const SizedBox(height: 20),
+          ], 
+        ),
       ),
     );
   }
 }
 
-// =====================================================================
-// 3. MARKETPLACE CATEGORIES WIDGET
-// =====================================================================
 class MarketplaceCategories extends StatefulWidget {
   final Function(String) onCategorySelected;
 
@@ -415,7 +411,9 @@ class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
                       color: isSelected
                           ? Colors.white
                           : (isDark ? Colors.grey[300] : Colors.grey[700]),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -428,9 +426,6 @@ class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
   }
 }
 
-// =====================================================================
-// 4. SECTION HEADER WIDGET
-// =====================================================================
 class SectionHeader extends StatelessWidget {
   final String title;
   final String? actionText;

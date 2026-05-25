@@ -118,15 +118,24 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
         ? _customCategoryCtrl.text.trim()
         : _selectedCategory;
 
+    final double? parsedMinSalary = _minSalaryCtrl.text.isNotEmpty
+        ? double.tryParse(_minSalaryCtrl.text.trim().replaceAll(',', ''))
+        : null;
+
+    final double? parsedMaxSalary = _maxSalaryCtrl.text.isNotEmpty
+        ? double.tryParse(_maxSalaryCtrl.text.trim().replaceAll(',', ''))
+        : null;    
+
     Job newJob = Job(
       employerId: currentEmployerId,
       title: _jobTitleCtrl.text.trim(),
       companyInfo: companyInfoFormatted,
-      salary: parsedSalary.toDouble(),
+      minSalary: parsedMinSalary,
+      maxSalary: parsedMaxSalary,
       tags: '$finalCategory,${_skills.join(',')}',
       // logoColor: 0xFF10C971,
       status: 'pending',
-      // description: _descriptionCtrl.text.trim(),
+      description: _descriptionCtrl.text.trim(),
     );
 
     final isSuccess = await ref.read(postJobViewModelProvider.notifier).publishJob(newJob);
