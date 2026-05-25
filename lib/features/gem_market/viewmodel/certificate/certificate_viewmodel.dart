@@ -1,5 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:job_market/data/repositories/storage/storage_repository_provider.dart';
+import 'package:gemhub/data/repositories/storage/storage_repository_provider.dart';
 
 part 'certificate_viewmodel.g.dart';
 

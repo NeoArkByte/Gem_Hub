@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
-import 'package:job_market/features/inventory/viewmodels/inventory_viewmodel.dart';
-import 'package:job_market/features/inventory/view/add_new_gemstone_inventory.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
+import 'package:gemhub/features/inventory/view/add_new_gemstone_inventory.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});

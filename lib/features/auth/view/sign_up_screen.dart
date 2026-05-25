@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:job_market/core/constants/app_colors.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/shared/widgets/google_sign_in_button.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -16,17 +17,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final TextEditingController _passwordCtrl = TextEditingController();
   final TextEditingController _confirmPasswordCtrl = TextEditingController();
 
-    bool _obscurePassword = true;
+  bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  void _signUp() {
+  void _signUp() async {
     final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
     final confirmPassword = _confirmPasswordCtrl.text;
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // 🔐 LOCAL VALIDATION
+    // validation
     final error = vm.validateSignUp(email, password, confirmPassword);
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,9 +36,33 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       return;
     }
 
-    // 🌐 TRIGGER LOGIC
-    // We don't await this because the listener below handles the result
-    vm.signUp(email, password);
+    // trigger sign up
+    await vm.signUp(email, password);
+  }
+
+  Future<void> _signUpWithGoogle() async {
+    final vm = ref.read(authViewModelProvider.notifier);
+
+    try {
+      await vm.signInWithGoogleNative();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google account registered successfully.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google registration failed: ${error.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -73,6 +98,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               // EMAIL
               TextField(
                 controller: _emailCtrl,
+                enabled: !isLoading, // Block updates during loading sequences
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email',
@@ -88,6 +114,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               // PASSWORD
               TextField(
                 controller: _passwordCtrl,
+                enabled: !isLoading, // Block updates during loading sequences
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
@@ -112,6 +139,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
               // CONFIRM PASSWORD
               TextField(
                 controller: _confirmPasswordCtrl,
+                enabled: !isLoading, // Block updates during loading sequences
                 obscureText: _obscureConfirmPassword,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
@@ -134,6 +162,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
               const SizedBox(height: 32),
 
+              // SIGN UP BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -146,7 +175,14 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     ),
                   ),
                   child: isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
                       : const Text(
                           'Sign Up',
                           style: TextStyle(
@@ -156,6 +192,54 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         ),
                 ),
               ),
+
+              const SizedBox(height: 24),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      'Or continue with',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: isDark ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // NATIVE GOOGLE OAUTH BUTTON
+              isLoading 
+                ? const SizedBox(
+                    height: 50,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  )
+                : GoogleSignInButton(
+                    label: 'Sign up with Google',
+                    onPressed: _signUpWithGoogle,
+                  ),
+
+              const SizedBox(height: 16),
+
+              // LINK TO LOGIN VIEW
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -164,7 +248,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     style: TextStyle(color: Colors.grey[600]),
                   ),
                   TextButton(
-                    onPressed: () {
+                    onPressed: isLoading ? null : () {
                       context.go('/login');
                     },
                     child: Text(

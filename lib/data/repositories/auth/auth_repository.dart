@@ -1,17 +1,48 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gemhub/data/models/auth/profile_model.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:job_market/data/models/auth/profile_model.dart';
-import 'package:flutter/foundation.dart'; // For debugPrint
 
 class AuthRepository {
   final SupabaseClient _client;
 
   AuthRepository(this._client);
 
-  // ==========================================
-  // ✅ AUTH ACTIONS
-  // ==========================================
+  String get _webClientId {
+    final key = dotenv.env['WEB_CLIENT'];
+    if (key == null || key.isEmpty) {
+      throw Exception('AuthRepository: WEB_CLIENT key is missing from your .env file!');
+    }
+    return key;
+  }
 
-  /// Signs in a user with email and password.
+  Future<User?> signInWithGoogleNative() async {
+    final googleSignIn = GoogleSignIn(serverClientId: _webClientId);
+    final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+    
+    if (googleUser == null) return null;
+
+    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final String? idToken = googleAuth.idToken;
+    final String? accessToken = googleAuth.accessToken;
+
+    if (idToken == null) {
+      throw const AuthException('Missing Google ID Token during authentication.');
+    }
+
+    final AuthResponse res = await _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: accessToken,
+    );
+
+    if (res.session == null) {
+      throw const AuthException('Supabase failed to initialize an active session.');
+    }
+
+    return res.user;
+  }
+
   Future<User?> login(String email, String password) async {
     final res = await _client.auth.signInWithPassword(
       email: email,
@@ -19,13 +50,12 @@ class AuthRepository {
     );
 
     if (res.session == null) {
-      throw Exception("Login failed: No active session created.");
+      throw const AuthException('Login failed: No active session created.');
     }
 
     return res.user;
   }
 
-  /// Registers a new user with email and password.
   Future<User?> signUp(String email, String password) async {
     final res = await _client.auth.signUp(
       email: email, 
@@ -34,7 +64,6 @@ class AuthRepository {
     return res.user;
   }
 
-  /// Initiates OAuth login flow (e.g., Google, Apple).
   Future<void> signInWithOAuth(OAuthProvider provider) async {
     await _client.auth.signInWithOAuth(
       provider,
@@ -42,16 +71,16 @@ class AuthRepository {
     );
   }
 
-  /// Signs out the current user and clears the session.
   Future<void> logout() async {
-    await _client.auth.signOut();
+    try {
+      await _client.auth.signOut();
+    } catch (_) {}
+    try {
+      await GoogleSignIn().signOut();
+    } catch (_) {}
   }
 
-  // ==========================================
-  // ✅ PROFILE DATA
-  // ==========================================
 
-  /// Fetches profile metadata from the 'profiles' table for a specific user ID.
   Future<ProfileUser?> getUserProfile(String userId) async {
     try {
       final response = await _client
@@ -60,33 +89,16 @@ class AuthRepository {
           .eq('profile_id', userId)
           .maybeSingle();
 
-      if (response == null) {
-        debugPrint('AuthRepository: No profile found for UID: $userId');
-        return null;
-      }
-
+      if (response == null) return null;
       return ProfileUser.fromMap(response);
-    } catch (e, stacktrace) {
-      debugPrint('AuthRepository Error: Fetching profile failed.');
-      debugPrint('Exception: $e');
-      debugPrint('Stacktrace: $stacktrace');
+    } catch (_) {
       return null;
     }
   }
 
-  // ==========================================
-  // ✅ REACTIVE & GETTERS
-  // ==========================================
 
-  /// Stream of Auth changes (Login, Logout, Token Refresh).
   Stream<AuthState> get authState => _client.auth.onAuthStateChange;
-
-  /// Returns the current Supabase [User] object if a session exists.
   User? get currentUser => _client.auth.currentUser;
-
-  /// Returns the current [Session] metadata.
   Session? get currentSession => _client.auth.currentSession;
-
-  /// Synchronous check to see if the user is currently authenticated.
   bool get isLoggedIn => _client.auth.currentSession != null;
 }

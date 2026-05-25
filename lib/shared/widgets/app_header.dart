@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class AppHeader extends ConsumerWidget {
   const AppHeader({super.key});

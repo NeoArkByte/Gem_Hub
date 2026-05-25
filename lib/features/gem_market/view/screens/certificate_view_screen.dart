@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:job_market/features/gem_market/viewmodel/certificate_viewmodel.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/features/gem_market/viewmodel/certificate/certificate_viewmodel.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class CertificateViewScreen extends ConsumerWidget {
   final String url;

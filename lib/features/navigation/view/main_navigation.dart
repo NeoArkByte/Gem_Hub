@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:job_market/core/enums/user_role.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart'; // Updated import
-import 'package:job_market/shared/widgets/bottom_navigation_bar.dart';
-import 'package:job_market/core/constants/app_colors.dart';
+import 'package:gemhub/core/enums/user_role.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart'; // Updated import
+import 'package:gemhub/shared/widgets/bottom_navigation_bar.dart';
+import 'package:gemhub/core/constants/app_colors.dart';
 
 class MainNavigation extends ConsumerWidget {
   final Widget child;

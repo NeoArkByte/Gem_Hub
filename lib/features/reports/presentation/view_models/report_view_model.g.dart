@@ -8,12 +8,9 @@ part of 'report_view_model.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Provider to fetch and filter gemstones based on UI selection
 
 @ProviderFor(filteredGemstones)
 final filteredGemstonesProvider = FilteredGemstonesFamily._();
-
-/// Provider to fetch and filter gemstones based on UI selection
 
 final class FilteredGemstonesProvider
     extends
@@ -25,7 +22,6 @@ final class FilteredGemstonesProvider
     with
         $FutureModifier<List<GemstoneModel>>,
         $FutureProvider<List<GemstoneModel>> {
-  /// Provider to fetch and filter gemstones based on UI selection
   FilteredGemstonesProvider._({
     required FilteredGemstonesFamily super.from,
     required GemFilter super.argument,
@@ -70,9 +66,7 @@ final class FilteredGemstonesProvider
   }
 }
 
-String _$filteredGemstonesHash() => r'e17a7f7e6258f5f73ebf83261453053420370334';
-
-/// Provider to fetch and filter gemstones based on UI selection
+String _$filteredGemstonesHash() => r'2f86c9c50c7916635fd12f20207024c84c05d334';
 
 final class FilteredGemstonesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<GemstoneModel>>, GemFilter> {
@@ -85,8 +79,6 @@ final class FilteredGemstonesFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// Provider to fetch and filter gemstones based on UI selection
-
   FilteredGemstonesProvider call({required GemFilter filter}) =>
       FilteredGemstonesProvider._(argument: filter, from: this);
 
@@ -94,12 +86,8 @@ final class FilteredGemstonesFamily extends $Family
   String toString() => r'filteredGemstonesProvider';
 }
 
-/// NEW: Provider to fetch unique varieties currently in the database
-
 @ProviderFor(gemstoneVarieties)
 final gemstoneVarietiesProvider = GemstoneVarietiesProvider._();
-
-/// NEW: Provider to fetch unique varieties currently in the database
 
 final class GemstoneVarietiesProvider
     extends
@@ -109,7 +97,6 @@ final class GemstoneVarietiesProvider
           FutureOr<List<String>>
         >
     with $FutureModifier<List<String>>, $FutureProvider<List<String>> {
-  /// NEW: Provider to fetch unique varieties currently in the database
   GemstoneVarietiesProvider._()
     : super(
         from: null,
