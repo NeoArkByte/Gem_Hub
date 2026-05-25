@@ -1,4 +1,4 @@
-import "package:job_market/data/models/auth/profile_model.dart";
+import "package:gemhub/data/models/auth/profile_model.dart";
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 

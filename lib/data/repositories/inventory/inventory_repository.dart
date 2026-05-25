@@ -1,5 +1,5 @@
-import 'package:job_market/data/datasources/local/database_helper.dart';
-import 'package:job_market/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/data/datasources/local/database_helper.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 
 class InventoryRepository {
   final DatabaseHelper _databaseHelper;
@@ -31,5 +31,9 @@ class InventoryRepository {
       where: 'id = ?',
       whereArgs: [gem.id],
     );
+  }
+
+  Future<List<String>> getGemVarieties() async {
+    return await _databaseHelper.getGemVarieties();
   }
 }

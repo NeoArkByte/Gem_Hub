@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:job_market/core/constants/app_colors.dart';
-import 'package:job_market/features/auth/viewmodels/auth_viewmodel.dart';
-
+import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/shared/widgets/google_sign_in_button.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +16,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
 
-    bool _obscurePassword = true;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -29,19 +29,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // 🔐 Validation (ViewModel)
+    // validation
     final error = vm.validateLogin(email, password);
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
 
-    // 🌐 Trigger login (NO navigation here anymore)
+    // trigger login
     await vm.login(email, password);
-    
+  }
+
+  Future<void> _signInWithGoogle() async {
+    final vm = ref.read(authViewModelProvider.notifier);
+
+    try {
+      
+      await vm.signInWithGoogleNative();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google sign-in complete.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google sign-in failed: ${error.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -67,7 +93,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.diamond_outlined, size: 80, color: AppColors.primaryGreen),
+                Icon(
+                  Icons.diamond_outlined,
+                  size: 80,
+                  color: AppColors.primaryGreen,
+                ),
                 const SizedBox(height: 24),
 
                 Text(
@@ -82,7 +112,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 8),
 
                 Text(
-                  'Log in to continue to GemCost Jobs',
+                  'Log in to continue to GemHub',
                   style: TextStyle(color: Colors.grey[500]),
                 ),
 
@@ -91,6 +121,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // EMAIL
                 TextField(
                   controller: _emailCtrl,
+                  enabled: !isLoading, // Disable fields while logging in
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
@@ -106,6 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // PASSWORD
                 TextField(
                   controller: _passwordCtrl,
+                  enabled: !isLoading, // Disable fields while logging in
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -164,7 +196,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const SizedBox(height: 24),
 
-                // SIGNUP
+                Row(
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        color: isDark ? Colors.white24 : Colors.grey.shade300,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'Or continue with',
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Divider(
+                        color: isDark ? Colors.white24 : Colors.grey.shade300,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // NATIVE GOOGLE OAUTH BUTTON
+                isLoading 
+                  ? const SizedBox(
+                      height: 50,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                    )
+                  : GoogleSignInButton(
+                      label: 'Continue with Google',
+                      onPressed: _signInWithGoogle,
+                    ),
+
+                const SizedBox(height: 16),
+
+                // SIGNUP LINK
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -173,7 +249,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                     TextButton(
-                      onPressed: () {
+                      onPressed: isLoading ? null : () {
                         context.go('/signup');
                       },
                       child: Text(

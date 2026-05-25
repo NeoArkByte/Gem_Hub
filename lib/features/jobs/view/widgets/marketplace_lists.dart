@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart';
-import 'package:job_market/features/jobs/view/widgets/recent_job_card.dart';
-import 'package:job_market/features/jobs/view/widgets/featured_job_card.dart';
+import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart';
+import 'package:gemhub/features/jobs/view/widgets/recent_job_card.dart';
+import 'package:gemhub/features/jobs/view/widgets/featured_job_card.dart';
 import 'package:go_router/go_router.dart';
 
 class FeaturedJobsList extends ConsumerWidget {

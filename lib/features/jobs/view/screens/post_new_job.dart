@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:job_market/data/models/job_market/job_model.dart';
-import 'package:job_market/features/auth/provider/session_provider.dart';
-import 'package:job_market/features/jobs/viewmodels/post_job_viewmodel.dart';
-import 'package:job_market/features/jobs/view/widgets/post_job_components.dart';
+import 'package:gemhub/data/models/job_market/job_model.dart';
+import 'package:gemhub/features/auth/provider/session_provider.dart';
+import 'package:gemhub/features/jobs/viewmodels/post_job_viewmodel.dart';
+import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart';
 
 class PostJobScreen extends ConsumerStatefulWidget {
   const PostJobScreen({super.key});
