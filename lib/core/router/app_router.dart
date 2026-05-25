@@ -11,8 +11,10 @@ import 'package:gemhub/features/jobs/view/screens/job_market.dart';
 import 'package:gemhub/features/jobs/view/screens/post_new_job.dart';
 import 'package:gemhub/features/jobs/view/screens/job_details.dart';
 import 'package:gemhub/features/gem_market/view/screens/gem_market_screen.dart';
+import 'package:gemhub/features/gem_market/view/screens/gem_market_inventory_screen.dart';
 import 'package:gemhub/features/gem_market/view/screens/gem_listing_screen.dart';
 import 'package:gemhub/features/gem_market/view/screens/gem_market_add_entry_screen.dart';
+import 'package:gemhub/features/gem_market/view/screens/gem_market_update_entry_screen.dart';
 import 'package:gemhub/features/auth/view/admin_screen.dart';
 import 'package:gemhub/features/auth/view/login_screen.dart';
 import 'package:gemhub/features/auth/view/sign_up_screen.dart';
@@ -70,6 +72,24 @@ GoRouter router(Ref ref) {
                 name: 'add_gem',
                 builder: (context, state) => const AddGemScreen(),
               ),
+              GoRoute(
+                path: 'edit/:id',
+                name: 'edit_gem',
+                builder: (context, state) {
+                  final gem = state.extra as Gem?;
+                  if (gem != null) {
+                    return UpdateGemScreen(gem: gem);
+                  }
+                  return const Scaffold(
+                    body: Center(child: Text('Gem not found')),
+                  );
+                },
+              ),
+              GoRoute(
+                path: 'inventory',
+                name: 'gem_market_inventory',
+                builder: (context, state) => const GemMarketInventoryScreen(),
+              ),
             ],
           ),
           GoRoute(
@@ -120,7 +140,7 @@ GoRouter router(Ref ref) {
         name: 'job_details',
         builder: (context, state) {
           final job = state.extra as Job?;
-          
+
           if (job != null) {
             return JobDetailsScreen(job: job);
           }

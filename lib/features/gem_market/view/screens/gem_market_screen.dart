@@ -365,73 +365,41 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 4),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(
-          children: List.generate(GemType.values.length, (i) {
-            final type = GemType.values[i];
-            final isSelected = _selectedCategory == i;
-            return Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => _selectedCategory = i);
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: SizedBox(
+        height: 50,
+        child: ListView.separated(
+          padding: EdgeInsets.zero,
+          scrollDirection: Axis.horizontal,
+          itemCount: GemType.values.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (context, index) {
+            final type = GemType.values[index];
+            final selected = _selectedCategory == index;
+            return ChoiceChip(
+              label: Text(type.displayName),
+              selected: selected,
+              showCheckmark: false,
+              onSelected: (value) {
+                if (value) {
+                  setState(() => _selectedCategory = index);
                   // ref
                   //     .read(gemMarketplaceViewModelProvider.notifier)
                   //     .updateType(type);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 9,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primaryGreen
-                        : (isDark ? AppColors.darkSurface : Colors.white),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primaryGreen
-                          : (isDark
-                                ? AppColors.darkSurfaceAlt
-                                : AppColors.lightBorder),
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primaryGreen.withOpacity(0.25),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: isDark
-                                  ? Colors.transparent
-                                  : Colors.black.withOpacity(0.03),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                  ),
-                  child: Text(
-                    type.displayName,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.grey[300] : AppColors.greyText),
-                    ),
-                  ),
-                ),
+                }
+              },
+              selectedColor: AppColors.primaryGreen,
+              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              side: BorderSide(
+                color: selected ? Colors.transparent : (isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorderAlt),
+              ),
+              labelStyle: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : (isDark ? AppColors.greyTextLight : AppColors.textDark),
               ),
             );
-          }),
+          },
         ),
       ),
     );
@@ -634,7 +602,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : AppColors.darkBackground,
+                      color: isDark ? Colors.white : AppColors.textDarkAlt,
                       letterSpacing: -0.4,
                     ),
                     maxLines: 1,
@@ -694,7 +662,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
           onTap: () {
-            context.push('/gems/new');
+            context.push('/gems/inventory');
           },
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
         ),
