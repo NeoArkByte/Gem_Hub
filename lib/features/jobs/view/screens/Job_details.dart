@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-<<<<<<< HEAD
-import 'package:url_launcher/url_launcher.dart'; 
-
-import 'package:job_market/data/models/job_market/job_model.dart';
-=======
+import 'package:url_launcher/url_launcher.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
-import 'package:gemhub/features/auth/provider/session_provider.dart';
->>>>>>> main
 
 class JobDetailsScreen extends ConsumerWidget {
   final Job job;

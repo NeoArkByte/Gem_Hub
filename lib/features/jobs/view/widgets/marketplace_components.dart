@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; 
-import 'package:job_market/features/jobs/view/widgets/post_job_components.dart'; // PostJobLocationPicker එක තියෙන තැන
-import 'package:job_market/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
+import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
+import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart'; // PostJobLocationPicker එක තියෙන තැන
+import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
 
 class MarketplaceSearchBar extends StatelessWidget {
   final TextEditingController controller;
