@@ -5,6 +5,7 @@ import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/shared/widgets/custom_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -399,56 +400,52 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Text("Sign Out"),
-          content: const Text(
-            "Are you sure you want to sign out of your account?",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
-            ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  await ref.read(authViewModelProvider.notifier).logout();
+  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) async {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pushNamedAndRemoveUntil('/login', (route) => false);
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Logout failed: $e")),
-                    );
-                  }
-                }
-              },
-              child: const Text(
-                "Sign Out",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
+    // 1. Show your brand new shared dialog component
+    final confirmLogout = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // Keeps your preference to force a button tap
+      barrierColor: Colors.black.withOpacity(isDark ? 0.6 : 0.4),
+      builder: (BuildContext context) {
+        return const CustomConfirmDialog(
+          title: "Sign Out",
+          content: "Are you sure you want to sign out of your account?",
+          confirmLabel: "Sign Out",
+          confirmColor: AppColors.dangerRed,
+          icon: Icons.logout_rounded, // Premium logout iconography style
         );
       },
     );
+
+    // If user clicked cancel or dismissed, stop execution
+    if (confirmLogout != true || !context.mounted) return;
+
+    // 2. Perform Async Logout Logic
+    try {
+      await ref.read(authViewModelProvider.notifier).logout();
+
+      if (!context.mounted) return;
+
+      // 3. Clear stack and route to login using GoRouter
+      // context.go removes all previous routes from the stack completely.
+      context.go('/login');
+    } catch (e) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.dangerRed,
+          content: Text(
+            "Logout failed: $e",
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

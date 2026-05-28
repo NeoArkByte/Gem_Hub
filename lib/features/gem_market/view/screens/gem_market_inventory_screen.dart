@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemhub/shared/widgets/custom_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:gemhub/core/enums/gem_status.dart';
@@ -69,14 +70,29 @@ class _GemMarketInventoryScreenState
             Center(child: Text('Unable to load inventory: $error')),
         data: (gems) {
           // Filtered groupings for evaluation calculations
-          final approvedGems = gems.where((gem) => gem.status == GemStatus.APPROVED);
-          final pendingGems = gems.where((gem) => gem.status == GemStatus.PENDING);
-          final rejectedGems = gems.where((gem) => gem.status == GemStatus.REJECTED);
+          final approvedGems = gems.where(
+            (gem) => gem.status == GemStatus.APPROVED,
+          );
+          final pendingGems = gems.where(
+            (gem) => gem.status == GemStatus.PENDING,
+          );
+          final rejectedGems = gems.where(
+            (gem) => gem.status == GemStatus.REJECTED,
+          );
 
           // Cumulative Prices Valuation
-          final approvedValue = approvedGems.fold<double>(0, (sum, gem) => sum + (gem.price ?? 0));
-          final pendingValue = pendingGems.fold<double>(0, (sum, gem) => sum + (gem.price ?? 0));
-          final rejectedValue = rejectedGems.fold<double>(0, (sum, gem) => sum + (gem.price ?? 0));
+          final approvedValue = approvedGems.fold<double>(
+            0,
+            (sum, gem) => sum + (gem.price ?? 0),
+          );
+          final pendingValue = pendingGems.fold<double>(
+            0,
+            (sum, gem) => sum + (gem.price ?? 0),
+          );
+          final rejectedValue = rejectedGems.fold<double>(
+            0,
+            (sum, gem) => sum + (gem.price ?? 0),
+          );
 
           final contentChildren = <Widget>[
             const SizedBox(height: 16),
@@ -297,7 +313,12 @@ class _GemMarketInventoryScreenState
     );
   }
 
-  Widget _buildStatMetric(String label, int count, double value, Color metricColor) {
+  Widget _buildStatMetric(
+    String label,
+    int count,
+    double value,
+    Color metricColor,
+  ) {
     return Expanded(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -469,8 +490,8 @@ class _GemMarketInventoryScreenState
                 color: selected
                     ? Colors.transparent
                     : (isDark
-                        ? AppColors.darkSurfaceAlt
-                        : AppColors.lightBorderAlt),
+                          ? AppColors.darkSurfaceAlt
+                          : AppColors.lightBorderAlt),
               ),
               labelStyle: TextStyle(
                 color: selected
@@ -547,7 +568,7 @@ class _GemMarketInventoryScreenState
                           ),
                           const SizedBox(width: 6),
                           _buildActionIcon(
-                            Icons.delete_outline, 
+                            Icons.delete_outline,
                             onTap: () async {
                               if (gem.gemId == null) return;
 
@@ -555,28 +576,27 @@ class _GemMarketInventoryScreenState
                               final confirmDelete = await showDialog<bool>(
                                 context: context,
                                 builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text('Delete Gem Listing?'),
-                                    content: Text('Are you sure you want to remove "${gem.name}" permanently from the market?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context, false),
-                                        child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context, true),
-                                        child: const Text('Delete', style: TextStyle(color: AppColors.dangerRed, fontWeight: FontWeight.bold)),
-                                      ),
-                                    ],
+                                  return CustomConfirmDialog(
+                                    title: 'Delete Gem Listing?',
+                                    content:
+                                        'Are you sure you want to remove "${gem.name}" permanently from the market?',
+                                    confirmLabel: 'Delete',
+                                    confirmColor: AppColors.dangerRed,
+                                    icon: Icons
+                                        .delete_forever_rounded, // Adds contextual icon warning decoration
                                   );
                                 },
                               );
 
-                              if (confirmDelete != true || !context.mounted) return;
+                              if (confirmDelete != true || !context.mounted)
+                                return;
 
-                              // 2. Perform the viewmodel logic sequence 
+                              // 2. Perform the viewmodel logic sequence
                               final success = await ref
-                                  .read(gemMarketInventoryViewModelProvider.notifier)
+                                  .read(
+                                    gemMarketInventoryViewModelProvider
+                                        .notifier,
+                                  )
                                   .deleteGem(gem.gemId!);
 
                               if (!context.mounted) return;
@@ -584,12 +604,17 @@ class _GemMarketInventoryScreenState
                               // 3. User Success Feedbacks Trigger
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  backgroundColor: success ? AppColors.successGreen : AppColors.dangerRed,
+                                  backgroundColor: success
+                                      ? AppColors.successGreen
+                                      : AppColors.dangerRed,
                                   content: Text(
-                                    success 
-                                        ? 'Successfully deleted "${gem.name}"' 
+                                    success
+                                        ? 'Successfully deleted "${gem.name}"'
                                         : 'Failed to delete "${gem.name}". Please try again.',
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                               );
@@ -758,8 +783,8 @@ class _GemMarketInventoryScreenState
           color: status == GemStatus.APPROVED
               ? AppColors.primaryGreen
               : status == GemStatus.REJECTED
-                  ? AppColors.accentRed
-                  : AppColors.greyTextLight,
+              ? AppColors.accentRed
+              : AppColors.greyTextLight,
           width: 1,
         ),
       ),
