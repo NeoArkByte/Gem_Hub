@@ -9,8 +9,7 @@ import 'package:gemhub/features/gem_market/viewmodel/gem_market/gem_marketplace_
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-
-//  Main Screen 
+//  Main Screen
 class GemMarketPlaceScreen extends ConsumerStatefulWidget {
   const GemMarketPlaceScreen({super.key});
 
@@ -54,11 +53,10 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
           _GemGrid(),
         ],
       ),
-      floatingActionButton: _MarketFab(),
     );
   }
 
-  //  Search Bar 
+  //  Search Bar
   Widget _SearchBar() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -156,7 +154,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Latest Gems Section 
+  //  Latest Gems Section
   Widget _LatestGemsSection() {
     final latestGemsAsync = ref.watch(latestApprovedGemsProvider);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -360,7 +358,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Categories 
+  //  Categories
   Widget _CategoryFilter() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -389,14 +387,22 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                 }
               },
               selectedColor: AppColors.primaryGreen,
-              backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              backgroundColor: isDark
+                  ? AppColors.darkSurface
+                  : AppColors.lightSurface,
               side: BorderSide(
-                color: selected ? Colors.transparent : (isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorderAlt),
+                color: selected
+                    ? Colors.transparent
+                    : (isDark
+                          ? AppColors.darkSurfaceAlt
+                          : AppColors.lightBorderAlt),
               ),
               labelStyle: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: selected ? Colors.white : (isDark ? AppColors.greyTextLight : AppColors.textDark),
+                color: selected
+                    ? Colors.white
+                    : (isDark ? AppColors.greyTextLight : AppColors.textDark),
               ),
             );
           },
@@ -405,7 +411,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Section Header 
+  //  Section Header
   Widget _SectionHeader() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -452,7 +458,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Gem Grid 
+  //  Gem Grid
   Widget _GemGrid() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final gemsState = ref.watch(gemMarketplaceViewModelProvider);
@@ -636,35 +642,6 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  //  FAB 
-  Widget _MarketFab() {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: AppColors.primaryGreen,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(28),
-          onTap: () {
-            context.push('/gems/inventory');
-          },
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
         ),
       ),
     );

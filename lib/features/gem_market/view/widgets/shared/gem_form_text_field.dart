@@ -7,6 +7,7 @@ class GemFormTextField extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final IconData? prefixIcon;
+  final Widget? suffixIcon;
   final int maxLines;
   final String? suffixText;
   final bool optional;
@@ -19,17 +20,23 @@ class GemFormTextField extends StatelessWidget {
     required this.controller,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
+    this.suffixIcon,
     this.maxLines = 1,
     this.suffixText,
     this.optional = false,
     this.validator,
+    this.focusNode,
   });
+
+  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color fieldBg = isDark ? AppColors.darkSurface : Colors.white;
-    final Color labelColor = isDark ? Colors.grey[300]! : const Color(0xFF1F2937);
+    final Color labelColor = isDark
+        ? Colors.grey[300]!
+        : const Color(0xFF1F2937);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,6 +54,7 @@ class GemFormTextField extends StatelessWidget {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
+          focusNode: focusNode,
           style: TextStyle(color: isDark ? Colors.white : Colors.black),
           decoration: InputDecoration(
             filled: true,
@@ -56,6 +64,7 @@ class GemFormTextField extends StatelessWidget {
             prefixIcon: prefixIcon != null
                 ? Icon(prefixIcon, color: Colors.grey[400], size: 18)
                 : null,
+            suffixIcon: suffixIcon,
             suffixText: suffixText,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -64,7 +73,9 @@ class GemFormTextField extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide(
-                color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
+                color: isDark
+                    ? AppColors.darkSurfaceAlt
+                    : AppColors.lightBorder,
               ),
             ),
             focusedBorder: OutlineInputBorder(

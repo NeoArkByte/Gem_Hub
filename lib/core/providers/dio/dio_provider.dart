@@ -39,7 +39,7 @@ Dio dio(Ref ref) {
       responseHeader: false,
       error: true,
       compact: true,
-      maxWidth: 90,
+      maxWidth: 1000,
     ));
 
   return dio;

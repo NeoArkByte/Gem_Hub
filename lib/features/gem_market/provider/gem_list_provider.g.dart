@@ -161,3 +161,41 @@ final class PendingGemsProvider
 }
 
 String _$pendingGemsHash() => r'ad60436e86aeab8f9bf6a70abb82360b5220eb5e';
+
+@ProviderFor(userSpecificGems)
+final userSpecificGemsProvider = UserSpecificGemsProvider._();
+
+final class UserSpecificGemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Gem>>,
+          List<Gem>,
+          FutureOr<List<Gem>>
+        >
+    with $FutureModifier<List<Gem>>, $FutureProvider<List<Gem>> {
+  UserSpecificGemsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'userSpecificGemsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userSpecificGemsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Gem>> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Gem>> create(Ref ref) {
+    return userSpecificGems(ref);
+  }
+}
+
+String _$userSpecificGemsHash() => r'0e5b21c6ef3359383e0b762b90e8701735355904';

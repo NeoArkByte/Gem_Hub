@@ -5,6 +5,7 @@ import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -89,6 +90,14 @@ class ProfileScreen extends ConsumerWidget {
                 "Job Board Alerts",
                 textColor,
               ),
+              _buildMenuTile(
+                Icons.inventory_2,
+                Colors.green.shade50,
+                Colors.green,
+                "Gem Marketplace Inventory",
+                textColor,
+                onTap: () => context.push('/gems/inventory'),
+              ),
             ]),
             const SizedBox(height: 18),
             _buildSectionTitle("Support & Legal"),
@@ -128,10 +137,9 @@ class ProfileScreen extends ConsumerWidget {
     final supabaseUser = authData.supabaseUser;
 
     return SizedBox(
-      width: double.infinity, 
+      width: double.infinity,
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.center, 
+        crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // 1. Profile Picture
@@ -156,8 +164,7 @@ class ProfileScreen extends ConsumerWidget {
             profile?.username ??
                 supabaseUser?.email?.split('@')[0] ??
                 "Gem Owner",
-            textAlign:
-                TextAlign.center, 
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -168,12 +175,10 @@ class ProfileScreen extends ConsumerWidget {
 
           // 3. Description
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32.0,
-            ), 
+            padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Text(
               profile?.description ?? "No profile description",
-              textAlign: TextAlign.center, 
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.grey.shade500,
                 fontSize: 14,
@@ -226,10 +231,9 @@ class ProfileScreen extends ConsumerWidget {
 
     return inventoryAsync.when(
       data: (gems) {
-        // Logic: isSold 
+        // Logic: isSold
         final availableItems = gems.where((g) => g.isSold == false).length;
 
-       
         final salesCount = gems.where((g) => g.isSold == true).length;
 
         return Container(
@@ -248,7 +252,6 @@ class ProfileScreen extends ConsumerWidget {
             ],
           ),
           child: IntrinsicHeight(
-            
             child: Row(
               children: [
                 _statItem(availableItems.toString(), "ITEMS", textColor),

@@ -546,7 +546,55 @@ class _GemMarketInventoryScreenState
                             },
                           ),
                           const SizedBox(width: 6),
-                          _buildActionIcon(Icons.delete_outline, onTap: () {}),
+                          _buildActionIcon(
+                            Icons.delete_outline, 
+                            onTap: () async {
+                              if (gem.gemId == null) return;
+
+                              // 1. Show Confirmation Dialog
+                              final confirmDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Delete Gem Listing?'),
+                                    content: Text('Are you sure you want to remove "${gem.name}" permanently from the market?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, false),
+                                        child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, true),
+                                        child: const Text('Delete', style: TextStyle(color: AppColors.dangerRed, fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+
+                              if (confirmDelete != true || !context.mounted) return;
+
+                              // 2. Perform the viewmodel logic sequence 
+                              final success = await ref
+                                  .read(gemMarketInventoryViewModelProvider.notifier)
+                                  .deleteGem(gem.gemId!);
+
+                              if (!context.mounted) return;
+
+                              // 3. User Success Feedbacks Trigger
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: success ? AppColors.successGreen : AppColors.dangerRed,
+                                  content: Text(
+                                    success 
+                                        ? 'Successfully deleted "${gem.name}"' 
+                                        : 'Failed to delete "${gem.name}". Please try again.',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ],
                       ),
                       const SizedBox(height: 4),
