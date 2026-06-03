@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'package:gemhub/data/models/backup/backup_state.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:gemhub/data/repositories/backup/backup_repository_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
+import 'package:gemhub/data/models/backup/backup_state.dart';
 
 part 'backup_viewmodel.g.dart';
 
@@ -10,99 +11,208 @@ part 'backup_viewmodel.g.dart';
 class BackupViewModel extends _$BackupViewModel {
   @override
   BackupState build() {
-    // Automatically read and index any existing on-disk snapshots upon module startup
     Future.microtask(() => refreshAllSnapshots());
     return BackupState.initial();
   }
 
-  /// Indexes on-disk zip records to dynamically update your lists
   Future<void> refreshAllSnapshots() async {
     final repository = ref.read(backupRepositoryProvider);
+    final targetFolder = await repository.getTargetBackupDirectory();
     final locals = await repository.getLocalSnapshots();
 
     state = state.copyWith(
+      currentBackupPath: targetFolder.path,
       localSnapshots: locals,
-      cloudSnapshots: [], // Stays empty for active testing
+      cloudSnapshots: [],
     );
   }
 
-  /// Triggers a full-screen loading sequence while zipping active local DB structural data
   Future<void> backupAndSyncAll() async {
     state = state.copyWith(
-      isLoading: true,
-      statusMessage: "Creating encrypted database snapshot...",
-      successMessage: () => null,
-      errorMessage: () => null,
+      isLoading: true, 
+      statusMessage: "Creating database snapshot...", 
+      successMessage: null, 
+      errorMessage: null,
     );
-
-    // Minor delay giving the UI thread time to render the loader smoothly
-    await Future.delayed(const Duration(milliseconds: 600));
-
     try {
       final repository = ref.read(backupRepositoryProvider);
       final zipFile = await repository.generateBackupZip();
 
       if (zipFile == null) throw Exception("Local database serialization failed.");
 
-      // Refresh file array mappings
       final updatedLocals = await repository.getLocalSnapshots();
-
       state = state.copyWith(
         isLoading: false,
         statusMessage: "",
         localSnapshots: updatedLocals,
-        successMessage: () => "New backup snapshot compiled and added to storage!",
+        successMessage: "New backup snapshot compiled successfully!",
       );
     } catch (e) {
       state = state.copyWith(
-        isLoading: false,
-        statusMessage: "",
-        errorMessage: () => "Process broken: ${e.toString().replaceAll('Exception:', '')}",
+        isLoading: false, 
+        statusMessage: "", 
+        errorMessage: "Process broken: $e",
       );
     }
   }
 
-  /// Triggers a full-screen loading sequence while replacing active database bytes with the target archive selection
+  Future<void> importAndRestoreFromFile() async {
+    try {
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom, 
+        allowedExtensions: ['zip'], 
+        allowMultiple: false,
+      );
+      if (result == null || result.files.single.path == null) return;
+
+      state = state.copyWith(
+        isLoading: true, 
+        statusMessage: "Reading backup archive...", 
+        successMessage: null, 
+        errorMessage: null,
+      );
+
+      final repository = ref.read(backupRepositoryProvider);
+      final selectedPath = result.files.single.path!;
+
+      final BackupSnapshot? importedSnapshot = await repository.importExternalZip(selectedPath);
+      if (importedSnapshot == null) throw Exception("Target file contents rejected validation.");
+
+      final targetFile = File(importedSnapshot.pathOrUrl);
+      final success = await repository.restoreDatabaseFromZip(targetFile);
+
+      if (success) {
+        final updatedLocals = await repository.getLocalSnapshots();
+        state = state.copyWith(
+          isLoading: false,
+          statusMessage: "",
+          localSnapshots: updatedLocals,
+          successMessage: "External backup point successfully applied!",
+        );
+      } else {
+        throw Exception("Database core engine extraction failure.");
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false, 
+        statusMessage: "", 
+        errorMessage: "Import failed: $e",
+      );
+    }
+  }
+
   Future<void> restoreFromSnapshot(BackupSnapshot snapshot) async {
     state = state.copyWith(
       isLoading: true,
-      statusMessage: "Extracting records from selected historical point...",
-      successMessage: () => null,
-      errorMessage: () => null,
+      statusMessage: "Extracting records from backup...", 
+      successMessage: null, 
+      errorMessage: null,
     );
-
-    // UI visibility delay padding
-    await Future.delayed(const Duration(milliseconds: 800));
-
     try {
       final repository = ref.read(backupRepositoryProvider);
       final targetFile = File(snapshot.pathOrUrl);
 
       if (!await targetFile.exists()) {
-        throw Exception("Target archive snapshot is no longer present on device disk storage.");
+        throw Exception("Target file snapshot has been altered or removed from storage.");
       }
 
       final success = await repository.restoreDatabaseFromZip(targetFile);
-      
       if (success) {
         state = state.copyWith(
-          isLoading: false,
-          statusMessage: "",
-          successMessage: () => "Database structural values successfully reverted!",
+          isLoading: false, 
+          statusMessage: "", 
+          successMessage: "Database successfully restored!",
         );
       } else {
-        throw Exception("Structural verification of package map failed.");
+        throw Exception("Verification sequence rejected system payload mapping.");
       }
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false, 
+        statusMessage: "", 
+        errorMessage: "Restoration failed: $e",
+      );
+    }
+  }
+
+  Future<void> exportSnapshotToFileSystem(BackupSnapshot snapshot) async {
+    state = state.copyWith(
+      isLoading: true, 
+      statusMessage: "Preparing file for export...",
+      successMessage: null,
+      errorMessage: null,
+    );
+
+    try {
+      final sourceFile = File(snapshot.pathOrUrl);
+      if (!await sourceFile.exists()) {
+        throw Exception("Source backup snapshot file not found.");
+      }
+
+      final bytes = await sourceFile.readAsBytes();
+
+      final String? outputFileDirectory = await FilePicker.platform.saveFile(
+        dialogTitle: 'Export Backup Archive',
+        fileName: snapshot.name,
+        type: FileType.custom,
+        allowedExtensions: ['zip'],
+        bytes: bytes,
+      );
+
+      if (outputFileDirectory == null) {
+        state = state.copyWith(isLoading: false, statusMessage: "");
+        return;
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        statusMessage: "",
+        successMessage: "Snapshot successfully exported to device storage!",
+      );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
         statusMessage: "",
-        errorMessage: () => "Restoration failed: ${e.toString().replaceAll('Exception:', '')}",
+        errorMessage: "Export failed: ${e.toString().replaceAll('Exception:', '')}",
+      );
+    }
+  }
+
+  Future<void> deleteSnapshot(BackupSnapshot snapshot) async {
+    state = state.copyWith(
+      isLoading: true,
+      statusMessage: "Purging archive file...",
+      successMessage: null,
+      errorMessage: null,
+    );
+
+    try {
+      final targetFile = File(snapshot.pathOrUrl);
+
+      if (await targetFile.exists()) {
+        await targetFile.delete();
+      }
+
+      final filteredLocals = state.localSnapshots
+          .where((item) => item.id != snapshot.id)
+          .toList();
+
+      state = state.copyWith(
+        isLoading: false,
+        statusMessage: "",
+        localSnapshots: filteredLocals,
+        successMessage: "Snapshot archive permanently removed from storage.",
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        statusMessage: "",
+        errorMessage: "Failed to delete target backup: $e",
       );
     }
   }
 
   void clearNotifications() {
-    state = state.copyWith(successMessage: () => null, errorMessage: () => null);
+    state = state.copyWith(successMessage: null, errorMessage: null);
   }
 }

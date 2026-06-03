@@ -1,16 +1,18 @@
-import 'backup_snapshot.dart';
+import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 
 class BackupState {
   final bool isLoading;
   final String statusMessage;
+  final String currentBackupPath;
   final List<BackupSnapshot> localSnapshots;
   final List<BackupSnapshot> cloudSnapshots;
-  final String? successMessage;
-  final String? errorMessage;
+  final String? successMessage; // Unified to plain String?
+  final String? errorMessage;   // Unified to plain String?
 
-  BackupState({
+  const BackupState({
     required this.isLoading,
     required this.statusMessage,
+    required this.currentBackupPath,
     required this.localSnapshots,
     required this.cloudSnapshots,
     this.successMessage,
@@ -18,9 +20,10 @@ class BackupState {
   });
 
   factory BackupState.initial() {
-    return BackupState(
+    return const BackupState(
       isLoading: false,
-      statusMessage: "",
+      statusMessage: '',
+      currentBackupPath: '',
       localSnapshots: [],
       cloudSnapshots: [],
       successMessage: null,
@@ -31,18 +34,20 @@ class BackupState {
   BackupState copyWith({
     bool? isLoading,
     String? statusMessage,
+    String? currentBackupPath,
     List<BackupSnapshot>? localSnapshots,
     List<BackupSnapshot>? cloudSnapshots,
-    String? Function()? successMessage,
-    String? Function()? errorMessage,
+    String? successMessage,
+    String? errorMessage,
   }) {
     return BackupState(
       isLoading: isLoading ?? this.isLoading,
       statusMessage: statusMessage ?? this.statusMessage,
+      currentBackupPath: currentBackupPath ?? this.currentBackupPath,
       localSnapshots: localSnapshots ?? this.localSnapshots,
       cloudSnapshots: cloudSnapshots ?? this.cloudSnapshots,
-      successMessage: successMessage != null ? successMessage() : this.successMessage,
-      errorMessage: errorMessage != null ? errorMessage() : this.errorMessage,
+      successMessage: successMessage,
+      errorMessage: errorMessage,
     );
   }
 }
