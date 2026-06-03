@@ -21,6 +21,8 @@ import 'package:gemhub/features/auth/view/sign_up_screen.dart';
 import 'package:gemhub/features/inventory/view/inventory_screen_view.dart';
 import 'package:gemhub/features/home/view/home_screen.dart';
 import 'package:gemhub/features/profile/view/profile_screen.dart';
+// Import your new feature view here
+import 'package:gemhub/features/profile/view/backup_screen.dart'; 
 
 part 'app_router.g.dart';
 
@@ -113,6 +115,14 @@ GoRouter router(Ref ref) {
             path: '/profile',
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
+            routes: [
+              // Added sub-route under /profile
+              GoRoute(
+                path: 'backup',
+                name: 'backup',
+                builder: (context, state) => const BackupScreen(),
+              ),
+            ],
           ),
         ],
       ),

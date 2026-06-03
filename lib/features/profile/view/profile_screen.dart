@@ -67,6 +67,16 @@ class ProfileScreen extends ConsumerWidget {
                 textColor,
               ),
               _buildMenuTile(
+                Icons.cloud_sync,
+                Colors.indigo.shade50,
+                Colors.indigo,
+                "Cloud Backup & Sync",
+                textColor,
+                onTap: () => context.push(
+                  '/profile/backup',
+                ), // Push cleanly over current context
+              ),
+              _buildMenuTile(
                 Icons.inventory_2,
                 Colors.teal.shade50,
                 Colors.teal,

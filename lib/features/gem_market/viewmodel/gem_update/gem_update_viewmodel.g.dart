@@ -42,7 +42,7 @@ final class GemUpdateViewModelProvider
 }
 
 String _$gemUpdateViewModelHash() =>
-    r'5ae1ed97c38b9f8992eb974136c5a8458e27695b';
+    r'6765621626bda132aef03c31508b95836865d06a';
 
 abstract class _$GemUpdateViewModel extends $Notifier<bool> {
   bool build();

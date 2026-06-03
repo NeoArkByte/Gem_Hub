@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gem_add_viewmodel.dart';
+part of 'backup_viewmodel.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,51 @@ part of 'gem_add_viewmodel.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(GemAddViewModel)
-final gemAddViewModelProvider = GemAddViewModelProvider._();
+@ProviderFor(BackupViewModel)
+final backupViewModelProvider = BackupViewModelProvider._();
 
-final class GemAddViewModelProvider
-    extends $NotifierProvider<GemAddViewModel, bool> {
-  GemAddViewModelProvider._()
+final class BackupViewModelProvider
+    extends $NotifierProvider<BackupViewModel, BackupState> {
+  BackupViewModelProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'gemAddViewModelProvider',
+        name: r'backupViewModelProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$gemAddViewModelHash();
+  String debugGetCreateSourceHash() => _$backupViewModelHash();
 
   @$internal
   @override
-  GemAddViewModel create() => GemAddViewModel();
+  BackupViewModel create() => BackupViewModel();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(bool value) {
+  Override overrideWithValue(BackupState value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
+      providerOverride: $SyncValueProvider<BackupState>(value),
     );
   }
 }
 
-String _$gemAddViewModelHash() => r'fefd19977e735cbe6c1342775a25fcaacc6b9620';
+String _$backupViewModelHash() => r'6937dbd94feb948753ea9b8d08f141733c653fc2';
 
-abstract class _$GemAddViewModel extends $Notifier<bool> {
-  bool build();
+abstract class _$BackupViewModel extends $Notifier<BackupState> {
+  BackupState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<bool, bool>;
+    final ref = this.ref as $Ref<BackupState, BackupState>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
+              AnyNotifier<BackupState, BackupState>,
+              BackupState,
               Object?,
               Object?
             >;
