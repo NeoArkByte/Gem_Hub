@@ -26,15 +26,15 @@ import 'package:gemhub/features/profile/view/backup_screen.dart';
 
 part 'app_router.g.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+final shellNavigatorKey = GlobalKey<NavigatorState>();
 
 @riverpod
 GoRouter router(Ref ref) {
   final notifier = ref.watch(routerLogicProvider);
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/home',
     refreshListenable: notifier,
     redirect: notifier.redirect,
@@ -56,7 +56,7 @@ GoRouter router(Ref ref) {
       ),
 
       ShellRoute(
-        navigatorKey: _shellNavigatorKey,
+        navigatorKey: shellNavigatorKey,
         builder: (context, state, child) => MainNavigation(child: child),
         routes: [
           GoRoute(
@@ -128,7 +128,7 @@ GoRouter router(Ref ref) {
       ),
 
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: '/gem-details/:id',
         name: 'gem_details',
         builder: (context, state) {
@@ -145,7 +145,7 @@ GoRouter router(Ref ref) {
       ),
 
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: '/job-details/:id',
         name: 'job_details',
         builder: (context, state) {

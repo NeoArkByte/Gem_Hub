@@ -3,46 +3,36 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 
 class BackupRepository {
   final String _dbName = 'gemcost_inventory_v12_secure.db';
-  final String _prefKey = 'custom_backup_directory_path';
 
   BackupRepository();
 
   /// Returns either the custom folder chosen by the user or falls back to the safe internal sandbox
   Future<Directory> getTargetBackupDirectory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? customPath = prefs.getString(_prefKey);
-
-    if (customPath != null && customPath.isNotEmpty) {
-      final customDir = Directory(customPath);
-      if (await customDir.exists()) {
-        return customDir;
-      }
-    }
-
     final appDocsDir = await getApplicationDocumentsDirectory();
-    final defaultPath = p.join(appDocsDir.path, 'GemHub_Backups');
-    final defaultDir = Directory(defaultPath);
+    final dbPath = p.join(appDocsDir.path, 'GemHub_Backups');
+    final dir = Directory(dbPath);
 
-    if (!await defaultDir.exists()) {
-      await defaultDir.create(recursive: true);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
     }
-    return defaultDir;
+    return dir;
   }
 
-  Future<void> saveCustomDirectoryPath(String path) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefKey, path);
-  }
+  // Add this getter to your class
+Future<Directory> getMediaVaultDirectory() async {
+  final appDocsDir = await getApplicationDocumentsDirectory();
+  final vaultPath = p.join(appDocsDir.path, 'secure_vault', 'media');
+  final dir = Directory(vaultPath);
 
-  Future<void> clearCustomDirectoryPath() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_prefKey);
+  if (!await dir.exists()) {
+    await dir.create(recursive: true);
   }
+  return dir;
+}
 
   /// Packages the database binary straight into a compressed ZIP file archive inside the active path
   Future<File?> generateBackupZip() async {
