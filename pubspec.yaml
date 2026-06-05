@@ -53,6 +53,9 @@ dependencies:
   # Backup and Sync
   archive: ^3.6.1
   
+  # Compression
+  v_video_compressor: ^1.2.1
+  flutter_image_compress: ^2.0.4
 
 dev_dependencies:
   flutter_test:

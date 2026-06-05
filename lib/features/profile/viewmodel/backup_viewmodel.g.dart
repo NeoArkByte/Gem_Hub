@@ -41,7 +41,7 @@ final class BackupViewModelProvider
   }
 }
 
-String _$backupViewModelHash() => r'6ba238b5d1ca7a04fb3dc8e1cc46ee85f1f28a37';
+String _$backupViewModelHash() => r'799218ab3b7680e9b2c67e1f9ff44a8071ebd37c';
 
 abstract class _$BackupViewModel extends $Notifier<BackupState> {
   BackupState build();
