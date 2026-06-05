@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/data/models/inventory/media_processing_state.dart';
 import 'package:gemhub/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart';
 
 class AddNewGemstoneScreen extends ConsumerStatefulWidget {
@@ -24,9 +25,16 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   bool _isSold = false;
   String? _firstImageError;
 
-  // --- Image State ---
+  // --- Media State ---
   File? _firstImage;
   File? _finalImage;
+  File? _firstVideo;
+  File? _finalVideo;
+
+  String? _rawFirstImagePath;
+  String? _rawFinalImagePath;
+  String? _rawFirstVideoPath;
+  String? _rawFinalVideoPath;
 
   // --- Controllers ---
   final TextEditingController _dateCtrl = TextEditingController();
@@ -119,12 +127,17 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       _targetPriceCtrl.text = gem.targetPrice.toString();
       _sellingPriceCtrl.text = gem.sellingPrice.toString();
 
-      // Handle Images: Convert String paths back to File objects
       if (gem.firstImagePath != null) {
         _firstImage = File(gem.firstImagePath!);
       }
       if (gem.finalImagePath != null) {
         _finalImage = File(gem.finalImagePath!);
+      }
+      if (gem.firstVideoPath != null) {
+        _firstVideo = File(gem.firstVideoPath!);
+      }
+      if (gem.finalVideoPath != null) {
+        _finalVideo = File(gem.finalVideoPath!);
       }
     }
   }
@@ -171,16 +184,94 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   // --- Image Picker Logic ---
-  Future<void> _pickImage(bool isFirst) async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
+  Future<void> _pickMedia(bool isFirst) async {
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Camera (Image)'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery (Image)'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam),
+              title: const Text('Video (Gallery)'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
     );
+
+    if (source == null) return;
+
+    // Show another picker for Video if needed, or just handle based on button?
+    // Let's re-work the picker to be more explicit.
+  }
+
+  Future<void> _pickImage(bool isFirst) async {
+    await _handleMediaPick(isFirst, isVideo: false);
+  }
+
+  Future<void> _pickVideo(bool isFirst) async {
+    await _handleMediaPick(isFirst, isVideo: true);
+  }
+
+  Future<void> _handleMediaPick(bool isFirst, {required bool isVideo}) async {
+    final XFile? pickedFile = isVideo
+        ? await _picker.pickVideo(source: ImageSource.gallery)
+        : await _picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
+      final File file = File(pickedFile.path);
+      final int sizeInBytes = await file.length();
+      final double sizeInMb = sizeInBytes / (1024 * 1024);
+
+      if (isVideo) {
+        if (sizeInMb > 100) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Video size exceeds 100MB limit.')),
+            );
+          }
+          return;
+        }
+      } else {
+        if (sizeInMb > 10) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Image size exceeds 10MB limit.')),
+            );
+          }
+          return;
+        }
+      }
+
       setState(() {
-        if (isFirst) {
-          _firstImage = File(pickedFile.path);
+        if (isVideo) {
+          if (isFirst) {
+            _firstVideo = file;
+            _rawFirstVideoPath = pickedFile.path;
+          } else {
+            _finalVideo = file;
+            _rawFinalVideoPath = pickedFile.path;
+          }
         } else {
-          _finalImage = File(pickedFile.path);
+          if (isFirst) {
+            _firstImage = file;
+            _rawFirstImagePath = pickedFile.path;
+          } else {
+            _finalImage = file;
+            _rawFinalImagePath = pickedFile.path;
+          }
         }
       });
     }
@@ -199,7 +290,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
 
     if (_firstImage == null && widget.gemstoneToEdit?.firstImagePath == null) {
       setState(() {
-        _firstImageError = 'First Look image is required.';
+        _firstImageError = 'First Look media is required.';
       });
     }
 
@@ -231,8 +322,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       return;
     }
 
-    // 2. Safely get the ID
-    // Use ?. instead of !. so it returns null for new items
     final int? existingId = widget.gemstoneToEdit?.id;
 
     final newGem = GemstoneModel(
@@ -261,30 +350,36 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           _firstImage?.path ?? widget.gemstoneToEdit?.firstImagePath,
       finalImagePath:
           _finalImage?.path ?? widget.gemstoneToEdit?.finalImagePath,
+      firstVideoPath:
+          _firstVideo?.path ?? widget.gemstoneToEdit?.firstVideoPath,
+      finalVideoPath:
+          _finalVideo?.path ?? widget.gemstoneToEdit?.finalVideoPath,
     );
 
     try {
       await ref
           .read(addNewGemstoneViewModelProvider.notifier)
-          .saveGemstone(newGem);
+          .saveGemstone(
+            gem: newGem,
+            rawFirstImagePath: _rawFirstImagePath,
+            rawFinalImagePath: _rawFinalImagePath,
+            rawFirstVideoPath: _rawFirstVideoPath,
+            rawFinalVideoPath: _rawFinalVideoPath,
+          );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.gemstoneToEdit != null
-                  ? 'Gemstone Updated Successfully! ✅'
-                  : 'Inventory Item Recorded locally 🎉',
-            ),
-          ),
-        );
-        Navigator.pop(context);
+        // Wait for 2 seconds so the user can see the success state in the overlay
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) {
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
-      // Catch any database errors (like unique constraint failures)
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
     }
   }
 
@@ -302,383 +397,403 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         ? AppColors.darkSurfaceAlt
         : AppColors.lightBorder;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
+    final MediaProcessingState state = ref.watch(
+      addNewGemstoneViewModelProvider,
+    );
+    final bool isLoading = state.isLoading || state.isSuccess;
+
+    return WillPopScope(
+      onWillPop: () async => !isLoading,
+      child: Scaffold(
         backgroundColor: bgColor,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.close, color: AppColors.primaryYellow, size: 28),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          widget.gemstoneToEdit != null ? "Edit Gemstone" : "Add New Gemstone",
-          style: TextStyle(
-            color: textColor,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        appBar: AppBar(
+          backgroundColor: bgColor,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.close, color: AppColors.primaryYellow, size: 28),
+            onPressed: isLoading ? null : () => Navigator.pop(context),
+          ),
+          title: Text(
+            widget.gemstoneToEdit != null
+                ? "Edit Gemstone"
+                : "Add New Gemstone",
+            style: TextStyle(
+              color: textColor,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: Column(
+        body: Stack(
           children: [
-            Divider(color: dividerColor, height: 1, thickness: 1),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // --- Photos ---
-                    _buildSectionHeader(
-                      Icons.camera_alt_outlined,
-                      'GEMSTONE PHOTOS',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildImageTile(
-                            "First Look",
-                            _firstImage,
-                            () => _pickImage(true),
-                            showError: _firstImageError != null,
-                            errorText: _firstImageError,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildImageTile(
-                            "Final Look",
-                            _finalImage,
-                            () => _pickImage(false),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(),
-                    ),
-
-                    // --- General ---
-                    _buildSectionHeader(
-                      Icons.calendar_month,
-                      'RECORD DATE',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildDatePickerTextField(context: context),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(),
-                    ),
-
-                    // --- Stone Details ---
-                    _buildSectionHeader(
-                      Icons.diamond_outlined,
-                      'STONE DETAILS',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildVarietyDropdown(
-                            context,
-                            textColor,
-                            dividerColor,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildTextField(
-                            context: context,
-                            label: 'Color/Varietial',
-                            hint: 'e.g. Royal Blue',
-                            controller: _colorCtrl,
-                            validator: (value) {
-                              if (_selectedVariety == 'Other' &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'Please enter a color for Other variety.';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _buildBuyingStateSelectors(textColor),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(),
-                    ),
-
-                    // --- Acquisition ---
-                    _buildSectionHeader(
-                      Icons.shopping_bag_outlined,
-                      'ACQUISITION METRICS',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
-                            context: context,
-                            label: 'Buying Weight (ct)',
-                            hint: '0.00',
-                            controller: _buyingWeightCtrl,
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              final parsed = double.tryParse(value ?? '');
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Buying weight is required.';
-                              }
-                              if (parsed == null || parsed <= 0) {
-                                return 'Enter a valid buying weight.';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildTextField(
-                            context: context,
-                            label: 'Buying Price (Rs)',
-                            hint: '0',
-                            controller: _buyingPriceCtrl,
-                            keyboardType: TextInputType.number,
-                            prefixIcon: Icons.currency_rupee,
-                            validator: (value) {
-                              final parsed = double.tryParse(value ?? '');
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Buying price is required.';
-                              }
-                              if (parsed == null || parsed <= 0) {
-                                return 'Enter a valid buying price.';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(),
-                    ),
-
-                    // --- Value Addition ---
-                    _buildSectionHeader(
-                      Icons.auto_awesome,
-                      'VALUE ADDITION COSTS',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextField(
-                            context: context,
-                            label: 'Treatment (Cost)',
-                            hint: '0',
-                            controller: _treatmentCostCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildTextField(
-                            context: context,
-                            label: 'Recut (Cost)',
-                            hint: '0',
-                            controller: _recutCostCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      context: context,
-                      label: 'Other Processing Cost',
-                      hint: '0',
-                      controller: _otherValueAddCostCtrl,
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTextField(
-                      context: context,
-                      label: 'Value Add Description',
-                      hint: 'Details about treatment/recutting...',
-                      controller: _valueAddDescCtrl,
-                      maxLines: 2,
-                      validator: (value) {
-                        final otherCost =
-                            double.tryParse(_otherValueAddCostCtrl.text) ?? 0;
-                        if (otherCost > 0 &&
-                            (value == null || value.trim().isEmpty)) {
-                          return 'Please describe the other processing cost.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(),
-                    ),
-
-                    // --- Processing & Final State ---
-                    _buildSectionHeader(
-                      Icons.precision_manufacturing_outlined,
-                      'FINAL SPECIFICATIONS',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      context: context,
-                      label: 'Treatment Status',
-                      hint: 'e.g. Unheated',
-                      controller: _treatmentStatusCtrl,
-                      validator: (value) {
-                        final treatmentCost =
-                            double.tryParse(_treatmentCostCtrl.text) ?? 0;
-                        if (treatmentCost > 0 &&
-                            (value == null || value.trim().isEmpty)) {
-                          return 'If treatment cost is entered, treatment status is required.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      context: context,
-                      label: 'Final Carat Weight',
-                      hint: '0.00',
-                      controller: _finalWeightCtrl,
-                      keyboardType: TextInputType.number,
-                      suffixText: 'ct',
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Divider(),
-                    ),
-
-                    // --- Financials & Sales Status ---
-                    _buildSectionHeader(
-                      Icons.query_stats,
-                      'FINANCIAL SUMMARY',
-                      AppColors.primaryYellow,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      context: context,
-                      label: 'Transport Cost',
-                      hint: '0',
-                      controller: _transportCostCtrl,
-                      keyboardType: TextInputType.number,
-                      prefixIcon: Icons.local_shipping_outlined,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(
-                      context: context,
-                      label: 'Other Expenses',
-                      hint: '0',
-                      controller: _otherExpCostCtrl,
-                      keyboardType: TextInputType.number,
-                      prefixIcon: Icons.more_horiz,
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTextField(
-                      context: context,
-                      label: 'Expense Description',
-                      hint: 'e.g. Lab reports',
-                      controller: _otherExpDescCtrl,
-                      validator: (value) {
-                        final otherExpenses =
-                            double.tryParse(_otherExpCostCtrl.text) ?? 0;
-                        if (otherExpenses > 0 &&
-                            (value == null || value.trim().isEmpty)) {
-                          return 'Please describe the other expenses.';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Totals Display (Read Only)
-                    _buildDisplayBox(
-                      "Total Final Cost",
-                      "Rs. ${NumberFormat('#,###').format(_totalFinalCost)}",
-                      isDark,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // --- Sales Toggle ---
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.05)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: dividerColor),
-                      ),
-                      child: SwitchListTile(
-                        title: Text(
-                          "Mark as Sold",
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        subtitle: const Text(
-                          "Record selling price to calculate profit",
-                          style: TextStyle(fontSize: 11, color: Colors.grey),
-                        ),
-                        value: _isSold,
-                        activeColor: AppColors.primaryYellow,
-                        onChanged: (bool value) =>
-                            setState(() => _isSold = value),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Conditionally show Target Price vs Selling Price
-                    if (!_isSold) ...[
-                      _buildTextField(
-                        context: context,
-                        label: 'Target Price',
-                        hint: 'Expected selling price',
-                        controller: _targetPriceCtrl,
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.track_changes,
-                        validator: (value) {
-                          final parsed = double.tryParse(value ?? '');
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Target price is required.';
-                          }
-                          if (parsed == null || parsed <= 0) {
-                            return 'Enter a valid target price.';
-                          }
-                          return null;
-                        },
-                      ),
-                    ] else ...[
-                      Row(
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  Divider(color: dividerColor, height: 1, thickness: 1),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: _buildTextField(
+                          // --- Photos ---
+                          _buildSectionHeader(
+                            Icons.camera_alt_outlined,
+                            'GEMSTONE PHOTOS',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildMediaTile(
+                                  "First Look (Img)",
+                                  _firstImage,
+                                  () => _pickImage(true),
+                                  isVideo: false,
+                                  showError: _firstImageError != null,
+                                  errorText: _firstImageError,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildMediaTile(
+                                  "First Look (Vid)",
+                                  _firstVideo,
+                                  () => _pickVideo(true),
+                                  isVideo: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildMediaTile(
+                                  "Final Look (Img)",
+                                  _finalImage,
+                                  () => _pickImage(false),
+                                  isVideo: false,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildMediaTile(
+                                  "Final Look (Vid)",
+                                  _finalVideo,
+                                  () => _pickVideo(false),
+                                  isVideo: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(),
+                          ),
+
+                          // --- General ---
+                          _buildSectionHeader(
+                            Icons.calendar_month,
+                            'RECORD DATE',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildDatePickerTextField(context: context),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(),
+                          ),
+
+                          // --- Stone Details ---
+                          _buildSectionHeader(
+                            Icons.diamond_outlined,
+                            'STONE DETAILS',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildVarietyDropdown(
+                                  context,
+                                  textColor,
+                                  dividerColor,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildTextField(
+                                  context: context,
+                                  label: 'Color/Varietial',
+                                  hint: 'e.g. Royal Blue',
+                                  controller: _colorCtrl,
+                                  validator: (value) {
+                                    if (_selectedVariety == 'Other' &&
+                                        (value == null ||
+                                            value.trim().isEmpty)) {
+                                      return 'Please enter a color for Other variety.';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          _buildBuyingStateSelectors(textColor),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(),
+                          ),
+
+                          // --- Acquisition ---
+                          _buildSectionHeader(
+                            Icons.shopping_bag_outlined,
+                            'ACQUISITION METRICS',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  context: context,
+                                  label: 'Buying Weight (ct)',
+                                  hint: '0.00',
+                                  controller: _buyingWeightCtrl,
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    final parsed = double.tryParse(value ?? '');
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Buying weight is required.';
+                                    }
+                                    if (parsed == null || parsed <= 0) {
+                                      return 'Enter a valid buying weight.';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildTextField(
+                                  context: context,
+                                  label: 'Buying Price (Rs)',
+                                  hint: '0',
+                                  controller: _buyingPriceCtrl,
+                                  keyboardType: TextInputType.number,
+                                  prefixIcon: Icons.currency_rupee,
+                                  validator: (value) {
+                                    final parsed = double.tryParse(value ?? '');
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Buying price is required.';
+                                    }
+                                    if (parsed == null || parsed <= 0) {
+                                      return 'Enter a valid buying price.';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(),
+                          ),
+
+                          // --- Value Addition ---
+                          _buildSectionHeader(
+                            Icons.auto_awesome,
+                            'VALUE ADDITION COSTS',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  context: context,
+                                  label: 'Treatment (Cost)',
+                                  hint: '0',
+                                  controller: _treatmentCostCtrl,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildTextField(
+                                  context: context,
+                                  label: 'Recut (Cost)',
+                                  hint: '0',
+                                  controller: _recutCostCtrl,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                            context: context,
+                            label: 'Other Processing Cost',
+                            hint: '0',
+                            controller: _otherValueAddCostCtrl,
+                            keyboardType: TextInputType.number,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTextField(
+                            context: context,
+                            label: 'Value Add Description',
+                            hint: 'Details about treatment/recutting...',
+                            controller: _valueAddDescCtrl,
+                            maxLines: 2,
+                            validator: (value) {
+                              final otherCost =
+                                  double.tryParse(
+                                    _otherValueAddCostCtrl.text,
+                                  ) ??
+                                  0;
+                              if (otherCost > 0 &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Please describe the other processing cost.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(),
+                          ),
+
+                          // --- Processing & Final State ---
+                          _buildSectionHeader(
+                            Icons.precision_manufacturing_outlined,
+                            'FINAL SPECIFICATIONS',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            context: context,
+                            label: 'Treatment Status',
+                            hint: 'e.g. Unheated',
+                            controller: _treatmentStatusCtrl,
+                            validator: (value) {
+                              final treatmentCost =
+                                  double.tryParse(_treatmentCostCtrl.text) ?? 0;
+                              if (treatmentCost > 0 &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'If treatment cost is entered, treatment status is required.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                            context: context,
+                            label: 'Final Carat Weight',
+                            hint: '0.00',
+                            controller: _finalWeightCtrl,
+                            keyboardType: TextInputType.number,
+                            suffixText: 'ct',
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(),
+                          ),
+
+                          // --- Financials & Sales Status ---
+                          _buildSectionHeader(
+                            Icons.query_stats,
+                            'FINANCIAL SUMMARY',
+                            AppColors.primaryYellow,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTextField(
+                            context: context,
+                            label: 'Transport Cost',
+                            hint: '0',
+                            controller: _transportCostCtrl,
+                            keyboardType: TextInputType.number,
+                            prefixIcon: Icons.local_shipping_outlined,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildTextField(
+                            context: context,
+                            label: 'Other Expenses',
+                            hint: '0',
+                            controller: _otherExpCostCtrl,
+                            keyboardType: TextInputType.number,
+                            prefixIcon: Icons.more_horiz,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildTextField(
+                            context: context,
+                            label: 'Expense Description',
+                            hint: 'e.g. Lab reports',
+                            controller: _otherExpDescCtrl,
+                            validator: (value) {
+                              final otherExpenses =
+                                  double.tryParse(_otherExpCostCtrl.text) ?? 0;
+                              if (otherExpenses > 0 &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'Please describe the other expenses.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Totals Display (Read Only)
+                          _buildDisplayBox(
+                            "Total Final Cost",
+                            "Rs. ${NumberFormat('#,###').format(_totalFinalCost)}",
+                            isDark,
+                          ),
+                          const SizedBox(height: 24),
+
+                          // --- Sales Toggle ---
+                          Container(
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.05)
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: dividerColor),
+                            ),
+                            child: SwitchListTile(
+                              title: Text(
+                                "Mark as Sold",
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              subtitle: const Text(
+                                "Record selling price to calculate profit",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              value: _isSold,
+                              activeColor: AppColors.primaryYellow,
+                              onChanged: (bool value) =>
+                                  setState(() => _isSold = value),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Conditionally show Target Price vs Selling Price
+                          if (!_isSold) ...[
+                            _buildTextField(
                               context: context,
                               label: 'Target Price',
-                              hint: '0',
+                              hint: 'Expected selling price',
                               controller: _targetPriceCtrl,
                               keyboardType: TextInputType.number,
                               prefixIcon: Icons.track_changes,
@@ -693,65 +808,132 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                                 return null;
                               },
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextField(
-                              context: context,
-                              label: 'Selling Price',
-                              hint: 'Final price',
-                              controller: _sellingPriceCtrl,
-                              keyboardType: TextInputType.number,
-                              prefixIcon: Icons.sell_outlined,
-                              validator: (value) {
-                                if (!_isSold) return null;
-                                final parsed = double.tryParse(value ?? '');
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Selling price is required when sold.';
-                                }
-                                if (parsed == null || parsed <= 0) {
-                                  return 'Enter a valid selling price.';
-                                }
-                                return null;
-                              },
+                          ] else ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    context: context,
+                                    label: 'Target Price',
+                                    hint: '0',
+                                    controller: _targetPriceCtrl,
+                                    keyboardType: TextInputType.number,
+                                    prefixIcon: Icons.track_changes,
+                                    validator: (value) {
+                                      final parsed = double.tryParse(
+                                        value ?? '',
+                                      );
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Target price is required.';
+                                      }
+                                      if (parsed == null || parsed <= 0) {
+                                        return 'Enter a valid target price.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildTextField(
+                                    context: context,
+                                    label: 'Selling Price',
+                                    hint: 'Final price',
+                                    controller: _sellingPriceCtrl,
+                                    keyboardType: TextInputType.number,
+                                    prefixIcon: Icons.sell_outlined,
+                                    validator: (value) {
+                                      if (!_isSold) return null;
+                                      final parsed = double.tryParse(
+                                        value ?? '',
+                                      );
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Selling price is required when sold.';
+                                      }
+                                      if (parsed == null || parsed <= 0) {
+                                        return 'Enter a valid selling price.';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                            const SizedBox(height: 20),
+                            // Profit Metrics (Only if Sold)
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDisplayBox(
+                                    "Final Profit",
+                                    "Rs. ${NumberFormat('#,###').format(_profitAmount)}",
+                                    isDark,
+                                    color: _profitAmount >= 0
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDisplayBox(
+                                    "Margin",
+                                    "${_profitPercentage.toStringAsFixed(1)}%",
+                                    isDark,
+                                    color: _profitAmount >= 0
+                                        ? Colors.green
+                                        : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: 40),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      // Profit Metrics (Only if Sold)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDisplayBox(
-                              "Final Profit",
-                              "Rs. ${NumberFormat('#,###').format(_profitAmount)}",
-                              isDark,
-                              color: _profitAmount >= 0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDisplayBox(
-                              "Margin",
-                              "${_profitPercentage.toStringAsFixed(1)}%",
-                              isDark,
-                              color: _profitAmount >= 0
-                                  ? Colors.green
-                                  : Colors.red,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 40),
-                  ],
-                ),
+                    ),
+                  ),
+                  _buildBottomAction(bgColor, AppColors.primaryYellow),
+                ],
               ),
             ),
-            _buildBottomAction(bgColor, AppColors.primaryYellow),
+            if (isLoading)
+              Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(32),
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1F2937) : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: AppColors.primaryYellow,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          state.isSuccess
+                              ? (widget.gemstoneToEdit != null
+                                    ? "Updated Successfully"
+                                    : "Added Successfully")
+                              : "Compressing & Vaulting media...",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -791,10 +973,11 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
-  Widget _buildImageTile(
+  Widget _buildMediaTile(
     String label,
-    File? image,
+    File? file,
     VoidCallback onTap, {
+    required bool isVideo,
     bool showError = false,
     String? errorText,
   }) {
@@ -804,7 +987,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: FontWeight.w500,
             color: Colors.grey,
           ),
@@ -813,31 +996,100 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         GestureDetector(
           onTap: onTap,
           child: Container(
-            height: 120,
+            height: 110,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.lightBorder),
             ),
-            child: image != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.file(image, fit: BoxFit.cover),
+            child: file != null
+                ? Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: isVideo
+                            ? Container(
+                                color: Colors.black12,
+                                width: double.infinity,
+                                height: double.infinity,
+                                child: const Icon(
+                                  Icons.movie_creation_outlined,
+                                  size: 30,
+                                  color: Colors.grey,
+                                ),
+                              )
+                            : Image.file(
+                                file,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                      if (isVideo)
+                        const Center(
+                          child: Icon(
+                            Icons.play_circle_outline,
+                            color: Colors.white70,
+                            size: 30,
+                          ),
+                        ),
+                      Positioned(
+                        right: 4,
+                        top: 4,
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (isVideo) {
+                                if (label.contains("First")) {
+                                  _firstVideo = null;
+                                  _rawFirstVideoPath = null;
+                                } else {
+                                  _finalVideo = null;
+                                  _rawFinalVideoPath = null;
+                                }
+                              } else {
+                                if (label.contains("First")) {
+                                  _firstImage = null;
+                                  _rawFirstImagePath = null;
+                                } else {
+                                  _finalImage = null;
+                                  _rawFinalImagePath = null;
+                                }
+                              }
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   )
                 : Center(
                     child: Icon(
-                      Icons.add_a_photo_outlined,
+                      isVideo
+                          ? Icons.videocam_outlined
+                          : Icons.add_a_photo_outlined,
                       color: AppColors.primaryYellow,
-                      size: 30,
+                      size: 24,
                     ),
                   ),
           ),
         ),
         if (showError && errorText != null) ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             errorText,
-            style: const TextStyle(color: Colors.red, fontSize: 12),
+            style: const TextStyle(color: Colors.red, fontSize: 10),
           ),
         ],
       ],
@@ -1079,7 +1331,9 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ),
                   )
                 : Text(
-                    widget.gemstoneToEdit != null ? "Update Details" : "Publish Item",
+                    widget.gemstoneToEdit != null
+                        ? "Update Details"
+                        : "Publish Item",
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

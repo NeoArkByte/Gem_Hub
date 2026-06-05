@@ -8,14 +8,9 @@ part of 'media_compression_service.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// --- RIVERPOD GENERATOR ---
-/// Declares the auto-scoping provider tracking your service lifetime
 
 @ProviderFor(mediaCompression)
 final mediaCompressionProvider = MediaCompressionProvider._();
-
-/// --- RIVERPOD GENERATOR ---
-/// Declares the auto-scoping provider tracking your service lifetime
 
 final class MediaCompressionProvider
     extends
@@ -25,8 +20,6 @@ final class MediaCompressionProvider
           MediaCompressionService
         >
     with $Provider<MediaCompressionService> {
-  /// --- RIVERPOD GENERATOR ---
-  /// Declares the auto-scoping provider tracking your service lifetime
   MediaCompressionProvider._()
     : super(
         from: null,
@@ -61,4 +54,4 @@ final class MediaCompressionProvider
   }
 }
 
-String _$mediaCompressionHash() => r'eb8656f9284b6ae040cedc9a70dd92ea09552280';
+String _$mediaCompressionHash() => r'07640406e7602c4f57b1657c2fe45e8df371a17f';

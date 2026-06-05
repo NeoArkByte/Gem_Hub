@@ -20,17 +20,20 @@ class GemstoneModel {
   final double sellingPrice;
   final String? firstImagePath;
   final String? finalImagePath;
+  final String? firstVideoPath;
+  final String? finalVideoPath;
 
   GemstoneModel({
     this.id,
     required this.date,
     required this.variety,
     required this.color,
-    required this.isRough,
-    required this.isCut,
     this.isSold = false,
-    required this.buyingWeight,
-    required this.buyingPrice,
+    this.sellingPrice = 0.0,
+    this.isRough = true,
+    this.isCut = false,
+    this.buyingWeight = 0.0,
+    this.buyingPrice = 0.0,
     this.treatmentCost = 0.0,
     this.recutCost = 0.0,
     this.otherProcessingCost = 0.0,
@@ -40,9 +43,10 @@ class GemstoneModel {
     this.otherCost = 0.0,
     this.otherCostReason = '',
     this.targetPrice = 0.0,
-    this.sellingPrice = 0.0,
     this.firstImagePath,
     this.finalImagePath,
+    this.firstVideoPath,
+    this.finalVideoPath,
   });
 
 
@@ -87,15 +91,18 @@ class GemstoneModel {
     double? sellingPrice,
     String? firstImagePath,
     String? finalImagePath,
+    String? firstVideoPath,
+    String? finalVideoPath,
   }) {
     return GemstoneModel(
       id: id ?? this.id,
       date: date ?? this.date,
       variety: variety ?? this.variety,
       color: color ?? this.color,
+      isSold: isSold ?? this.isSold,
+      sellingPrice: sellingPrice ?? this.sellingPrice,
       isRough: isRough ?? this.isRough,
       isCut: isCut ?? this.isCut,
-      isSold: isSold ?? this.isSold,
       buyingWeight: buyingWeight ?? this.buyingWeight,
       buyingPrice: buyingPrice ?? this.buyingPrice,
       treatmentCost: treatmentCost ?? this.treatmentCost,
@@ -107,9 +114,10 @@ class GemstoneModel {
       otherCost: otherCost ?? this.otherCost,
       otherCostReason: otherCostReason ?? this.otherCostReason,
       targetPrice: targetPrice ?? this.targetPrice,
-      sellingPrice: sellingPrice ?? this.sellingPrice,
       firstImagePath: firstImagePath ?? this.firstImagePath,
       finalImagePath: finalImagePath ?? this.finalImagePath,
+      firstVideoPath: firstVideoPath ?? this.firstVideoPath,
+      finalVideoPath: finalVideoPath ?? this.finalVideoPath,
     );
   }
 
@@ -136,6 +144,8 @@ class GemstoneModel {
       'selling_price': sellingPrice,
       'first_image_path': firstImagePath,
       'final_image_path': finalImagePath,
+      'first_video_path': firstVideoPath,
+      'final_video_path': finalVideoPath,
     };
   }
 
@@ -164,6 +174,8 @@ class GemstoneModel {
       sellingPrice: (map['selling_price'] as num?)?.toDouble() ?? 0.0,
       firstImagePath: map['first_image_path'],
       finalImagePath: map['final_image_path'],
+      firstVideoPath: map['first_video_path'],
+      finalVideoPath: map['final_video_path'],
     );
   }
 }

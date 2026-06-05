@@ -1,108 +1,85 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:v_video_compressor/v_video_compressor.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// Generates the required type wireframes
 part 'media_compression_service.g.dart';
 
-/// A unified media compression class running native underlying platform pipelines.
-/// Tracks generated artifacts and safely flushes them on disposal.
 class MediaCompressionService {
   final VVideoCompressor _videoCompressor = VVideoCompressor();
-  
-  // Tracks path addresses of generated temporary cache items for automatic cleanup
-  final List<String> _trackedCacheFiles = [];
+  Future<void> _queueLock = Future.value();
 
-  /// Compresses and downsizes VIDEOS natively using verified v_video_compressor APIs.
-  /// Yields progress via an inline callback supplying values from 0.0 to 1.0.
-  Future<File?> compressVideo({
-    required String sourcePath,
-    VVideoCompressionConfig config = const VVideoCompressionConfig.medium(),
-    Function(double)? onProgress,
-  }) async {
-    try {
-      final VVideoCompressionResult? result = await _videoCompressor.compressVideo(
-        sourcePath,
-        config,
-        onProgress: onProgress != null 
-            ? (progress) => onProgress(progress) 
-            : null,
-      );
+  Future<T> _enqueue<T>(Future<T> Function() task) {
+    final taskFuture = Completer<T>();
 
-      if (result != null && result.compressedFilePath.isNotEmpty) {
-        _trackedCacheFiles.add(result.compressedFilePath);
-        return File(result.compressedFilePath);
+    _queueLock = _queueLock.then((_) async {
+      try {
+        taskFuture.complete(await task());
+      } catch (e, st) {
+        taskFuture.completeError(e, st);
       }
+    });
 
-      return null;
-    } catch (e) {
-      print("Error compressing video natively: $e");
-      return null;
-    }
+    return taskFuture.future;
   }
 
-  /// Compresses and downsizes IMAGES natively using flutter_image_compress
+  Future<File?> compressVideo({
+    required String sourcePath,
+    Function(double)? onProgress,
+  }) =>
+      _enqueue(() async {
+        final VVideoCompressionResult? result =
+            await _videoCompressor.compressVideo(
+          sourcePath,
+          VVideoCompressionConfig(
+            quality: VVideoCompressQuality.medium,
+            advanced: VVideoAdvancedConfig(
+              autoCorrectOrientation: true,
+              videoBitrate: 1800000,
+              audioBitrate: 128000,
+            ),
+          ),
+          onProgress: onProgress,
+        );
+
+        if (result != null && result.compressedFilePath.isNotEmpty) {
+          return File(result.compressedFilePath);
+        }
+        return null;
+      });
+
   Future<File?> compressImage({
     required String sourcePath,
     int quality = 80,
-    int minWidth = 1920,  
-    int minHeight = 1080, 
-  }) async {
-    try {
-      final Directory tempDir = await getTemporaryDirectory();
-      final String targetPath = '${tempDir.path}/img_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    int maxWidth = 1920,
+    int maxHeight = 1080,
+  }) =>
+      _enqueue(() async {
+        final Directory tempDir = await getTemporaryDirectory();
+        final String targetPath =
+            '${tempDir.path}/img_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-      final XFile? compressedXFile = await FlutterImageCompress.compressAndGetFile(
-        sourcePath,
-        targetPath,
-        quality: quality,
-        minWidth: minWidth,
-        minHeight: minHeight,
-        format: CompressFormat.jpeg,
-      );
+        final XFile? compressedXFile =
+            await FlutterImageCompress.compressAndGetFile(
+          sourcePath,
+          targetPath,
+          quality: quality,
+          minWidth: maxWidth,
+          minHeight: maxHeight,
+          format: CompressFormat.jpeg,
+        );
 
-      if (compressedXFile != null) {
-        _trackedCacheFiles.add(compressedXFile.path);
-        return File(compressedXFile.path);
-      }
-      return null;
-    } catch (e) {
-      print("Error compressing image natively: $e");
-      return null;
-    }
-  }
-
-  /// Iterates and purges all local storage artifacts allocated during compression
-  Future<void> disposeAndCleanup() async {
-    print("Initiating automated cache clear for compression pipelines...");
-    for (String path in List.from(_trackedCacheFiles)) {
-      try {
-        final File file = File(path);
-        if (await file.exists()) {
-          await file.delete();
-          print("Flushed temporary compressed file asset: $path");
+        if (compressedXFile != null) {
+          return File(compressedXFile.path);
         }
-      } catch (e) {
-        print("Could not strip temporary file address at $path: $e");
-      }
-    }
-    _trackedCacheFiles.clear();
-  }
+        return null;
+      });
 }
 
-/// --- RIVERPOD GENERATOR ---
-/// Declares the auto-scoping provider tracking your service lifetime
+// Keep it as a standard auto-dispose provider. No arrays to clear = no race conditions!
 @riverpod
 MediaCompressionService mediaCompression(Ref ref) {
-  final MediaCompressionService service = MediaCompressionService();
-
-  // Riverpod lifecycle hook handles automated destruction of temporary disk files 
-  // when widgets leave view, or provider instances reset.
-  ref.onDispose(() async {
-    await service.disposeAndCleanup();
-  });
-
-  return service;
+  return MediaCompressionService();
 }

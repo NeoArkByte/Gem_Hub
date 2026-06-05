@@ -8,12 +8,9 @@ part of 'media_vault_service.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// --- RIVERPOD GENERATOR ---
 
 @ProviderFor(mediaVault)
 final mediaVaultProvider = MediaVaultProvider._();
-
-/// --- RIVERPOD GENERATOR ---
 
 final class MediaVaultProvider
     extends
@@ -23,7 +20,6 @@ final class MediaVaultProvider
           MediaVaultService
         >
     with $Provider<MediaVaultService> {
-  /// --- RIVERPOD GENERATOR ---
   MediaVaultProvider._()
     : super(
         from: null,
@@ -58,4 +54,4 @@ final class MediaVaultProvider
   }
 }
 
-String _$mediaVaultHash() => r'ae1211f6a5f22946c7b60ba90fb6f483ffbcadd6';
+String _$mediaVaultHash() => r'de0ebc98ef759a886b0f72c4c631e6000b3da983';

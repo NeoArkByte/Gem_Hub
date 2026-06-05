@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:gemhub/features/inventory/view/add_new_gemstone_inventory.dart';
+import 'package:open_file/open_file.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -236,17 +237,70 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     top: Radius.circular(24),
                   ),
                   child: (() {
-                    final imagePath = (gem.finalImagePath?.isNotEmpty == true)
-                        ? gem.finalImagePath!
-                        : (gem.firstImagePath?.isNotEmpty == true
-                              ? gem.firstImagePath!
-                              : null);
-                    if (imagePath != null) {
-                      return Image.file(
-                        File(imagePath),
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                    final imagePath = gem.finalImagePath ?? gem.firstImagePath;
+                    final videoPath = gem.finalVideoPath ?? gem.firstVideoPath;
+
+                    if (imagePath != null || videoPath != null) {
+                      return Stack(
+                        children: [
+                          if (imagePath != null)
+                            Image.file(
+                              File(imagePath),
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          else
+                            Container(
+                              height: 200,
+                              width: double.infinity,
+                              color: Colors.black12,
+                              child: const Icon(
+                                Icons.movie_creation_outlined,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          if (videoPath != null)
+                            Center(
+                              child: GestureDetector(
+                                onTap: () => OpenFile.open(videoPath),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black45,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.play_arrow,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (imagePath != null && videoPath != null)
+                            Positioned(
+                              bottom: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Icon(
+                                  Icons.videocam,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     }
                     return Container(
@@ -540,6 +594,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       ],
                     ),
 
+                    const SizedBox(height: 16),
+
+                    // --- Media Gallery ---
+                    if (gem.firstImagePath != null ||
+                        gem.firstVideoPath != null ||
+                        gem.finalImagePath != null ||
+                        gem.finalVideoPath != null)
+                      SizedBox(
+                        height: 100,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            if (gem.firstImagePath != null)
+                              _buildDetailMedia(gem.firstImagePath!, false),
+                            if (gem.firstVideoPath != null)
+                              _buildDetailMedia(gem.firstVideoPath!, true),
+                            if (gem.finalImagePath != null)
+                              _buildDetailMedia(gem.finalImagePath!, false),
+                            if (gem.finalVideoPath != null)
+                              _buildDetailMedia(gem.finalVideoPath!, true),
+                          ],
+                        ),
+                      ),
+
                     const SizedBox(height: 24),
 
                     // --- Physical Specs Grid ---
@@ -791,6 +869,53 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDetailMedia(String path, bool isVideo) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: GestureDetector(
+        onTap: () => OpenFile.open(path),
+        child: Container(
+          width: 120,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          ),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: isVideo
+                    ? Container(
+                        color: Colors.black12,
+                        child: const Center(
+                          child: Icon(
+                            Icons.movie_creation_outlined,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      )
+                    : Image.file(
+                        File(path),
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+              if (isVideo)
+                const Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
