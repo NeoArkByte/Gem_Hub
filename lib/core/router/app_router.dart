@@ -22,7 +22,9 @@ import 'package:gemhub/features/inventory/view/inventory_screen_view.dart';
 import 'package:gemhub/features/home/view/home_screen.dart';
 import 'package:gemhub/features/profile/view/profile_screen.dart';
 // Import your new feature view here
-import 'package:gemhub/features/profile/view/backup_screen.dart'; 
+import 'package:gemhub/features/profile/view/backup_screen.dart';
+import 'package:gemhub/features/inventory/view/gem_details_inventory_screen.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 
 part 'app_router.g.dart';
 
@@ -54,7 +56,6 @@ GoRouter router(Ref ref) {
         name: 'admin',
         builder: (context, state) => const AdminReviewScreen(),
       ),
-
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) => MainNavigation(child: child),
@@ -110,6 +111,16 @@ GoRouter router(Ref ref) {
             path: '/inventory',
             name: 'inventory',
             builder: (context, state) => const InventoryScreen(),
+            routes: [
+              GoRoute(
+                path: 'details',
+                name: 'inventory_details',
+                builder: (context, state) {
+                  final gem = state.extra as GemstoneModel;
+                  return GemDetailsScreen(gemstone: gem);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/profile',
@@ -126,7 +137,6 @@ GoRouter router(Ref ref) {
           ),
         ],
       ),
-
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: '/gem-details/:id',
@@ -143,7 +153,6 @@ GoRouter router(Ref ref) {
           );
         },
       ),
-
       GoRoute(
         parentNavigatorKey: rootNavigatorKey,
         path: '/job-details/:id',
