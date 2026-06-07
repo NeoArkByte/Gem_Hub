@@ -15,15 +15,15 @@ final pendingJobsViewModelProvider = PendingJobsViewModelProvider._();
 final class PendingJobsViewModelProvider
     extends $AsyncNotifierProvider<PendingJobsViewModel, List<Job>> {
   PendingJobsViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'pendingJobsViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'pendingJobsViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$pendingJobsViewModelHash();
@@ -42,14 +42,11 @@ abstract class _$PendingJobsViewModel extends $AsyncNotifier<List<Job>> {
   @override
   void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Job>>, List<Job>>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Job>>, List<Job>>,
-              AsyncValue<List<Job>>,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<Job>>, List<Job>>,
+        AsyncValue<List<Job>>,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }

@@ -16,15 +16,15 @@ final class AccessTokenStreamProvider
     extends $FunctionalProvider<AsyncValue<String?>, String?, Stream<String?>>
     with $FutureModifier<String?>, $StreamProvider<String?> {
   AccessTokenStreamProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'accessTokenStreamProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'accessTokenStreamProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$accessTokenStreamHash();
@@ -49,15 +49,15 @@ final class CurrentAccessTokenProvider
     extends $FunctionalProvider<String?, String?, String?>
     with $Provider<String?> {
   CurrentAccessTokenProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'currentAccessTokenProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'currentAccessTokenProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$currentAccessTokenHash();

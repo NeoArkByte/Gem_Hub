@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:gemhub/data/repositories/backup/backup_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
@@ -9,6 +10,7 @@ import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 import 'package:gemhub/data/models/backup/backup_state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/core/router/app_router.dart';
+import 'package:share_plus/share_plus.dart';
 
 part 'backup_viewmodel.g.dart';
 
@@ -98,8 +100,8 @@ class BackupViewModel extends _$BackupViewModel {
       final repository = ref.read(backupRepositoryProvider);
       final selectedPath = result.files.single.path!;
 
-      final BackupSnapshot? importedSnapshot = await repository
-          .importExternalZip(selectedPath);
+      final BackupSnapshot? importedSnapshot =
+          await repository.importExternalZip(selectedPath);
       if (importedSnapshot == null) {
         throw Exception("Target file contents rejected validation.");
       }
@@ -187,6 +189,8 @@ class BackupViewModel extends _$BackupViewModel {
     }
   }
 
+  /// Refactored to leverage low-RAM OS native sharing sheets
+  /// Refactored to leverage zero-RAM native file dialogues for custom user target picking
   Future<void> exportSnapshotToFileSystem(BackupSnapshot snapshot) async {
     state = state.copyWith(
       isLoading: true,
@@ -201,20 +205,29 @@ class BackupViewModel extends _$BackupViewModel {
         throw Exception("Source backup snapshot file not found.");
       }
 
-      final bytes = await sourceFile.readAsBytes();
+      // 1. Establish file-system options using the raw path reference instead of bytes.
+      final String suggestedName = snapshot.name.endsWith('.zip')
+          ? snapshot.name
+          : '${snapshot.name}.zip';
 
-      final String? outputFileDirectory = await FilePicker.platform.saveFile(
-        dialogTitle: 'Export Backup Archive',
-        fileName: snapshot.name,
-        type: FileType.custom,
-        allowedExtensions: ['zip'],
-        bytes: bytes,
+      final params = SaveFileDialogParams(
+        sourceFilePath:
+            sourceFile.path, // ✅ Passes path directly to avoid memory crashes
+        fileName:
+            suggestedName, // Injects standard default fallback naming layout
       );
 
-      if (outputFileDirectory == null) {
+      // 2. Open the native platform's 'Save As' system interface
+      final String? finalExportedPath =
+          await FlutterFileDialog.saveFile(params: params);
+
+      // If the user backs out of the window or cancels the destination picker
+      if (finalExportedPath == null) {
         state = state.copyWith(isLoading: false, statusMessage: "");
         return;
       }
+
+      print("🎉 Snapshot successfully saved natively to: $finalExportedPath");
 
       state = state.copyWith(
         isLoading: false,
@@ -246,9 +259,8 @@ class BackupViewModel extends _$BackupViewModel {
         await targetFile.delete();
       }
 
-      final filteredLocals = state.localSnapshots
-          .where((item) => item.id != snapshot.id)
-          .toList();
+      final filteredLocals =
+          state.localSnapshots.where((item) => item.id != snapshot.id).toList();
 
       state = state.copyWith(
         isLoading: false,

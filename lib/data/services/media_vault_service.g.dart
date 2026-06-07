@@ -12,24 +12,18 @@ part of 'media_vault_service.dart';
 @ProviderFor(mediaVault)
 final mediaVaultProvider = MediaVaultProvider._();
 
-final class MediaVaultProvider
-    extends
-        $FunctionalProvider<
-          MediaVaultService,
-          MediaVaultService,
-          MediaVaultService
-        >
-    with $Provider<MediaVaultService> {
+final class MediaVaultProvider extends $FunctionalProvider<MediaVaultService,
+    MediaVaultService, MediaVaultService> with $Provider<MediaVaultService> {
   MediaVaultProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'mediaVaultProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'mediaVaultProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$mediaVaultHash();
@@ -37,8 +31,8 @@ final class MediaVaultProvider
   @$internal
   @override
   $ProviderElement<MediaVaultService> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   MediaVaultService create(Ref ref) {

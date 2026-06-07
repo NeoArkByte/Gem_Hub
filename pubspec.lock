@@ -58,7 +58,7 @@ packages:
     source: hosted
     version: "1.0.4"
   archive:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: archive
       sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
@@ -406,6 +406,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_archive:
+    dependency: "direct main"
+    description:
+      name: flutter_archive
+      sha256: e433389fde0bdfc20af40784fdb6d91753794b40cf708a43f95244fcd5d6c298
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.4"
   flutter_dotenv:
     dependency: "direct main"
     description:
@@ -414,6 +422,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.1"
+  flutter_file_dialog:
+    dependency: "direct main"
+    description:
+      name: flutter_file_dialog
+      sha256: ec904d15e7da3691bb60442a762b0a09afa37ded7265b9fc2088ec202b7d844f
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.3"
   flutter_image_compress:
     dependency: "direct main"
     description:
@@ -1400,6 +1416,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.28.0"
+  share_plus:
+    dependency: "direct main"
+    description:
+      name: share_plus
+      sha256: fce43200aa03ea87b91ce4c3ac79f0cecd52e2a7a56c7a4185023c271fbfa6da
+      url: "https://pub.dev"
+    source: hosted
+    version: "10.1.4"
+  share_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: share_plus_platform_interface
+      sha256: cc012a23fc2d479854e6c80150696c4a5f5bb62cb89af4de1c505cf78d0a5d0b
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.2"
   shared_preferences:
     dependency: "direct main"
     description:

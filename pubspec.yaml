@@ -52,7 +52,10 @@ dependencies:
   printing: ^5.14.3
 
   # Backup and Sync
-  archive: ^3.6.1
+  # archive: ^3.6.1
+  flutter_archive: ^6.0.4
+  share_plus: ^10.1.2
+  flutter_file_dialog: ^3.0.3
   
   # Compression and Video Handling
   v_video_compressor: ^1.2.1

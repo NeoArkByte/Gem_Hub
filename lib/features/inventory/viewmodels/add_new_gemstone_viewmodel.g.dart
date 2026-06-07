@@ -15,15 +15,15 @@ final addNewGemstoneViewModelProvider = AddNewGemstoneViewModelProvider._();
 final class AddNewGemstoneViewModelProvider
     extends $NotifierProvider<AddNewGemstoneViewModel, MediaProcessingState> {
   AddNewGemstoneViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'addNewGemstoneViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'addNewGemstoneViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$addNewGemstoneViewModelHash();
@@ -51,14 +51,11 @@ abstract class _$AddNewGemstoneViewModel
   @override
   void runBuild() {
     final ref = this.ref as $Ref<MediaProcessingState, MediaProcessingState>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<MediaProcessingState, MediaProcessingState>,
-              MediaProcessingState,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<MediaProcessingState, MediaProcessingState>,
+        MediaProcessingState,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }

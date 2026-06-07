@@ -21,14 +21,6 @@ class InventoryViewModel extends _$InventoryViewModel {
     return _repository.fetchGemstones();
   }
 
-  Future<void> addGemstone(GemstoneModel gem) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      await _repository.insertGemstone(gem);
-      return _refreshList();
-    });
-  }
-
   Future<void> deleteGemstone(int id) async {
     final vaultService = ref.read(mediaVaultProvider);
     final currentList = state.value ?? [];
@@ -51,14 +43,6 @@ class InventoryViewModel extends _$InventoryViewModel {
       }
 
       await _repository.deleteGemstone(id);
-      return _refreshList();
-    });
-  }
-
-  Future<void> updateGemstone(GemstoneModel updatedGem) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      await _repository.updateGemstone(updatedGem);
       return _refreshList();
     });
   }

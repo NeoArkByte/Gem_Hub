@@ -12,24 +12,20 @@ part of 'media_compression_service.dart';
 @ProviderFor(mediaCompression)
 final mediaCompressionProvider = MediaCompressionProvider._();
 
-final class MediaCompressionProvider
-    extends
-        $FunctionalProvider<
-          MediaCompressionService,
-          MediaCompressionService,
-          MediaCompressionService
-        >
-    with $Provider<MediaCompressionService> {
+final class MediaCompressionProvider extends $FunctionalProvider<
+    MediaCompressionService,
+    MediaCompressionService,
+    MediaCompressionService> with $Provider<MediaCompressionService> {
   MediaCompressionProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'mediaCompressionProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'mediaCompressionProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$mediaCompressionHash();
@@ -37,8 +33,8 @@ final class MediaCompressionProvider
   @$internal
   @override
   $ProviderElement<MediaCompressionService> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   MediaCompressionService create(Ref ref) {

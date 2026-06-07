@@ -12,19 +12,18 @@ part of 'profile_view_model.dart';
 @ProviderFor(ProfileViewModel)
 final profileViewModelProvider = ProfileViewModelProvider._();
 
-final class ProfileViewModelProvider
-    extends
-        $NotifierProvider<ProfileViewModel, AsyncValue<AuthenticatedUser?>> {
+final class ProfileViewModelProvider extends $NotifierProvider<ProfileViewModel,
+    AsyncValue<AuthenticatedUser?>> {
   ProfileViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'profileViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'profileViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$profileViewModelHash();
@@ -37,9 +36,8 @@ final class ProfileViewModelProvider
   Override overrideWithValue(AsyncValue<AuthenticatedUser?> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AsyncValue<AuthenticatedUser?>>(
-        value,
-      ),
+      providerOverride:
+          $SyncValueProvider<AsyncValue<AuthenticatedUser?>>(value),
     );
   }
 }
@@ -52,23 +50,14 @@ abstract class _$ProfileViewModel
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref =
-        this.ref
-            as $Ref<
-              AsyncValue<AuthenticatedUser?>,
-              AsyncValue<AuthenticatedUser?>
-            >;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<
-                AsyncValue<AuthenticatedUser?>,
-                AsyncValue<AuthenticatedUser?>
-              >,
-              AsyncValue<AuthenticatedUser?>,
-              Object?,
-              Object?
-            >;
+    final ref = this.ref
+        as $Ref<AsyncValue<AuthenticatedUser?>, AsyncValue<AuthenticatedUser?>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<AuthenticatedUser?>,
+            AsyncValue<AuthenticatedUser?>>,
+        AsyncValue<AuthenticatedUser?>,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }

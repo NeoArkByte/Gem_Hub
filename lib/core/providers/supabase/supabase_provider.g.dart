@@ -16,15 +16,15 @@ final class SupabaseProvider
     extends $FunctionalProvider<SupabaseClient, SupabaseClient, SupabaseClient>
     with $Provider<SupabaseClient> {
   SupabaseProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'supabaseProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'supabaseProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$supabaseHash();

@@ -12,26 +12,23 @@ part of 'report_view_model.dart';
 @ProviderFor(filteredGemstones)
 final filteredGemstonesProvider = FilteredGemstonesFamily._();
 
-final class FilteredGemstonesProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<GemstoneModel>>,
-          List<GemstoneModel>,
-          FutureOr<List<GemstoneModel>>
-        >
+final class FilteredGemstonesProvider extends $FunctionalProvider<
+        AsyncValue<List<GemstoneModel>>,
+        List<GemstoneModel>,
+        FutureOr<List<GemstoneModel>>>
     with
         $FutureModifier<List<GemstoneModel>>,
         $FutureProvider<List<GemstoneModel>> {
-  FilteredGemstonesProvider._({
-    required FilteredGemstonesFamily super.from,
-    required GemFilter super.argument,
-  }) : super(
-         retry: null,
-         name: r'filteredGemstonesProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  FilteredGemstonesProvider._(
+      {required FilteredGemstonesFamily super.from,
+      required GemFilter super.argument})
+      : super(
+          retry: null,
+          name: r'filteredGemstonesProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$filteredGemstonesHash();
@@ -46,13 +43,16 @@ final class FilteredGemstonesProvider
   @$internal
   @override
   $FutureProviderElement<List<GemstoneModel>> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<GemstoneModel>> create(Ref ref) {
     final argument = this.argument as GemFilter;
-    return filteredGemstones(ref, filter: argument);
+    return filteredGemstones(
+      ref,
+      filter: argument,
+    );
   }
 
   @override
@@ -71,15 +71,17 @@ String _$filteredGemstonesHash() => r'2f86c9c50c7916635fd12f20207024c84c05d334';
 final class FilteredGemstonesFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<GemstoneModel>>, GemFilter> {
   FilteredGemstonesFamily._()
-    : super(
-        retry: null,
-        name: r'filteredGemstonesProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
+      : super(
+          retry: null,
+          name: r'filteredGemstonesProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-  FilteredGemstonesProvider call({required GemFilter filter}) =>
+  FilteredGemstonesProvider call({
+    required GemFilter filter,
+  }) =>
       FilteredGemstonesProvider._(argument: filter, from: this);
 
   @override
@@ -89,24 +91,19 @@ final class FilteredGemstonesFamily extends $Family
 @ProviderFor(gemstoneVarieties)
 final gemstoneVarietiesProvider = GemstoneVarietiesProvider._();
 
-final class GemstoneVarietiesProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<String>>,
-          List<String>,
-          FutureOr<List<String>>
-        >
+final class GemstoneVarietiesProvider extends $FunctionalProvider<
+        AsyncValue<List<String>>, List<String>, FutureOr<List<String>>>
     with $FutureModifier<List<String>>, $FutureProvider<List<String>> {
   GemstoneVarietiesProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'gemstoneVarietiesProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'gemstoneVarietiesProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$gemstoneVarietiesHash();
@@ -114,8 +111,8 @@ final class GemstoneVarietiesProvider
   @$internal
   @override
   $FutureProviderElement<List<String>> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<String>> create(Ref ref) {

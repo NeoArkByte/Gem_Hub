@@ -15,15 +15,15 @@ final inventoryViewModelProvider = InventoryViewModelProvider._();
 final class InventoryViewModelProvider
     extends $AsyncNotifierProvider<InventoryViewModel, List<GemstoneModel>> {
   InventoryViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'inventoryViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'inventoryViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$inventoryViewModelHash();
@@ -34,7 +34,7 @@ final class InventoryViewModelProvider
 }
 
 String _$inventoryViewModelHash() =>
-    r'28d913211ea9ba9c2264b826dde66c342a1b20ac';
+    r'8479a494098155686ae551497548b20244c3538e';
 
 abstract class _$InventoryViewModel
     extends $AsyncNotifier<List<GemstoneModel>> {
@@ -44,14 +44,11 @@ abstract class _$InventoryViewModel
   void runBuild() {
     final ref =
         this.ref as $Ref<AsyncValue<List<GemstoneModel>>, List<GemstoneModel>>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<GemstoneModel>>, List<GemstoneModel>>,
-              AsyncValue<List<GemstoneModel>>,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<GemstoneModel>>, List<GemstoneModel>>,
+        AsyncValue<List<GemstoneModel>>,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }
@@ -59,24 +56,20 @@ abstract class _$InventoryViewModel
 @ProviderFor(filteredInventory)
 final filteredInventoryProvider = FilteredInventoryProvider._();
 
-final class FilteredInventoryProvider
-    extends
-        $FunctionalProvider<
-          List<GemstoneModel>,
-          List<GemstoneModel>,
-          List<GemstoneModel>
-        >
-    with $Provider<List<GemstoneModel>> {
+final class FilteredInventoryProvider extends $FunctionalProvider<
+    List<GemstoneModel>,
+    List<GemstoneModel>,
+    List<GemstoneModel>> with $Provider<List<GemstoneModel>> {
   FilteredInventoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'filteredInventoryProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'filteredInventoryProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$filteredInventoryHash();
@@ -84,8 +77,8 @@ final class FilteredInventoryProvider
   @$internal
   @override
   $ProviderElement<List<GemstoneModel>> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   List<GemstoneModel> create(Ref ref) {

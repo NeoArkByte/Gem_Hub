@@ -236,7 +236,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       final double sizeInMb = sizeInBytes / (1024 * 1024);
 
       if (isVideo) {
-        if (sizeInMb > 100) {
+        if (sizeInMb > 600) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Video size exceeds 100MB limit.')),

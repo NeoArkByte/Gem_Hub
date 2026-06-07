@@ -15,15 +15,15 @@ final backupViewModelProvider = BackupViewModelProvider._();
 final class BackupViewModelProvider
     extends $NotifierProvider<BackupViewModel, BackupState> {
   BackupViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'backupViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'backupViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$backupViewModelHash();
@@ -41,7 +41,7 @@ final class BackupViewModelProvider
   }
 }
 
-String _$backupViewModelHash() => r'799218ab3b7680e9b2c67e1f9ff44a8071ebd37c';
+String _$backupViewModelHash() => r'18eb10e5729d87c53f1270b7f8c980ee4c4e33df';
 
 abstract class _$BackupViewModel extends $Notifier<BackupState> {
   BackupState build();
@@ -49,14 +49,8 @@ abstract class _$BackupViewModel extends $Notifier<BackupState> {
   @override
   void runBuild() {
     final ref = this.ref as $Ref<BackupState, BackupState>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<BackupState, BackupState>,
-              BackupState,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<BackupState, BackupState>, BackupState, Object?, Object?>;
     element.handleCreate(ref, build);
   }
 }
