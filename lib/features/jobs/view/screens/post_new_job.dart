@@ -130,12 +130,21 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
       return;
     }
 
-    final phone = _phoneCtrl.text.trim();
+    String phone = _phoneCtrl.text.trim();
 
-    final phoneRegex = RegExp(r'^\+?[0-9]{9,15}$');
+    // Remove spaces
+    phone = phone.replaceAll(RegExp(r'\s+'), '');
 
-    if (!phoneRegex.hasMatch(phone)) {
-      _showError("Enter a valid phone number");
+    // ✅ If starts with 0 → convert to +94 format
+    if (phone.startsWith('0')) {
+      phone = '+94${phone.substring(1)}';
+    }
+
+    // ✅ Validate Sri Lankan format (+947XXXXXXXX)
+    final sriLankaRegex = RegExp(r'^\+947\d{8}$');
+
+    if (!sriLankaRegex.hasMatch(phone)) {
+      _showError("Enter a valid Sri Lankan phone number");
       return;
     }
 

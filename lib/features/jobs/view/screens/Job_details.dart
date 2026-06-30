@@ -560,27 +560,24 @@ class JobDetailsScreen extends ConsumerWidget {
                       final String message =
                           "Hi, I am interested in the '${job.title}' job posted on Gem Hub.";
 
-                      final String formattedNumber = whatsappNumber.replaceAll(
-                        '+',
-                        '',
+                      final String formattedNumber = formatWhatsAppNumber(
+                        job.whatsappNumber!,
                       );
 
-                      final Uri whatsappUrl = Uri.parse(
-                        "https://wa.me/$formattedNumber?text=${Uri.encodeComponent(message)}",
+                      final Uri whatsappUri = Uri.parse(
+                        "whatsapp://send?phone=$formattedNumber&text=${Uri.encodeComponent(message)}",
                       );
 
-                      if (await canLaunchUrl(whatsappUrl)) {
+                      try {
                         await launchUrl(
-                          whatsappUrl,
+                          whatsappUri,
                           mode: LaunchMode.externalApplication,
                         );
-                      } else {
+                      } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Could not open WhatsApp. Is it installed?',
-                              ),
+                              content: Text("Unable to open WhatsApp"),
                             ),
                           );
                         }
@@ -610,4 +607,21 @@ class JobDetailsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+String formatWhatsAppNumber(String number) {
+  String cleanNumber = number.replaceAll(RegExp(r'\s+'), '');
+
+  // Remove + if exists
+  if (cleanNumber.startsWith('+')) {
+    cleanNumber = cleanNumber.substring(1);
+  }
+
+  // If starts with 0 → convert to Sri Lanka format
+  if (cleanNumber.startsWith('0')) {
+    cleanNumber = '94${cleanNumber.substring(1)}';
+  }
+
+  // If already starts with 94 → keep as is
+  return cleanNumber;
 }

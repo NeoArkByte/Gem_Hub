@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/recent_job_card.dart';
 import 'package:gemhub/features/jobs/view/widgets/featured_job_card.dart';
-import 'package:go_router/go_router.dart';
 
 class FeaturedJobsList extends ConsumerWidget {
   const FeaturedJobsList({super.key});
@@ -33,28 +33,32 @@ class FeaturedJobsList extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: featuredJobs.map((job) {
-              
-              // 💡 Salary පෙන්වන ලොජික් එක මෙතන හදලා තියාගන්නවා
+
               String displaySalary = 'Negotiable';
               if (job.minSalary != null && job.maxSalary != null) {
-                displaySalary = 'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
+                displaySalary =
+                    'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
               } else if (job.minSalary != null) {
-                displaySalary = 'LKR ${job.minSalary!.toStringAsFixed(0)}';
+                displaySalary =
+                    'LKR ${job.minSalary!.toStringAsFixed(0)}';
               } else if (job.maxSalary != null) {
-                displaySalary = 'LKR ${job.maxSalary!.toStringAsFixed(0)}';
+                displaySalary =
+                    'LKR ${job.maxSalary!.toStringAsFixed(0)}';
               }
 
               return Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: GestureDetector(
-                  onTap: () => context.push('/job-details/${job.jobId}', extra: job),
+                  onTap: () => context.push(
+                    '/job-details/${job.jobId}',
+                    extra: job,
+                  ),
                   child: FeaturedJobCard(
                     title: job.title,
                     company: job.companyInfo ?? 'Unknown Company',
-                    salary: displaySalary, // 💡 අලුත් රේන්ජ් එක පාස් කරනවා
+                    salary: displaySalary,
                     timePosted: 'New',
                     isPremium: true,
-                    logoColor: Colors.white,
                   ),
                 ),
               );
@@ -103,26 +107,34 @@ class RecentJobsList extends ConsumerWidget {
             itemBuilder: (context, index) {
               final job = jobs[index];
 
-              // 💡 Salary පෙන්වන ලොජික් එක මේකටත් දානවා
               String displaySalary = 'Negotiable';
               if (job.minSalary != null && job.maxSalary != null) {
-                displaySalary = 'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
+                displaySalary =
+                    'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
               } else if (job.minSalary != null) {
-                displaySalary = 'LKR ${job.minSalary!.toStringAsFixed(0)}';
+                displaySalary =
+                    'LKR ${job.minSalary!.toStringAsFixed(0)}';
               } else if (job.maxSalary != null) {
-                displaySalary = 'LKR ${job.maxSalary!.toStringAsFixed(0)}';
+                displaySalary =
+                    'LKR ${job.maxSalary!.toStringAsFixed(0)}';
               }
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: GestureDetector(
-                  onTap: () => context.push('/job-details/${job.jobId}', extra: job),
+                  onTap: () => context.push(
+                    '/job-details/${job.jobId}',
+                    extra: job,
+                  ),
                   child: RecentJobCard(
                     title: job.title,
-                    companyInfo: job.companyInfo ?? 'Unknown Company',
-                    salary: displaySalary, // 💡 අලුත් රේන්ජ් එක පාස් කරනවා
-                    tags: (job.tags).split(',').where((t) => t.isNotEmpty).toList(),
-                    logoColor: Colors.white,
+                    companyInfo:
+                        job.companyInfo ?? 'Unknown Company',
+                    salary: displaySalary,
+                    tags: (job.tags)
+                        .split(',')
+                        .where((t) => t.isNotEmpty)
+                        .toList(),
                   ),
                 ),
               );

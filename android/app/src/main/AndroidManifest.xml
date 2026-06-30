@@ -45,4 +45,7 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    <queries>
+    <package android:name="com.whatsapp" />
+</queries>
 </manifest>
