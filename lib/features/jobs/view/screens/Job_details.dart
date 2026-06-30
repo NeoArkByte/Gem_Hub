@@ -81,14 +81,13 @@ class JobDetailsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                   _buildSalaryCard(textColor, greyText, isDark),
                   const SizedBox(height: 32),
-                  
+
                   // Safety Warning කෑල්ල
                   _buildSafetyTipsSection(isDark),
                   const SizedBox(height: 32),
-                  
+
                   // Clean කරපු Expertise Section එක
                   //_buildExpertiseSection(textColor, greyText),
-                  
                   const SizedBox(height: 40),
                 ],
               ),
@@ -102,22 +101,43 @@ class JobDetailsScreen extends ConsumerWidget {
 
   Widget _buildHeaderSection(Color textColor, Color greyText, bool isDark) {
     List<String> companyParts = (job.companyInfo ?? '').split(' • ');
-    String companyName = companyParts.isNotEmpty ? companyParts[0] : 'Unknown Employer';
+    String companyName = companyParts.isNotEmpty
+        ? companyParts[0]
+        : 'Unknown Employer';
     String location = companyParts.length > 1 ? companyParts[1] : 'Sri Lanka';
 
     // 💡 Backend එකෙන් එන වෙලාව ලංකාවේ වෙලාවට (SL Time) හරවලා Format කරන ලොජික් එක
     String formattedDate = 'Recently';
     if (job.createdAt != null) {
       try {
-        DateTime parsedDate = DateTime.parse(job.createdAt!).toLocal(); // 🇱🇰 .toLocal() එකෙන් SL Time වලට හැරවෙනවා
-        List<String> months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        DateTime parsedDate = DateTime.parse(
+          job.createdAt!,
+        ).toLocal(); // 🇱🇰 .toLocal() එකෙන් SL Time වලට හැරවෙනවා
+        List<String> months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
         String period = parsedDate.hour >= 12 ? 'pm' : 'am';
-        int hour = parsedDate.hour > 12 ? parsedDate.hour - 12 : (parsedDate.hour == 0 ? 12 : parsedDate.hour);
+        int hour = parsedDate.hour > 12
+            ? parsedDate.hour - 12
+            : (parsedDate.hour == 0 ? 12 : parsedDate.hour);
         String minute = parsedDate.minute.toString().padLeft(2, '0');
-        
-        formattedDate = "${parsedDate.day} ${months[parsedDate.month - 1]} $hour:$minute $period";
+
+        formattedDate =
+            "${parsedDate.day} ${months[parsedDate.month - 1]} $hour:$minute $period";
       } catch (e) {
-        formattedDate = job.createdAt!; // අවුලක් වුණොත් Backend එකෙන් ආපු String එකම දානවා
+        formattedDate =
+            job.createdAt!; // අවුලක් වුණොත් Backend එකෙන් ආපු String එකම දානවා
       }
     }
 
@@ -135,7 +155,7 @@ class JobDetailsScreen extends ConsumerWidget {
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, 
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 1. Job Title එක
           Text(
@@ -157,10 +177,7 @@ class JobDetailsScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   'Posted on $formattedDate',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: greyText,
-                  ),
+                  style: TextStyle(fontSize: 14, color: greyText),
                 ),
               ),
             ],
@@ -175,10 +192,7 @@ class JobDetailsScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   location,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: greyText,
-                  ),
+                  style: TextStyle(fontSize: 14, color: greyText),
                 ),
               ),
             ],
@@ -192,10 +206,7 @@ class JobDetailsScreen extends ConsumerWidget {
               const SizedBox(width: 8),
               Text(
                 'Posted by ',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: greyText,
-                ),
+                style: TextStyle(fontSize: 14, color: greyText),
               ),
               Expanded(
                 child: Row(
@@ -206,14 +217,14 @@ class JobDetailsScreen extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: primaryGreen, 
+                          color: primaryGreen,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 4),
-                    Icon(Icons.verified, color: primaryGreen, size: 14), 
+                    Icon(Icons.verified, color: primaryGreen, size: 14),
                   ],
                 ),
               ),
@@ -225,7 +236,10 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildTagsRow(bool isDark) {
-    List<String> tagsList = (job.tags).split(',').where((t) => t.trim().isNotEmpty).toList();
+    List<String> tagsList = (job.tags)
+        .split(',')
+        .where((t) => t.trim().isNotEmpty)
+        .toList();
 
     if (tagsList.isEmpty) return const SizedBox.shrink();
 
@@ -244,7 +258,12 @@ class JobDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTag(IconData icon, String text, Color bgColor, Color tagTextColor) {
+  Widget _buildTag(
+    IconData icon,
+    String text,
+    Color bgColor,
+    Color tagTextColor,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
@@ -270,7 +289,8 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildAboutSection(Color textColor, Color greyText) {
-    String descriptionText = (job.description != null && job.description!.trim().isNotEmpty)
+    String descriptionText =
+        (job.description != null && job.description!.trim().isNotEmpty)
         ? job.description!
         : 'No detailed description provided for this job.';
 
@@ -298,7 +318,8 @@ class JobDetailsScreen extends ConsumerWidget {
     String salaryDisplay = 'Negotiable';
 
     if (job.minSalary != null && job.maxSalary != null) {
-      salaryDisplay = 'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
+      salaryDisplay =
+          'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
     } else if (job.minSalary != null) {
       salaryDisplay = 'LKR ${job.minSalary!.toStringAsFixed(0)}';
     } else if (job.maxSalary != null) {
@@ -371,10 +392,18 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildSafetyTipsSection(bool isDark) {
-    Color warningBg = isDark ? const Color(0xFF3F1919) : const Color(0xFFFEF2F2);
-    Color warningBorder = isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA);
-    Color warningIcon = isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444);
-    Color warningText = isDark ? const Color(0xFFFECACA) : const Color(0xFF991B1B);
+    Color warningBg = isDark
+        ? const Color(0xFF3F1919)
+        : const Color(0xFFFEF2F2);
+    Color warningBorder = isDark
+        ? const Color(0xFF7F1D1D)
+        : const Color(0xFFFECACA);
+    Color warningIcon = isDark
+        ? const Color(0xFFFCA5A5)
+        : const Color(0xFFEF4444);
+    Color warningText = isDark
+        ? const Color(0xFFFECACA)
+        : const Color(0xFF991B1B);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -443,11 +472,19 @@ class JobDetailsScreen extends ConsumerWidget {
   //   // );
   // }
 
-  
+  Widget _buildBottomActionArea(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
+    final String? phoneNumber = job.phoneNumber;
+    final String? whatsappNumber = job.whatsappNumber;
 
-  Widget _buildBottomActionArea(BuildContext context, WidgetRef ref, bool isDark) {
-    // 🚧 දැනට Dummy Number එකක්. Backend එකේ contactNumber හැදුවම මෙතනට දාන්න.
-    final String phoneNumber = '+94712345678';
+    // ✅ If no contact details, hide bottom bar
+    if ((phoneNumber == null || phoneNumber.isEmpty) &&
+        (whatsappNumber == null || whatsappNumber.isEmpty)) {
+      return const SizedBox.shrink();
+    }
 
     return SafeArea(
       child: Container(
@@ -464,81 +501,110 @@ class JobDetailsScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: SizedBox(
-                height: 56,
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    final Uri launchUri = Uri(
-                      scheme: 'tel',
-                      path: phoneNumber,
-                    );
-                    if (await canLaunchUrl(launchUri)) {
-                      await launchUrl(launchUri);
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not launch dialer')),
-                        );
+            /// ✅ CALL BUTTON
+            if (phoneNumber != null && phoneNumber.isNotEmpty)
+              Expanded(
+                child: SizedBox(
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final Uri launchUri = Uri(
+                        scheme: 'tel',
+                        path: phoneNumber,
+                      );
+
+                      if (await canLaunchUrl(launchUri)) {
+                        await launchUrl(launchUri);
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Could not open dialer'),
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                  icon: Icon(Icons.phone_outlined, color: primaryGreen),
-                  label: Text(
-                    'Call',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: primaryGreen,
+                    },
+                    icon: Icon(Icons.phone_outlined, color: primaryGreen),
+                    label: Text(
+                      'Call',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: primaryGreen,
+                      ),
                     ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: primaryGreen, width: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: primaryGreen, width: 2),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: SizedBox(
-                height: 56,
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final String message = "Hi, I am interested in the '${job.title}' job posted on Gem Hub.";
-                    final Uri whatsappUrl = Uri.parse("https://wa.me/${phoneNumber.replaceAll('+', '')}?text=${Uri.encodeComponent(message)}");
-                    
-                    if (await canLaunchUrl(whatsappUrl)) {
-                      await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
-                    } else {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Could not open WhatsApp. Is it installed?')),
+
+            if (phoneNumber != null &&
+                phoneNumber.isNotEmpty &&
+                whatsappNumber != null &&
+                whatsappNumber.isNotEmpty)
+              const SizedBox(width: 16),
+
+            /// ✅ WHATSAPP BUTTON
+            if (whatsappNumber != null && whatsappNumber.isNotEmpty)
+              Expanded(
+                child: SizedBox(
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final String message =
+                          "Hi, I am interested in the '${job.title}' job posted on Gem Hub.";
+
+                      final String formattedNumber = whatsappNumber.replaceAll(
+                        '+',
+                        '',
+                      );
+
+                      final Uri whatsappUrl = Uri.parse(
+                        "https://wa.me/$formattedNumber?text=${Uri.encodeComponent(message)}",
+                      );
+
+                      if (await canLaunchUrl(whatsappUrl)) {
+                        await launchUrl(
+                          whatsappUrl,
+                          mode: LaunchMode.externalApplication,
                         );
+                      } else {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Could not open WhatsApp. Is it installed?',
+                              ),
+                            ),
+                          );
+                        }
                       }
-                    }
-                  },
-                  icon: const Icon(Icons.chat_outlined, color: Colors.white),
-                  label: const Text(
-                    'WhatsApp',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    },
+                    icon: const Icon(Icons.chat_outlined, color: Colors.white),
+                    label: const Text(
+                      'WhatsApp',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366), 
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF25D366),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

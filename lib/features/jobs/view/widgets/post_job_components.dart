@@ -61,12 +61,15 @@ class PostJobSectionHeader extends StatelessWidget {
   }
 }
 
+
 class PostJobTextField extends StatelessWidget {
   final String label;
   final String hint;
   final int maxLines;
   final IconData? prefixIcon;
   final TextEditingController? controller;
+  final String? errorText;
+  final TextInputType? keyboardType;
 
   const PostJobTextField({
     super.key,
@@ -75,57 +78,52 @@ class PostJobTextField extends StatelessWidget {
     this.maxLines = 1,
     this.prefixIcon,
     this.controller,
+    this.errorText,
+    this.keyboardType,
   });
 
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark ? const Color(0xFF1F2937) : Colors.white;
-    Color borderColor = isDark ? const Color(0xFF374151) : Colors.grey[300]!;
-    Color labelColor = isDark ? Colors.grey[300]! : const Color(0xFF1F2937);
-    Color inputColor = isDark ? Colors.white : Colors.black;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: labelColor,
-          ),
-        ),
+        Text(label),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: borderColor),
+            color: isDark ? const Color(0xFF1F2937) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: errorText != null
+                  ? Colors.red
+                  : Colors.grey.shade300,
+              width: errorText != null ? 1.5 : 1,
+            ),
           ),
           child: TextField(
             controller: controller,
             maxLines: maxLines,
-            style: TextStyle(fontSize: 16, color: inputColor),
+            keyboardType: keyboardType,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey[400]),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: maxLines > 1 ? 16 : 18,
-              ),
-              prefixIcon: prefixIcon != null
-                  ? Icon(prefixIcon, color: Colors.grey[400], size: 22)
-                  : null,
+              contentPadding: const EdgeInsets.all(16),
             ),
           ),
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            errorText!,
+            style: const TextStyle(color: Colors.red, fontSize: 12),
+          ),
+        ]
       ],
     );
   }
 }
-
 class PostJobSkills extends StatelessWidget {
   final Color primaryYellow;
   final List<String> selectedSkills;

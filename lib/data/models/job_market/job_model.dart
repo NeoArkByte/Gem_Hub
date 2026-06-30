@@ -4,8 +4,7 @@ class Job {
   final String? jobId;
   final String employerId;
   final String title;
-  final String? companyInfo; 
-  ///final double? salary;      
+  final String? companyInfo;     
   final String tags;
   final String status;
   final String? createdAt;
@@ -13,6 +12,9 @@ class Job {
 
   final double? minSalary;
   final double? maxSalary;
+
+  final String? phoneNumber;
+  final String? whatsappNumber;
 
   Job({
     this.jobId,
@@ -25,6 +27,8 @@ class Job {
     required this.status,
     this.createdAt,
     this.description,
+    this.phoneNumber,
+    this.whatsappNumber,
   });
 
   static double? _parseNullableDouble(dynamic value) {
@@ -51,6 +55,8 @@ class Job {
       status: map['status']?.toString() ?? 'pending',
       createdAt: map['created_at']?.toString() ?? map['createdAt']?.toString(),
       description: map['description']?.toString(),
+      phoneNumber: map['phone_number']?.toString(),
+      whatsappNumber: map['whatsapp_number']?.toString(),
     );
   }
 
@@ -66,6 +72,8 @@ class Job {
       'status': status,
       'created_at': createdAt,
       'description': description,
+      'phone_number': phoneNumber,
+      'whatsapp_number': whatsappNumber,
     };
   }
 }
