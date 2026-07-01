@@ -6,7 +6,6 @@ class JobRepository {
 
   JobRepository(this._dio);
 
-  /// ✅ Get Pending Jobs (Admin)
   Future<List<Job>> getPendingJobs() async {
     try {
       final response = await _dio.get(
@@ -25,7 +24,7 @@ class JobRepository {
     }
   }
 
-  /// ✅ Get Approved Jobs (Marketplace)
+  
   Future<List<Job>> getApprovedJobs({
     String keyword = "",
     String category = "",
@@ -70,14 +69,12 @@ class JobRepository {
     }
   }
 
-  /// ✅ NEW: Get Logged-in Employer Jobs
-  /// ✅ NEW: Get Logged-in Employer Jobs (Filtered by ID)
   Future<List<Job>> getMyJobs(String employerId) async {
     try {
       final response = await _dio.get(
-        'jobs/', // 💡 වෙනම URL එකක් ඕනේ නෑ, Main එකටම යවනවා
+        'jobs/', 
         queryParameters: {
-          'employerId': employerId, // 🚧 Django එකේ model එකේ නම employer_id නම් මේක 'employer_id' කරන්න
+          'employerId': employerId, 
         },
       );
 
@@ -92,7 +89,6 @@ class JobRepository {
     }
   }
 
-  /// ✅ Insert New Job
   Future<bool> insertJob(Job job) async {
     try {
       final payload = Map<String, dynamic>.from(job.toMap());
@@ -112,7 +108,6 @@ class JobRepository {
     }
   }
 
-  /// ✅ Update Job Status
   Future<bool> updateJobStatus(String id, String status) async {
     try {
       final response = await _dio.patch(
@@ -128,7 +123,6 @@ class JobRepository {
     }
   }
 
-  /// ✅ NEW: Delete Job
   Future<bool> deleteJob(String id) async {
     try {
       final response = await _dio.delete(
@@ -143,7 +137,23 @@ class JobRepository {
     }
   }
 
-  /// ✅ Helper: Handle Django Pagination / List Response
+  Future<bool> updateJob(Job job) async {
+    try {
+      final payload = Map<String, dynamic>.from(job.toMap());
+      payload.removeWhere((key, value) => value == null);
+
+      final response = await _dio.patch(
+        'jobs/${job.jobId}/',
+        data: payload,
+      );
+
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return false;
+    }
+  }
+
   List<Job> _parseJobList(dynamic rawData) {
     final List data = rawData is List
         ? rawData
@@ -154,7 +164,6 @@ class JobRepository {
     return data.map((json) => Job.fromMap(json)).toList();
   }
 
-  /// ✅ Error Handler
   String _handleError(DioException e) {
     if (e.response != null) {
       return 'Error ${e.response?.statusCode}: ${e.response?.data}';

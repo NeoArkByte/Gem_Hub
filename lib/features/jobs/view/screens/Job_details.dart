@@ -66,7 +66,6 @@ class JobDetailsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 💡 අලුත්ම Layout එක තියෙන Header Section එක
             _buildHeaderSection(textColor, greyText, isDark),
 
             Padding(
@@ -82,12 +81,9 @@ class JobDetailsScreen extends ConsumerWidget {
                   _buildSalaryCard(textColor, greyText, isDark),
                   const SizedBox(height: 32),
 
-                  // Safety Warning කෑල්ල
                   _buildSafetyTipsSection(isDark),
                   const SizedBox(height: 32),
 
-                  // Clean කරපු Expertise Section එක
-                  //_buildExpertiseSection(textColor, greyText),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -106,13 +102,12 @@ class JobDetailsScreen extends ConsumerWidget {
         : 'Unknown Employer';
     String location = companyParts.length > 1 ? companyParts[1] : 'Sri Lanka';
 
-    // 💡 Backend එකෙන් එන වෙලාව ලංකාවේ වෙලාවට (SL Time) හරවලා Format කරන ලොජික් එක
     String formattedDate = 'Recently';
     if (job.createdAt != null) {
       try {
         DateTime parsedDate = DateTime.parse(
           job.createdAt!,
-        ).toLocal(); // 🇱🇰 .toLocal() එකෙන් SL Time වලට හැරවෙනවා
+        ).toLocal(); 
         List<String> months = [
           'Jan',
           'Feb',
@@ -137,7 +132,7 @@ class JobDetailsScreen extends ConsumerWidget {
             "${parsedDate.day} ${months[parsedDate.month - 1]} $hour:$minute $period";
       } catch (e) {
         formattedDate =
-            job.createdAt!; // අවුලක් වුණොත් Backend එකෙන් ආපු String එකම දානවා
+            job.createdAt!; 
       }
     }
 
@@ -157,7 +152,7 @@ class JobDetailsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1. Job Title එක
+          
           Text(
             job.title ?? 'Job Title',
             style: TextStyle(
@@ -169,7 +164,7 @@ class JobDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
 
-          // 2. 💡 Posted On (SL Time එකෙන්)
+          
           Row(
             children: [
               Icon(Icons.access_time, size: 16, color: greyText),
@@ -184,7 +179,6 @@ class JobDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // 3. 💡 Location/Address එක (කෙළින්ම වෙලාවට යටින්)
           Row(
             children: [
               Icon(Icons.location_on_outlined, size: 16, color: greyText),
@@ -199,7 +193,7 @@ class JobDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // 4. Posted By කෑල්ල
+        
           Row(
             children: [
               Icon(Icons.business_center_outlined, size: 16, color: greyText),
@@ -612,16 +606,14 @@ class JobDetailsScreen extends ConsumerWidget {
 String formatWhatsAppNumber(String number) {
   String cleanNumber = number.replaceAll(RegExp(r'\s+'), '');
 
-  // Remove + if exists
+ 
   if (cleanNumber.startsWith('+')) {
     cleanNumber = cleanNumber.substring(1);
   }
 
-  // If starts with 0 → convert to Sri Lanka format
   if (cleanNumber.startsWith('0')) {
     cleanNumber = '94${cleanNumber.substring(1)}';
   }
 
-  // If already starts with 94 → keep as is
   return cleanNumber;
 }

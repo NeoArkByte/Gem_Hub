@@ -118,7 +118,6 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   }
 
   Widget _buildPendingJobCard(dynamic job) {
-    // 💡 Salary පෙන්වන ලොජික් එක මෙතනට දැම්මා
     String salaryDisplay = 'Negotiable';
     if (job.minSalary != null && job.maxSalary != null) {
       salaryDisplay = 'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
@@ -158,11 +157,11 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8), // 💡 පොඩි පරතරයක් දැම්මා
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 6, // 💡 පඩි රේන්ජ් එක ලස්සනට පේන්න Padding පොඩ්ඩක් වැඩි කරා
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: primaryYellow.withOpacity(0.2),

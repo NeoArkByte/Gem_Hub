@@ -21,14 +21,11 @@ import 'package:gemhub/features/auth/view/sign_up_screen.dart';
 import 'package:gemhub/features/inventory/view/inventory_screen_view.dart';
 import 'package:gemhub/features/home/view/home_screen.dart';
 import 'package:gemhub/features/profile/view/profile_screen.dart';
-<<<<<<< HEAD
-import 'package:gemhub/features/jobs/view/screens/my_job_screen.dart';
-=======
 // Import your new feature view here
 import 'package:gemhub/features/profile/view/backup_screen.dart';
 import 'package:gemhub/features/inventory/view/gem_details_inventory_screen.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
->>>>>>> origin/dev
+import 'package:gemhub/features/jobs/view/screens/my_job_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -60,14 +57,10 @@ GoRouter router(Ref ref) {
         name: 'admin',
         builder: (context, state) => const AdminReviewScreen(),
       ),
-<<<<<<< HEAD
       GoRoute(
         path: '/my-jobs',
         builder: (context, state) => const MyJobsScreen(),
       ),
-
-=======
->>>>>>> origin/dev
       ShellRoute(
         navigatorKey: shellNavigatorKey,
         builder: (context, state, child) => MainNavigation(child: child),
@@ -179,6 +172,13 @@ GoRouter router(Ref ref) {
           return const Scaffold(
             body: Center(child: Text("Job details not found")),
           );
+        },
+      ),
+      GoRoute(
+        path: '/post-job',
+        builder: (context, state) {
+          final jobToEdit = state.extra as Job?;
+          return PostJobScreen(jobToEdit: jobToEdit);
         },
       ),
     ],

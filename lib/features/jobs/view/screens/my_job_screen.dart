@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
-import 'package:gemhub/features/jobs/viewmodels/my_jobs_viewmodel.dart'; 
+import 'package:gemhub/features/jobs/viewmodels/my_jobs_viewmodel.dart';
 
 class MyJobsScreen extends ConsumerStatefulWidget {
   const MyJobsScreen({super.key});
@@ -26,7 +26,8 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
       builder: (BuildContext ctx) {
         return AlertDialog(
           backgroundColor: isDark ? const Color(0xFF1F2937) : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: [
               Container(
@@ -35,7 +36,8 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
                   color: Colors.red.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.delete_outline, color: Colors.red, size: 24),
+                child: const Icon(Icons.delete_outline,
+                    color: Colors.red, size: 24),
               ),
               const SizedBox(width: 12),
               Text(
@@ -57,20 +59,24 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
               onPressed: () => Navigator.pop(ctx),
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.grey[600], fontWeight: FontWeight.bold),
               ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
               ),
               onPressed: () async {
-                Navigator.pop(ctx); 
-                
-                final success = await ref.read(myJobsViewModelProvider.notifier).deleteJob(jobId);
-                
+                Navigator.pop(ctx);
+
+                final success = await ref
+                    .read(myJobsViewModelProvider.notifier)
+                    .deleteJob(jobId);
+
                 if (success && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -87,7 +93,9 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
                   );
                 }
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text('Delete',
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -115,7 +123,8 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
         ),
         title: Text(
           'My Job Posts',
-          style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: textColor, fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
       body: myJobsState.when(
@@ -169,12 +178,15 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.push('/post-job'), 
+            onPressed: () => context.push('/post-job'),
             icon: const Icon(Icons.add, color: Colors.black),
-            label: const Text('Post a Job', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            label: const Text('Post a Job',
+                style: TextStyle(
+                    color: Colors.black, fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryYellow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
@@ -195,15 +207,6 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
         color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
-        boxShadow: isDark
-            ? []
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,66 +215,71 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: primaryYellow.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
+                color: primaryYellow.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12)),
             child: Center(
-              child: Text(
-                job.title != null && job.title!.isNotEmpty ? job.title![0].toUpperCase() : 'J',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: primaryYellow,
-                ),
-              ),
-            ),
+                child: Text(
+                    job.title != null && job.title!.isNotEmpty
+                        ? job.title![0].toUpperCase()
+                        : 'J',
+                    style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: primaryYellow))),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  job.title ?? 'Job Title',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(job.title ?? 'Job Title',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
-                Text(
-                  job.companyInfo ?? 'Location',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[500]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(job.companyInfo ?? 'Location',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[500]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    job.status ?? 'Pending',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor),
-                  ),
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8)),
+                  child: Text(job.status ?? 'Pending',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor)),
                 ),
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {
-              // 💡 මෙතන job.jobId ද job.id ද කියලා ඔයාගේ Model එකට අනුව හරියටම බලන්න
-              if (job.jobId != null) {
-                _showDeleteConfirmation(job.jobId!);
-              }
-            },
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
-            tooltip: 'Delete Job',
+          // 💡 Edit & Delete Buttons දෙක එක ළඟ
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () {
+                  // 💡 Edit එක එබුවම Post Job Screen එකට Job එක අරන් යනවා
+                  context.push('/post-job', extra: job);
+                },
+                icon: const Icon(Icons.edit_outlined, color: Colors.blue),
+                tooltip: 'Edit Job',
+              ),
+              IconButton(
+                onPressed: () {
+                  if (job.jobId != null) _showDeleteConfirmation(job.jobId!);
+                },
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                tooltip: 'Delete Job',
+              ),
+            ],
           ),
         ],
       ),

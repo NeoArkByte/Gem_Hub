@@ -12,24 +12,20 @@ part of 'cv_application_repository_provider.dart';
 @ProviderFor(cvApplicationRepository)
 final cvApplicationRepositoryProvider = CvApplicationRepositoryProvider._();
 
-final class CvApplicationRepositoryProvider
-    extends
-        $FunctionalProvider<
-          CvApplicationRepository,
-          CvApplicationRepository,
-          CvApplicationRepository
-        >
-    with $Provider<CvApplicationRepository> {
+final class CvApplicationRepositoryProvider extends $FunctionalProvider<
+    CvApplicationRepository,
+    CvApplicationRepository,
+    CvApplicationRepository> with $Provider<CvApplicationRepository> {
   CvApplicationRepositoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'cvApplicationRepositoryProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'cvApplicationRepositoryProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$cvApplicationRepositoryHash();
@@ -37,8 +33,8 @@ final class CvApplicationRepositoryProvider
   @$internal
   @override
   $ProviderElement<CvApplicationRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   CvApplicationRepository create(Ref ref) {

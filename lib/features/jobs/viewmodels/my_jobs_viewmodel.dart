@@ -16,13 +16,11 @@ class MyJobsViewModel extends _$MyJobsViewModel {
     return repository.getMyJobs(authData.profile!.id);
   }
 
-  // 💡 අලුතින් එකතු කරන Delete Function එක
   Future<bool> deleteJob(String jobId) async {
     final repository = ref.read(jobRepositoryProvider);
     final isSuccess = await repository.deleteJob(jobId);
     
     if (isSuccess) {
-      // 💡 Delete වුණාට පස්සේ ලිස්ට් එක අලුත් කරන්න (Refresh)
       ref.invalidateSelf(); 
     }
     
