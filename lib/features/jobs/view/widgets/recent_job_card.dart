@@ -6,12 +6,16 @@ class RecentJobCard extends StatelessWidget {
   final String salary;
   final List<String> tags;
 
+  /// ✅ NEW: Dynamic icon based on category
+  final IconData iconData;
+
   const RecentJobCard({
     super.key,
     required this.title,
     required this.companyInfo,
     required this.salary,
     required this.tags,
+    required this.iconData, // ✅ NEW
   });
 
   @override
@@ -37,7 +41,7 @@ class RecentJobCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          /// ✅ Job Icon Instead of logoColor
+          /// ✅ Dynamic Category Icon
           Container(
             width: 56,
             height: 56,
@@ -45,9 +49,9 @@ class RecentJobCard extends StatelessWidget {
               color: const Color(0xFF10C971).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(
-              Icons.work_outline,
-              color: Color(0xFF10C971),
+            child: Icon(
+              iconData, // ✅ dynamic icon here
+              color: const Color(0xFF10C971),
               size: 28,
             ),
           ),

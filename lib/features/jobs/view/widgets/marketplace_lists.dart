@@ -6,6 +6,34 @@ import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/recent_job_card.dart';
 import 'package:gemhub/features/jobs/view/widgets/featured_job_card.dart';
 
+/// ✅ Category → Icon Mapper
+IconData getCategoryIcon(String category) {
+  switch (category.toLowerCase()) {
+    case 'gem cutter':
+      return Icons.diamond_outlined;
+    case 'polisher':
+      return Icons.auto_fix_high;
+    case 'gemologist':
+      return Icons.search;
+    case 'jewelry designer':
+      return Icons.brush_outlined;
+    case 'bench jeweler':
+      return Icons.handyman_outlined;
+    case 'diamond grader':
+      return Icons.grade_outlined;
+    case 'stone setter':
+      return Icons.build_outlined;
+    case 'appraiser':
+      return Icons.verified_outlined;
+    case 'sales executive':
+      return Icons.storefront_outlined;
+    case 'intern':
+      return Icons.school_outlined;
+    default:
+      return Icons.work_outline;
+  }
+}
+
 class FeaturedJobsList extends ConsumerWidget {
   const FeaturedJobsList({super.key});
 
@@ -33,7 +61,7 @@ class FeaturedJobsList extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: featuredJobs.map((job) {
-
+              /// ✅ Salary Logic
               String displaySalary = 'Negotiable';
               if (job.minSalary != null && job.maxSalary != null) {
                 displaySalary =
@@ -45,6 +73,15 @@ class FeaturedJobsList extends ConsumerWidget {
                 displaySalary =
                     'LKR ${job.maxSalary!.toStringAsFixed(0)}';
               }
+
+              /// ✅ Safe Tags Handling
+              final tagsList = (job.tags ?? '')
+                  .split(',')
+                  .where((t) => t.trim().isNotEmpty)
+                  .toList();
+
+              final String category =
+                  tagsList.isNotEmpty ? tagsList.first : '';
 
               return Padding(
                 padding: const EdgeInsets.only(right: 16.0),
@@ -59,6 +96,7 @@ class FeaturedJobsList extends ConsumerWidget {
                     salary: displaySalary,
                     timePosted: 'New',
                     isPremium: true,
+                    iconData: getCategoryIcon(category), // ✅ Dynamic Icon
                   ),
                 ),
               );
@@ -107,6 +145,7 @@ class RecentJobsList extends ConsumerWidget {
             itemBuilder: (context, index) {
               final job = jobs[index];
 
+              /// ✅ Salary Logic
               String displaySalary = 'Negotiable';
               if (job.minSalary != null && job.maxSalary != null) {
                 displaySalary =
@@ -118,6 +157,15 @@ class RecentJobsList extends ConsumerWidget {
                 displaySalary =
                     'LKR ${job.maxSalary!.toStringAsFixed(0)}';
               }
+
+              /// ✅ Safe Tags Handling
+              final tagsList = (job.tags ?? '')
+                  .split(',')
+                  .where((t) => t.trim().isNotEmpty)
+                  .toList();
+
+              final String category =
+                  tagsList.isNotEmpty ? tagsList.first : '';
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
@@ -131,10 +179,8 @@ class RecentJobsList extends ConsumerWidget {
                     companyInfo:
                         job.companyInfo ?? 'Unknown Company',
                     salary: displaySalary,
-                    tags: (job.tags)
-                        .split(',')
-                        .where((t) => t.isNotEmpty)
-                        .toList(),
+                    tags: tagsList,
+                    iconData: getCategoryIcon(category), // ✅ Dynamic Icon
                   ),
                 ),
               );

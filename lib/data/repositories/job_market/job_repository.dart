@@ -6,35 +6,28 @@ class JobRepository {
 
   JobRepository(this._dio);
 
+  /// ✅ Get Pending Jobs (Admin)
   Future<List<Job>> getPendingJobs() async {
     try {
       final response = await _dio.get(
         'jobs/',
         queryParameters: {'status': 'pending'},
       );
-      
+
       if (response.statusCode == 200) {
-        print('🔥 RAW DJANGO DATA: ${response.data}'); 
-        final rawData = response.data;
-        final List data = rawData is List
-            ? rawData
-            : rawData is Map<String, dynamic>
-                ? (rawData['results'] as List<dynamic>?) ?? []
-                : [];
-        return data.map((json) => Job.fromMap(json)).toList();
+        return _parseJobList(response.data);
       }
+
       throw Exception('Failed to load pending jobs');
     } on DioException catch (e) {
       print(_handleError(e));
       return [];
-    } catch (e) {
-      return [];
     }
   }
 
-  // 💡 අලුත් Filters ටිකත් ගන්න විදිහට Parameters එකතු කරා
+  /// ✅ Get Approved Jobs (Marketplace)
   Future<List<Job>> getApprovedJobs({
-    String keyword = "", 
+    String keyword = "",
     String category = "",
     String location = "",
     double? minSalary,
@@ -42,70 +35,64 @@ class JobRepository {
   }) async {
     try {
       final queryParams = <String, dynamic>{'status': 'approved'};
-      
+
       if (keyword.isNotEmpty) {
-        queryParams['search'] = keyword; // Django එකේ search පරාමිතියට
+        queryParams['search'] = keyword;
       }
+
       if (category.isNotEmpty && category != "All Jobs") {
         queryParams['category'] = category;
       }
-      
-      // 💡 අලුත් Location සහ Salary ෆිල්ටර්ස් ටික Query එකට දානවා
+
       if (location.isNotEmpty && location != "All Locations") {
         queryParams['location'] = location;
       }
+
       if (minSalary != null) {
         queryParams['min_salary'] = minSalary.toInt();
       }
+
       if (maxSalary != null) {
         queryParams['max_salary'] = maxSalary.toInt();
       }
 
-      print('🚀 Request යවනවා: jobs/ -> Query: $queryParams');
-
-      final response = await _dio.get('jobs/', queryParameters: queryParams);
+      final response =
+          await _dio.get('jobs/', queryParameters: queryParams);
 
       if (response.statusCode == 200) {
-        final rawData = response.data;
-        final List data = rawData is List
-            ? rawData
-            : rawData is Map<String, dynamic>
-                ? (rawData['results'] as List<dynamic>?) ?? []
-                : [];
-        return data.map((json) => Job.fromMap(json)).toList();
+        return _parseJobList(response.data);
       }
-      throw Exception('Failed to load jobs');
+
+      throw Exception('Failed to load approved jobs');
     } on DioException catch (e) {
       print(_handleError(e));
-      return [];
-    } catch (e) {
-      print('🔥 JSON MAPPING ERROR එකක්: $e'); 
       return [];
     }
   }
 
-  Future<bool> updateJobStatus(String id, String status) async {
+  /// ✅ NEW: Get Logged-in Employer Jobs
+  /// ✅ NEW: Get Logged-in Employer Jobs (Filtered by ID)
+  Future<List<Job>> getMyJobs(String employerId) async {
     try {
-      final path = 'jobs/$id/';
-      print('PATCH $path -> status=$status');
-      final response = await _dio.patch(
-        path,
-        data: {'status': status},
+      final response = await _dio.get(
+        'jobs/', // 💡 වෙනම URL එකක් ඕනේ නෑ, Main එකටම යවනවා
+        queryParameters: {
+          'employerId': employerId, // 🚧 Django එකේ model එකේ නම employer_id නම් මේක 'employer_id' කරන්න
+        },
       );
-      return response.statusCode == 200 ||
-          response.statusCode == 201 ||
-          response.statusCode == 202 ||
-          response.statusCode == 204;
+
+      if (response.statusCode == 200) {
+        return _parseJobList(response.data);
+      }
+
+      throw Exception('Failed to load my jobs');
     } on DioException catch (e) {
       print(_handleError(e));
-      return false;
-    } catch (e) {
-      print('Unexpected error updating job status: $e');
-      return false;
+      return [];
     }
   }
 
-  
+  /// ✅ Insert New Job
   Future<bool> insertJob(Job job) async {
     try {
       final payload = Map<String, dynamic>.from(job.toMap());
@@ -116,20 +103,61 @@ class JobRepository {
         'jobs/',
         data: payload,
       );
-      return response.statusCode == 200 || response.statusCode == 201;
+
+      return response.statusCode == 200 ||
+          response.statusCode == 201;
     } on DioException catch (e) {
       print(_handleError(e));
-      return false;
-    } catch (e) {
       return false;
     }
   }
 
-  
+  /// ✅ Update Job Status
+  Future<bool> updateJobStatus(String id, String status) async {
+    try {
+      final response = await _dio.patch(
+        'jobs/$id/',
+        data: {'status': status},
+      );
+
+      return response.statusCode == 200 ||
+          response.statusCode == 204;
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return false;
+    }
+  }
+
+  /// ✅ NEW: Delete Job
+  Future<bool> deleteJob(String id) async {
+    try {
+      final response = await _dio.delete(
+        'jobs/$id/',
+      );
+
+      return response.statusCode == 200 ||
+          response.statusCode == 204;
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return false;
+    }
+  }
+
+  /// ✅ Helper: Handle Django Pagination / List Response
+  List<Job> _parseJobList(dynamic rawData) {
+    final List data = rawData is List
+        ? rawData
+        : rawData is Map<String, dynamic>
+            ? (rawData['results'] as List<dynamic>?) ?? []
+            : [];
+
+    return data.map((json) => Job.fromMap(json)).toList();
+  }
+
+  /// ✅ Error Handler
   String _handleError(DioException e) {
     if (e.response != null) {
-      final errorData = e.response?.data;
-      return 'Error ${e.response?.statusCode}: $errorData';
+      return 'Error ${e.response?.statusCode}: ${e.response?.data}';
     }
     return 'Connection failed: ${e.message}';
   }

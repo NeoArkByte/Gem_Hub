@@ -91,6 +91,7 @@ class JobFilterBottomSheet extends ConsumerStatefulWidget {
       _JobFilterBottomSheetState();
 }
 
+
 class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
   final Color primaryGreen = const Color(0xFF10C971);
 

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_viewmodel.dart';
+part of 'my_jobs_viewmodel.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,43 +9,43 @@ part of 'auth_viewmodel.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(AuthViewModel)
-final authViewModelProvider = AuthViewModelProvider._();
+@ProviderFor(MyJobsViewModel)
+final myJobsViewModelProvider = MyJobsViewModelProvider._();
 
-final class AuthViewModelProvider
-    extends $AsyncNotifierProvider<AuthViewModel, void> {
-  AuthViewModelProvider._()
+final class MyJobsViewModelProvider
+    extends $AsyncNotifierProvider<MyJobsViewModel, List<Job>> {
+  MyJobsViewModelProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'authViewModelProvider',
+        name: r'myJobsViewModelProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$authViewModelHash();
+  String debugGetCreateSourceHash() => _$myJobsViewModelHash();
 
   @$internal
   @override
-  AuthViewModel create() => AuthViewModel();
+  MyJobsViewModel create() => MyJobsViewModel();
 }
 
-String _$authViewModelHash() => r'30016c4560e99c999d84ce6b0829f279c36ed95b';
+String _$myJobsViewModelHash() => r'73d2d5a4e440aa620fcff237eff11bf432a935a7';
 
-abstract class _$AuthViewModel extends $AsyncNotifier<void> {
-  FutureOr<void> build();
+abstract class _$MyJobsViewModel extends $AsyncNotifier<List<Job>> {
+  FutureOr<List<Job>> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
+    final ref = this.ref as $Ref<AsyncValue<List<Job>>, List<Job>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
+              AnyNotifier<AsyncValue<List<Job>>, List<Job>>,
+              AsyncValue<List<Job>>,
               Object?,
               Object?
             >;

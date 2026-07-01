@@ -7,6 +7,9 @@ class FeaturedJobCard extends StatelessWidget {
   final String timePosted;
   final bool isPremium;
 
+  /// ✅ NEW: Dynamic category icon
+  final IconData iconData;
+
   const FeaturedJobCard({
     super.key,
     required this.title,
@@ -14,6 +17,7 @@ class FeaturedJobCard extends StatelessWidget {
     required this.salary,
     required this.timePosted,
     required this.isPremium,
+    required this.iconData, // ✅ NEW
   });
 
   @override
@@ -45,7 +49,7 @@ class FeaturedJobCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              /// ✅ Job Icon Instead of logoColor
+              /// ✅ Dynamic Category Icon
               Container(
                 width: 48,
                 height: 48,
@@ -53,9 +57,9 @@ class FeaturedJobCard extends StatelessWidget {
                   color: const Color(0xFF10C971).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.work_outline,
-                  color: Color(0xFF10C971),
+                child: Icon(
+                  iconData, // ✅ dynamic icon here
+                  color: const Color(0xFF10C971),
                   size: 26,
                 ),
               ),
