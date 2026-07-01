@@ -34,7 +34,7 @@ final class MarketplaceViewModelProvider
 }
 
 String _$marketplaceViewModelHash() =>
-    r'2f1ce234dceb4e601f5eae13eb95e775bad48340';
+    r'53b61729170f488ba6eece308f6aa701dafd7e1f';
 
 abstract class _$MarketplaceViewModel extends $AsyncNotifier<List<Job>> {
   FutureOr<List<Job>> build();
