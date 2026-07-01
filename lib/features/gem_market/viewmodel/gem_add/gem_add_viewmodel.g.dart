@@ -15,15 +15,15 @@ final gemAddViewModelProvider = GemAddViewModelProvider._();
 final class GemAddViewModelProvider
     extends $NotifierProvider<GemAddViewModel, bool> {
   GemAddViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'gemAddViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'gemAddViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$gemAddViewModelHash();
@@ -41,7 +41,7 @@ final class GemAddViewModelProvider
   }
 }
 
-String _$gemAddViewModelHash() => r'089f408a32c2be8cd66028c4cfaf456d63281edf';
+String _$gemAddViewModelHash() => r'fefd19977e735cbe6c1342775a25fcaacc6b9620';
 
 abstract class _$GemAddViewModel extends $Notifier<bool> {
   bool build();
@@ -49,14 +49,8 @@ abstract class _$GemAddViewModel extends $Notifier<bool> {
   @override
   void runBuild() {
     final ref = this.ref as $Ref<bool, bool>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<bool, bool>,
-              bool,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<bool, bool>, bool, Object?, Object?>;
     element.handleCreate(ref, build);
   }
 }

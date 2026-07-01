@@ -2,13 +2,15 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/data/services/media_vault_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:path/path.dart' as p;
 
 part 'inventory_viewmodel.g.dart';
 
 @riverpod
 class InventoryViewModel extends _$InventoryViewModel {
-  InventoryRepository get _repository => ref.read(inventoryRepositoryProvider);
+  InventoryRepository get _repository => ref.watch(inventoryRepositoryProvider);
 
   @override
   Future<List<GemstoneModel>> build() async {
@@ -19,26 +21,28 @@ class InventoryViewModel extends _$InventoryViewModel {
     return _repository.fetchGemstones();
   }
 
-  Future<void> addGemstone(GemstoneModel gem) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      await _repository.insertGemstone(gem);
-      return _refreshList();
-    });
-  }
-
   Future<void> deleteGemstone(int id) async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
-      await _repository.deleteGemstone(id);
-      return _refreshList();
-    });
-  }
+    final vaultService = ref.read(mediaVaultProvider);
+    final currentList = state.value ?? [];
+    final gemToDelete = currentList.firstWhere((gem) => gem.id == id);
 
-  Future<void> updateGemstone(GemstoneModel updatedGem) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await _repository.updateGemstone(updatedGem);
+      // Delete from vault
+      if (gemToDelete.firstImagePath != null) {
+        await vaultService.deleteFromVault(p.basename(gemToDelete.firstImagePath!));
+      }
+      if (gemToDelete.finalImagePath != null) {
+        await vaultService.deleteFromVault(p.basename(gemToDelete.finalImagePath!));
+      }
+      if (gemToDelete.firstVideoPath != null) {
+        await vaultService.deleteFromVault(p.basename(gemToDelete.firstVideoPath!));
+      }
+      if (gemToDelete.finalVideoPath != null) {
+        await vaultService.deleteFromVault(p.basename(gemToDelete.finalVideoPath!));
+      }
+
+      await _repository.deleteGemstone(id);
       return _refreshList();
     });
   }

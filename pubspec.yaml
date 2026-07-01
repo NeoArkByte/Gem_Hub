@@ -5,14 +5,15 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.10.4
+  # FIXED: Set a realistic, modern Dart SDK range to support your top-tier packages
+  sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
   
   # Database & State Caching
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^10.3.1
   sqflite_sqlcipher: ^3.0.1 
   shared_preferences: ^2.2.3
   path: ^1.8.3
@@ -50,12 +51,24 @@ dependencies:
   pdf: ^3.12.0
   printing: ^5.14.3
 
+  # Backup and Sync
+  # archive: ^3.6.1
+  flutter_archive: ^6.0.4
+  share_plus: ^10.1.2
+  flutter_file_dialog: ^3.0.3
+  
+  # Compression and Video Handling
+  v_video_compressor: ^1.2.1
+  flutter_image_compress: ^2.0.4
+  video_player: ^2.11.1
+  chewie: ^1.13.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   riverpod_generator: ^4.0.3
-  build_runner: ^2.15.0
+  build_runner: ^2.4.9
   flutter_launcher_icons: ^0.13.1
 
 flutter:
@@ -69,4 +82,4 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icons/gem_hub_icon.jpeg"
-  remove_alpha_ios: true
+  remove_alpha_ios: trueflutter pub clean && flutter pub get

@@ -39,6 +39,8 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'gemcost_inventory_v12_secure.db');
     final password = await _getEncryptionKey();
 
+    print("🔐 Encryption Key (Base64): $password");
+
     return await openDatabase(
       path,
       password: password,
@@ -83,7 +85,9 @@ class DatabaseHelper {
         target_price REAL, 
         selling_price REAL,
         first_image_path TEXT, 
-        final_image_path TEXT
+        final_image_path TEXT,
+        first_video_path TEXT,
+        final_video_path TEXT
       )
     ''');
 

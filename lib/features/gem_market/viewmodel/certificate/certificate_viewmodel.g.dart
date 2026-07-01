@@ -14,16 +14,16 @@ final certificateViewModelProvider = CertificateViewModelFamily._();
 
 final class CertificateViewModelProvider
     extends $AsyncNotifierProvider<CertificateViewModel, String> {
-  CertificateViewModelProvider._({
-    required CertificateViewModelFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'certificateViewModelProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  CertificateViewModelProvider._(
+      {required CertificateViewModelFamily super.from,
+      required String super.argument})
+      : super(
+          retry: null,
+          name: r'certificateViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$certificateViewModelHash();
@@ -55,23 +55,20 @@ String _$certificateViewModelHash() =>
 
 final class CertificateViewModelFamily extends $Family
     with
-        $ClassFamilyOverride<
-          CertificateViewModel,
-          AsyncValue<String>,
-          String,
-          FutureOr<String>,
-          String
-        > {
+        $ClassFamilyOverride<CertificateViewModel, AsyncValue<String>, String,
+            FutureOr<String>, String> {
   CertificateViewModelFamily._()
-    : super(
-        retry: null,
-        name: r'certificateViewModelProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
+      : super(
+          retry: null,
+          name: r'certificateViewModelProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-  CertificateViewModelProvider call(String path) =>
+  CertificateViewModelProvider call(
+    String path,
+  ) =>
       CertificateViewModelProvider._(argument: path, from: this);
 
   @override
@@ -82,19 +79,22 @@ abstract class _$CertificateViewModel extends $AsyncNotifier<String> {
   late final _$args = ref.$arg as String;
   String get path => _$args;
 
-  FutureOr<String> build(String path);
+  FutureOr<String> build(
+    String path,
+  );
   @$mustCallSuper
   @override
   void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<String>, String>,
-              AsyncValue<String>,
-              Object?,
-              Object?
-            >;
-    element.handleCreate(ref, () => build(_$args));
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<String>, String>,
+        AsyncValue<String>,
+        Object?,
+        Object?>;
+    element.handleCreate(
+        ref,
+        () => build(
+              _$args,
+            ));
   }
 }

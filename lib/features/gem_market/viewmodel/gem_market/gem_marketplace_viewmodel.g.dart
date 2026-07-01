@@ -15,15 +15,15 @@ final gemMarketplaceViewModelProvider = GemMarketplaceViewModelProvider._();
 final class GemMarketplaceViewModelProvider
     extends $AsyncNotifierProvider<GemMarketplaceViewModel, List<Gem>> {
   GemMarketplaceViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'gemMarketplaceViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'gemMarketplaceViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$gemMarketplaceViewModelHash();
@@ -42,14 +42,11 @@ abstract class _$GemMarketplaceViewModel extends $AsyncNotifier<List<Gem>> {
   @override
   void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Gem>>, List<Gem>>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<List<Gem>>, List<Gem>>,
-              AsyncValue<List<Gem>>,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<Gem>>, List<Gem>>,
+        AsyncValue<List<Gem>>,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }

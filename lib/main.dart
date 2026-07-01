@@ -3,8 +3,6 @@ import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-
 import 'package:gemhub/core/router/app_router.dart'; 
 
 void main() async {
@@ -35,7 +33,7 @@ class MyApp extends ConsumerWidget {
     final goRouter = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'GemCost Jobs',
+      title: 'GemHub',
       debugShowCheckedModeBanner: false,
 
       theme: ThemeData(

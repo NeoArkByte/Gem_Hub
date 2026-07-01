@@ -464,7 +464,7 @@ class GemLocationSection extends StatelessWidget {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
-                    errorBuilder: (_, _, _) => Container(
+                    errorBuilder: (context, error, stackTrace) => Container(
                       color: AppColors.bluePale,
                       child: const Center(
                         child: Icon(
