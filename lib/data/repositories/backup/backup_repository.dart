@@ -1,68 +1,70 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:archive/archive_io.dart';
+import 'package:flutter_archive/flutter_archive.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 
 class BackupRepository {
   final String _dbName = 'gemcost_inventory_v12_secure.db';
-  final String _prefKey = 'custom_backup_directory_path';
+  static const String _vaultFolder = 'media_vault'; // Aligned with MediaVaultService
 
   BackupRepository();
 
   /// Returns either the custom folder chosen by the user or falls back to the safe internal sandbox
   Future<Directory> getTargetBackupDirectory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? customPath = prefs.getString(_prefKey);
-
-    if (customPath != null && customPath.isNotEmpty) {
-      final customDir = Directory(customPath);
-      if (await customDir.exists()) {
-        return customDir;
-      }
-    }
-
     final appDocsDir = await getApplicationDocumentsDirectory();
-    final defaultPath = p.join(appDocsDir.path, 'GemHub_Backups');
-    final defaultDir = Directory(defaultPath);
+    final dbPath = p.join(appDocsDir.path, 'GemHub_Backups');
+    final dir = Directory(dbPath);
 
-    if (!await defaultDir.exists()) {
-      await defaultDir.create(recursive: true);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
     }
-    return defaultDir;
+    return dir;
   }
 
-  Future<void> saveCustomDirectoryPath(String path) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefKey, path);
+  /// Returns the active media asset directory path matching production services
+  Future<Directory> getMediaVaultDirectory() async {
+    final appDocsDir = await getApplicationDocumentsDirectory();
+    final vaultPath = p.join(appDocsDir.path, _vaultFolder);
+    final dir = Directory(vaultPath);
+
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    return dir;
   }
 
-  Future<void> clearCustomDirectoryPath() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_prefKey);
-  }
-
-  /// Packages the database binary straight into a compressed ZIP file archive inside the active path
+  /// Packages BOTH the database file and the media vault folder natively into a consolidated ZIP archive
   Future<File?> generateBackupZip() async {
     try {
       final dbDir = await getDatabasesPath();
       final sourceDbPath = p.join(dbDir, _dbName);
       final sourceFile = File(sourceDbPath);
 
-      if (!await sourceFile.exists()) {
+      final mediaDir = await getMediaVaultDirectory();
+
+      // 1. Gather all local file references to pack
+      final List<File> filesToZip = [];
+
+      if (await sourceFile.exists()) {
+        filesToZip.add(sourceFile);
+      } else {
         throw Exception("Database file does not exist on disk.");
       }
 
-      final dbBytes = await sourceFile.readAsBytes();
-      final archive = Archive();
-      final archiveFile = ArchiveFile(_dbName, dbBytes.length, dbBytes);
-      archive.addFile(archiveFile);
+      if (await mediaDir.exists()) {
+        final entities = mediaDir.listSync(recursive: true);
+        for (var entity in entities) {
+          if (entity is File) {
+            filesToZip.add(entity);
+          }
+        }
+      }
 
-      final zipBytes = ZipEncoder().encode(archive);
-      if (zipBytes == null) throw Exception("Failed to encode ZIP file structure.");
+      if (filesToZip.isEmpty) return null;
 
+      // 2. Compute timestamp for unique file mapping
       final String timestamp = DateTime.now().toIso8601String()
           .split('.')
           .first
@@ -71,41 +73,49 @@ class BackupRepository {
 
       final targetFolder = await getTargetBackupDirectory();
       final zipPath = p.join(targetFolder.path, 'gemhub_backup_$timestamp.zip');
-      
       final zipFile = File(zipPath);
-      await zipFile.writeAsBytes(zipBytes);
 
+      // 3. Dynamically discover the common sandboxed root path
+      final String commonRootPath = _calculateCommonAncestor(sourceFile.path, mediaDir.path);
+
+      // 4. Compress via multi-threaded native Android/iOS background workers
+      await ZipFile.createFromFiles(
+        sourceDir: Directory(commonRootPath),
+        files: filesToZip,
+        zipFile: zipFile,
+      );
+
+      print("⚡ [Native Backup] Successfully created archive package: ${zipFile.path}");
       return zipFile;
-    } catch (e) {
-      print("❌ [BackupRepository] Error archiving database: $e");
+    } catch (e) { 
+      print("❌ [BackupRepository] Error archiving database and media assets: $e");
       return null;
     }
   }
 
-  /// Extracts chosen archives over the live database path
+  /// Extracts chosen archives over the live database path and restores the media folder natively
   Future<bool> restoreDatabaseFromZip(File zipFile) async {
     try {
       if (!await zipFile.exists()) return false;
 
-      final bytes = await zipFile.readAsBytes();
-      final archive = ZipDecoder().decodeBytes(bytes);
+      final dbDir = await getDatabasesPath();
+      final sourceDbPath = p.join(dbDir, _dbName);
+      final mediaDir = await getMediaVaultDirectory();
 
-      final ArchiveFile? dbArchiveFile = archive.firstWhere(
-        (file) => file.name == _dbName,
-        orElse: () => throw Exception("No valid backup file found inside this zip."),
+      // Recalculate common target directory structure
+      final String commonRootPath = _calculateCommonAncestor(sourceDbPath, mediaDir.path);
+      final destinationDir = Directory(commonRootPath);
+
+      // Native extraction handles creating folders and unpacking assets at hardware speeds
+      await ZipFile.extractToDirectory(
+        zipFile: zipFile,
+        destinationDir: destinationDir,
       );
 
-      if (dbArchiveFile != null) {
-        final dbDir = await getDatabasesPath();
-        final targetDbPath = p.join(dbDir, _dbName);
-
-        final targetFile = File(targetDbPath);
-        await targetFile.writeAsBytes(dbArchiveFile.content as List<int>);
-        return true;
-      }
-      return false;
+      print("⚡ [Native Restore] Structural extraction finalized successfully over root sandbox!");
+      return true;
     } catch (e) {
-      print("❌ [BackupRepository] Error extracting archive: $e");
+      print("❌ [BackupRepository] Error extracting native archive bundle: $e");
       return false;
     }
   }
@@ -172,5 +182,21 @@ class BackupRepository {
       print("❌ Error fetching local snapshots: $e");
       return [];
     }
+  }
+
+  /// Private internal helper to extract the common base platform path layout
+  String _calculateCommonAncestor(String pathA, String pathB) {
+    final List<String> segmentsA = p.split(pathA);
+    final List<String> segmentsB = p.split(pathB);
+    final List<String> commonAncestry = [];
+
+    for (int i = 0; i < segmentsA.length && i < segmentsB.length; i++) {
+      if (segmentsA[i] == segmentsB[i]) {
+        commonAncestry.add(segmentsA[i]);
+      } else {
+        break;
+      }
+    }
+    return p.joinAll(commonAncestry);
   }
 }

@@ -12,24 +12,20 @@ part of 'inventory_repository_provider.dart';
 @ProviderFor(inventoryRepository)
 final inventoryRepositoryProvider = InventoryRepositoryProvider._();
 
-final class InventoryRepositoryProvider
-    extends
-        $FunctionalProvider<
-          InventoryRepository,
-          InventoryRepository,
-          InventoryRepository
-        >
-    with $Provider<InventoryRepository> {
+final class InventoryRepositoryProvider extends $FunctionalProvider<
+    InventoryRepository,
+    InventoryRepository,
+    InventoryRepository> with $Provider<InventoryRepository> {
   InventoryRepositoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'inventoryRepositoryProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'inventoryRepositoryProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$inventoryRepositoryHash();
@@ -37,8 +33,8 @@ final class InventoryRepositoryProvider
   @$internal
   @override
   $ProviderElement<InventoryRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   InventoryRepository create(Ref ref) {

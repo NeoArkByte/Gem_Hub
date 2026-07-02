@@ -104,7 +104,6 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                     separatorBuilder: (_, __) => const SizedBox(height: 16),
                     itemBuilder: (context, index) {
                       final job = pendingJobs[index];
-                      // ✅ Kalin SizedBox thibba thanata man aluth Card eka damma
                       print(job.toMap());
                       return _buildPendingJobCard(job);
                     },
@@ -119,6 +118,15 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   }
 
   Widget _buildPendingJobCard(dynamic job) {
+    String salaryDisplay = 'Negotiable';
+    if (job.minSalary != null && job.maxSalary != null) {
+      salaryDisplay = 'LKR ${job.minSalary!.toStringAsFixed(0)} - ${job.maxSalary!.toStringAsFixed(0)}';
+    } else if (job.minSalary != null) {
+      salaryDisplay = 'LKR ${job.minSalary!.toStringAsFixed(0)}';
+    } else if (job.maxSalary != null) {
+      salaryDisplay = 'LKR ${job.maxSalary!.toStringAsFixed(0)}';
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -149,17 +157,18 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
-                  vertical: 4,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: primaryYellow.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'LKR ${job.salary ?? 'N/A'}',
+                  salaryDisplay, // 💡 අලුත් රේන්ජ් එක පෙන්වන්නේ මෙතනින්
                   style: TextStyle(
                     color: Colors.orange[800],
                     fontWeight: FontWeight.bold,
@@ -197,7 +206,6 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                   onPressed: () async {
                     final String? currentJobId = job.jobId?.toString();
                     print('Attempting to reject job with ID: $currentJobId');
-              
 
                     if (currentJobId == null || currentJobId.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(

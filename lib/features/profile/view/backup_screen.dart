@@ -5,18 +5,20 @@ import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 import 'package:gemhub/data/models/backup/backup_state.dart';
 import 'package:gemhub/features/profile/viewmodel/backup_viewmodel.dart';
 import 'package:gemhub/shared/widgets/custom_confirm_dialog.dart';
-import 'package:gemhub/shared/widgets/custom_toast.dart'; 
+import 'package:gemhub/shared/widgets/custom_toast.dart';
 
 class BackupScreen extends ConsumerWidget {
   const BackupScreen({super.key});
 
-  Future<void> _confirmDeletion(BuildContext context, WidgetRef ref, BackupSnapshot snapshot) async {
+  Future<void> _confirmDeletion(
+      BuildContext context, WidgetRef ref, BackupSnapshot snapshot) async {
     final bool? shouldDelete = await showDialog<bool>(
       context: context,
       builder: (BuildContext dialogContext) {
         return CustomConfirmDialog(
           title: "Delete Backup Point?",
-          content: "Are you sure you want to permanently delete '${snapshot.name}'? This operation cannot be undone.",
+          content:
+              "Are you sure you want to permanently delete '${snapshot.name}'? This operation cannot be undone.",
           confirmLabel: "Delete",
           cancelLabel: "Cancel",
           confirmColor: AppColors.dangerRed,
@@ -34,11 +36,15 @@ class BackupScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final Color bgColor = isDark ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundSoft;
+    final Color bgColor =
+        isDark ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundSoft;
     final Color textColor = isDark ? Colors.white : AppColors.textDarkAlt;
-    final Color cardColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final Color subtitleColor = isDark ? AppColors.greyTextLight : AppColors.greyText;
-    final Color dividerColor = isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
+    final Color cardColor =
+        isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final Color subtitleColor =
+        isDark ? AppColors.greyTextLight : AppColors.greyText;
+    final Color dividerColor =
+        isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
 
     ref.listen(backupViewModelProvider, (previous, next) {
       if (next.successMessage != null) {
@@ -64,13 +70,16 @@ class BackupScreen extends ConsumerWidget {
         ),
         title: Text(
           "Backup & Sync",
-          style: TextStyle(color: textColor, fontWeight: FontWeight.bold, fontSize: 18),
+          style: TextStyle(
+              color: textColor, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh, color: textColor, size: 20),
-            onPressed: () => ref.read(backupViewModelProvider.notifier).refreshAllSnapshots(),
+            onPressed: () => ref
+                .read(backupViewModelProvider.notifier)
+                .refreshAllSnapshots(),
           )
         ],
       ),
@@ -79,7 +88,8 @@ class BackupScreen extends ConsumerWidget {
           duration: const Duration(milliseconds: 250),
           child: uiState.isLoading
               ? _buildLoadingState(uiState.statusMessage, textColor)
-              : _buildMainLayout(cardColor, textColor, subtitleColor, dividerColor, uiState, ref, context, isDark),
+              : _buildMainLayout(cardColor, textColor, subtitleColor,
+                  dividerColor, uiState, ref, context, isDark),
         ),
       ),
     );
@@ -91,11 +101,16 @@ class BackupScreen extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const CircularProgressIndicator(strokeWidth: 3, color: AppColors.primaryBlue),
+          const CircularProgressIndicator(
+              strokeWidth: 3, color: AppColors.primaryBlue),
           const SizedBox(height: 24),
-          Text(statusMessage, style: TextStyle(fontWeight: FontWeight.w600, color: textColor, fontSize: 15)),
+          Text(statusMessage,
+              style: TextStyle(
+                  fontWeight: FontWeight.w600, color: textColor, fontSize: 15)),
           const SizedBox(height: 6),
-          const Text("Please do not close or leave the app", style: TextStyle(color: AppColors.greyTextMutedLight, fontSize: 12)),
+          const Text("Please do not close or leave the app",
+              style:
+                  TextStyle(color: AppColors.greyTextMutedLight, fontSize: 12)),
         ],
       ),
     );
@@ -119,7 +134,7 @@ class BackupScreen extends ConsumerWidget {
         _buildSectionHeader("CLOUD INTEGRATION"),
         Container(
           decoration: BoxDecoration(
-            color: cardColor, 
+            color: cardColor,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
@@ -132,48 +147,64 @@ class BackupScreen extends ConsumerWidget {
                 onTap: () {
                   // ref.read(backupViewModelProvider.notifier).uploadBackupToCloud();
                 },
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryBlue.withOpacity(0.12), 
+                    color: AppColors.primaryBlue.withOpacity(0.12),
                     borderRadius: const BorderRadius.all(Radius.circular(12)),
                   ),
-                  child: const Icon(Icons.cloud_upload_outlined, color: AppColors.primaryBlue, size: 22),
+                  child: const Icon(Icons.cloud_upload_outlined,
+                      color: AppColors.primaryBlue, size: 22),
                 ),
-                title: Text("Backup to Cloud Storage", style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14)),
+                title: Text("Backup to Cloud Storage",
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     "Saves a secure copy of your data in cloud. Use this so you don't lose your information if your phone gets broken or lost",
-                    style: TextStyle(color: subtitleColor, fontSize: 12, height: 1.3),
+                    style: TextStyle(
+                        color: subtitleColor, fontSize: 12, height: 1.3),
                   ),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.greyTextLight),
+                trailing: const Icon(Icons.arrow_forward_ios,
+                    size: 14, color: AppColors.greyTextLight),
               ),
               Divider(height: 1, color: dividerColor),
               ListTile(
                 onTap: () {
                   // ref.read(backupViewModelProvider.notifier).fetchBackupFromCloud();
                 },
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.12), 
+                    color: AppColors.primaryGreen.withOpacity(0.12),
                     borderRadius: const BorderRadius.all(Radius.circular(12)),
                   ),
-                  child: const Icon(Icons.cloud_download_outlined, color: AppColors.primaryGreen, size: 22),
+                  child: const Icon(Icons.cloud_download_outlined,
+                      color: AppColors.primaryGreen, size: 22),
                 ),
-                title: Text("Restore from Cloud Target", style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14)),
+                title: Text("Restore from Cloud Target",
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     "Restore your saved cloud data back down to this phone. Perfect for setting up your app on a brand new device or recovering after a factory reset.",
-                    style: TextStyle(color: subtitleColor, fontSize: 12, height: 1.3),
+                    style: TextStyle(
+                        color: subtitleColor, fontSize: 12, height: 1.3),
                   ),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.greyTextLight),
+                trailing: const Icon(Icons.arrow_forward_ios,
+                    size: 14, color: AppColors.greyTextLight),
               ),
             ],
           ),
@@ -184,7 +215,7 @@ class BackupScreen extends ConsumerWidget {
         _buildSectionHeader("LOCAL SANDBOX OPERATIONS"),
         Container(
           decoration: BoxDecoration(
-            color: cardColor, 
+            color: cardColor,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
@@ -194,41 +225,65 @@ class BackupScreen extends ConsumerWidget {
           child: Column(
             children: [
               ListTile(
-                onTap: () => ref.read(backupViewModelProvider.notifier).backupAndSyncAll(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                onTap: () => ref
+                    .read(backupViewModelProvider.notifier)
+                    .backupAndSyncAll(),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(color: AppColors.blueSoft, borderRadius: BorderRadius.all(Radius.circular(12))),
-                  child: const Icon(Icons.add_to_photos_outlined, color: AppColors.primaryBlue, size: 22),
+                  decoration: const BoxDecoration(
+                      color: AppColors.blueSoft,
+                      borderRadius: BorderRadius.all(Radius.circular(12))),
+                  child: const Icon(Icons.add_to_photos_outlined,
+                      color: AppColors.primaryBlue, size: 22),
                 ),
-                title: Text("Create Local Recovery Point", style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14)),
+                title: Text("Create Local Recovery Point",
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     "Makes a backup on your local device right now. You can use this to restore your data later.",
-                    style: TextStyle(color: subtitleColor, fontSize: 12, height: 1.3),
+                    style: TextStyle(
+                        color: subtitleColor, fontSize: 12, height: 1.3),
                   ),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.greyTextLight),
+                trailing: const Icon(Icons.arrow_forward_ios,
+                    size: 14, color: AppColors.greyTextLight),
               ),
               Divider(height: 1, color: dividerColor),
               ListTile(
-                onTap: () => ref.read(backupViewModelProvider.notifier).importAndRestoreFromFile(),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                onTap: () => ref
+                    .read(backupViewModelProvider.notifier)
+                    .importAndRestoreFromFile(),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(color: AppColors.accentGreenLight, borderRadius: BorderRadius.all(Radius.circular(12))),
-                  child: const Icon(Icons.file_open_outlined, color: AppColors.primaryGreen, size: 22),
+                  decoration: const BoxDecoration(
+                      color: AppColors.accentGreenLight,
+                      borderRadius: BorderRadius.all(Radius.circular(12))),
+                  child: const Icon(Icons.file_open_outlined,
+                      color: AppColors.primaryGreen, size: 22),
                 ),
-                title: Text("Import Backup File", style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 14)),
+                title: Text("Import Backup File",
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
                 subtitle: Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     "Find and select a backup file saved on your phone to instantly load your past information back into the app.",
-                    style: TextStyle(color: subtitleColor, fontSize: 12, height: 1.3),
+                    style: TextStyle(
+                        color: subtitleColor, fontSize: 12, height: 1.3),
                   ),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.greyTextLight),
+                trailing: const Icon(Icons.arrow_forward_ios,
+                    size: 14, color: AppColors.greyTextLight),
               ),
             ],
           ),
@@ -238,7 +293,6 @@ class BackupScreen extends ConsumerWidget {
         if (uiState.localSnapshots.isNotEmpty) ...[
           const SizedBox(height: 24),
           _buildSectionHeader("AVAILABLE RESTORE POINTS"),
-          
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -251,7 +305,9 @@ class BackupScreen extends ConsumerWidget {
                   color: cardColor,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isDark ? AppColors.darkSurfaceAlt.withOpacity(0.6) : AppColors.lightBorder.withOpacity(0.6),
+                    color: isDark
+                        ? AppColors.darkSurfaceAlt.withOpacity(0.6)
+                        : AppColors.lightBorder.withOpacity(0.6),
                     width: 1,
                   ),
                   boxShadow: [
@@ -275,7 +331,8 @@ class BackupScreen extends ConsumerWidget {
                               color: AppColors.accentOrange.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(14),
                             ),
-                            child: const Icon(Icons.archive_outlined, color: AppColors.accentOrange, size: 20),
+                            child: const Icon(Icons.archive_outlined,
+                                color: AppColors.accentOrange, size: 20),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -284,20 +341,35 @@ class BackupScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   snapshot.name,
-                                  style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: -0.1),
+                                  style: TextStyle(
+                                      color: textColor,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                      letterSpacing: -0.1),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 6),
                                 Row(
                                   children: [
-                                    Icon(Icons.data_usage_rounded, size: 12, color: subtitleColor.withOpacity(0.6)),
+                                    Icon(Icons.data_usage_rounded,
+                                        size: 12,
+                                        color: subtitleColor.withOpacity(0.6)),
                                     const SizedBox(width: 4),
-                                    Text(snapshot.formattedSize, style: TextStyle(color: subtitleColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    Text(snapshot.formattedSize,
+                                        style: TextStyle(
+                                            color: subtitleColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600)),
                                     const SizedBox(width: 14),
-                                    Icon(Icons.access_time_filled_rounded, size: 12, color: subtitleColor.withOpacity(0.6)),
+                                    Icon(Icons.access_time_filled_rounded,
+                                        size: 12,
+                                        color: subtitleColor.withOpacity(0.6)),
                                     const SizedBox(width: 4),
-                                    Text(snapshot.formattedTimestamp, style: TextStyle(color: subtitleColor, fontSize: 12)),
+                                    Text(snapshot.formattedTimestamp,
+                                        style: TextStyle(
+                                            color: subtitleColor,
+                                            fontSize: 12)),
                                   ],
                                 ),
                               ],
@@ -308,27 +380,40 @@ class BackupScreen extends ConsumerWidget {
                     ),
                     Divider(height: 1, color: dividerColor),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.share_rounded, color: AppColors.primaryBlue, size: 18),
+                            icon: const Icon(Icons.share_rounded,
+                                color: AppColors.primaryBlue, size: 18),
                             tooltip: "Export Snapshot",
-                            onPressed: () => ref.read(backupViewModelProvider.notifier).exportSnapshotToFileSystem(snapshot),
+                            onPressed: () => ref
+                                .read(backupViewModelProvider.notifier)
+                                .exportSnapshotToFileSystem(snapshot),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.dangerRed, size: 20),
+                            icon: const Icon(Icons.delete_outline_rounded,
+                                color: AppColors.dangerRed, size: 20),
                             tooltip: "Delete Archive",
-                            onPressed: () => _confirmDeletion(context, ref, snapshot),
+                            onPressed: () =>
+                                _confirmDeletion(context, ref, snapshot),
                           ),
                           const Spacer(),
                           TextButton.icon(
-                            onPressed: () => ref.read(backupViewModelProvider.notifier).restoreFromSnapshot(snapshot),
-                            icon: const Icon(Icons.settings_backup_restore_rounded, size: 16),
-                            label: const Text("Restore", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            onPressed: () => ref
+                                .read(backupViewModelProvider.notifier)
+                                .restoreFromSnapshot(snapshot),
+                            icon: const Icon(
+                                Icons.settings_backup_restore_rounded,
+                                size: 16),
+                            label: const Text("Restore",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 13)),
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.primaryGreen,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
                             ),
                           ),
                         ],
@@ -351,7 +436,11 @@ class BackupScreen extends ConsumerWidget {
         padding: const EdgeInsets.only(left: 5, bottom: 10, top: 12),
         child: Text(
           label,
-          style: const TextStyle(color: AppColors.greyTextLight, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.8),
+          style: const TextStyle(
+              color: AppColors.greyTextLight,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.8),
         ),
       ),
     );

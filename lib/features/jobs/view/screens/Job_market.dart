@@ -41,7 +41,7 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 18),
           MarketplaceSearchBar(
             controller: _searchController,
             onSearchChanged: (value) {
@@ -61,12 +61,12 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
 
             const SectionHeader(
               title: 'Newly Listed Jobs',
-              actionText: 'See All',
+              //actionText: 'See All',
             ),
 
             const FeaturedJobsList(),
 
-            const SectionHeader(title: 'Explore All Jobs', icon: Icons.sort),
+            const SectionHeader(title: 'Explore All Jobs'),
 
             const RecentJobsList(),
 

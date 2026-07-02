@@ -22,19 +22,22 @@ import 'package:gemhub/features/inventory/view/inventory_screen_view.dart';
 import 'package:gemhub/features/home/view/home_screen.dart';
 import 'package:gemhub/features/profile/view/profile_screen.dart';
 // Import your new feature view here
-import 'package:gemhub/features/profile/view/backup_screen.dart'; 
+import 'package:gemhub/features/profile/view/backup_screen.dart';
+import 'package:gemhub/features/inventory/view/gem_details_inventory_screen.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/features/jobs/view/screens/my_job_screen.dart';
 
 part 'app_router.g.dart';
 
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
-final _shellNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
+final shellNavigatorKey = GlobalKey<NavigatorState>();
 
 @riverpod
 GoRouter router(Ref ref) {
   final notifier = ref.watch(routerLogicProvider);
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/home',
     refreshListenable: notifier,
     redirect: notifier.redirect,
@@ -54,9 +57,12 @@ GoRouter router(Ref ref) {
         name: 'admin',
         builder: (context, state) => const AdminReviewScreen(),
       ),
-
+      GoRoute(
+        path: '/my-jobs',
+        builder: (context, state) => const MyJobsScreen(),
+      ),
       ShellRoute(
-        navigatorKey: _shellNavigatorKey,
+        navigatorKey: shellNavigatorKey,
         builder: (context, state, child) => MainNavigation(child: child),
         routes: [
           GoRoute(
@@ -110,6 +116,16 @@ GoRouter router(Ref ref) {
             path: '/inventory',
             name: 'inventory',
             builder: (context, state) => const InventoryScreen(),
+            routes: [
+              GoRoute(
+                path: 'details',
+                name: 'inventory_details',
+                builder: (context, state) {
+                  final gem = state.extra as GemstoneModel;
+                  return GemDetailsScreen(gemstone: gem);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/profile',
@@ -126,9 +142,8 @@ GoRouter router(Ref ref) {
           ),
         ],
       ),
-
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: '/gem-details/:id',
         name: 'gem_details',
         builder: (context, state) {
@@ -143,9 +158,8 @@ GoRouter router(Ref ref) {
           );
         },
       ),
-
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         path: '/job-details/:id',
         name: 'job_details',
         builder: (context, state) {
@@ -158,6 +172,13 @@ GoRouter router(Ref ref) {
           return const Scaffold(
             body: Center(child: Text("Job details not found")),
           );
+        },
+      ),
+      GoRoute(
+        path: '/post-job',
+        builder: (context, state) {
+          final jobToEdit = state.extra as Job?;
+          return PostJobScreen(jobToEdit: jobToEdit);
         },
       ),
     ],

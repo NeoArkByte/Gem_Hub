@@ -16,15 +16,15 @@ final class GemRepositoryProvider
     extends $FunctionalProvider<GemRepository, GemRepository, GemRepository>
     with $Provider<GemRepository> {
   GemRepositoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'gemRepositoryProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'gemRepositoryProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$gemRepositoryHash();

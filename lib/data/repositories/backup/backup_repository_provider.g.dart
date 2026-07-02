@@ -12,24 +12,20 @@ part of 'backup_repository_provider.dart';
 @ProviderFor(backupRepository)
 final backupRepositoryProvider = BackupRepositoryProvider._();
 
-final class BackupRepositoryProvider
-    extends
-        $FunctionalProvider<
-          BackupRepository,
-          BackupRepository,
-          BackupRepository
-        >
-    with $Provider<BackupRepository> {
+final class BackupRepositoryProvider extends $FunctionalProvider<
+    BackupRepository,
+    BackupRepository,
+    BackupRepository> with $Provider<BackupRepository> {
   BackupRepositoryProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'backupRepositoryProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'backupRepositoryProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$backupRepositoryHash();
