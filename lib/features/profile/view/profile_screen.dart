@@ -85,7 +85,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ]),
             const SizedBox(height: 18),
-            _buildSectionTitle("Notification Settings"),
+            _buildSectionTitle("Notification Settings & Jobs"),
             _buildMenuCard(cardColor, [
               _buildMenuTile(
                 Icons.notifications_active,
@@ -98,8 +98,11 @@ class ProfileScreen extends ConsumerWidget {
                 Icons.work_outline,
                 Colors.purple.shade50,
                 Colors.purple,
-                "Job Board Alerts",
+                "My Jobs posts",
                 textColor,
+                onTap: () {
+                  context.push('/my-jobs'); 
+                },
               ),
               _buildMenuTile(
                 Icons.inventory_2,
@@ -413,10 +416,10 @@ class ProfileScreen extends ConsumerWidget {
   void _showLogoutConfirmation(BuildContext context, WidgetRef ref) async {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 1. Show your brand new shared dialog component
+   
     final confirmLogout = await showDialog<bool>(
       context: context,
-      barrierDismissible: false, // Keeps your preference to force a button tap
+      barrierDismissible: false, 
       barrierColor: Colors.black.withOpacity(isDark ? 0.6 : 0.4),
       builder: (BuildContext context) {
         return const CustomConfirmDialog(
@@ -424,22 +427,20 @@ class ProfileScreen extends ConsumerWidget {
           content: "Are you sure you want to sign out of your account?",
           confirmLabel: "Sign Out",
           confirmColor: AppColors.dangerRed,
-          icon: Icons.logout_rounded, // Premium logout iconography style
+          icon: Icons.logout_rounded, 
         );
       },
     );
 
-    // If user clicked cancel or dismissed, stop execution
+    
     if (confirmLogout != true || !context.mounted) return;
 
-    // 2. Perform Async Logout Logic
+    
     try {
       await ref.read(authViewModelProvider.notifier).logout();
 
       if (!context.mounted) return;
 
-      // 3. Clear stack and route to login using GoRouter
-      // context.go removes all previous routes from the stack completely.
       context.go('/login');
     } catch (e) {
       if (!context.mounted) return;

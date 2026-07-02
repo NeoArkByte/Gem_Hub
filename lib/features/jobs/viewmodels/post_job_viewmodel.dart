@@ -31,4 +31,17 @@ class PostJobViewModel extends _$PostJobViewModel {
       return false;
     }
   }
+
+  Future<bool> updateJob(Job updatedJob) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(jobRepositoryProvider);
+      final isSuccess = await repository.updateJob(updatedJob);
+      state = const AsyncValue.data(null);
+      return isSuccess;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
 }

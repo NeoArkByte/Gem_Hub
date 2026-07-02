@@ -33,7 +33,7 @@ final class PostJobViewModelProvider
   PostJobViewModel create() => PostJobViewModel();
 }
 
-String _$postJobViewModelHash() => r'907c876c21699c4446d52f4d1fea224f28bbfd7c';
+String _$postJobViewModelHash() => r'c50aba2470be3ea710b35af31fcf82dbc17e7ec7';
 
 abstract class _$PostJobViewModel extends $AsyncNotifier<void> {
   FutureOr<void> build();

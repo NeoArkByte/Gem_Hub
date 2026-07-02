@@ -6,7 +6,9 @@ class FeaturedJobCard extends StatelessWidget {
   final String salary;
   final String timePosted;
   final bool isPremium;
-  final Color logoColor;
+
+  /// ✅ NEW: Dynamic category icon
+  final IconData iconData;
 
   const FeaturedJobCard({
     super.key,
@@ -15,7 +17,7 @@ class FeaturedJobCard extends StatelessWidget {
     required this.salary,
     required this.timePosted,
     required this.isPremium,
-    required this.logoColor,
+    required this.iconData, // ✅ NEW
   });
 
   @override
@@ -26,9 +28,7 @@ class FeaturedJobCard extends StatelessWidget {
       width: 280,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1F2937)
-            : Colors.white,
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: isDark
             ? []
@@ -43,23 +43,27 @@ class FeaturedJobCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+
+              /// ✅ Dynamic Category Icon
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF374151)
-                      : Colors.grey[100],
+                  color: const Color(0xFF10C971).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Center(
-                  child: Container(width: 32, height: 32, color: logoColor),
+                child: Icon(
+                  iconData, // ✅ dynamic icon here
+                  color: const Color(0xFF10C971),
+                  size: 26,
                 ),
               ),
+
               if (isPremium)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -81,7 +85,9 @@ class FeaturedJobCard extends StatelessWidget {
                 ),
             ],
           ),
+
           const SizedBox(height: 24),
+
           Text(
             title,
             style: TextStyle(
@@ -90,7 +96,9 @@ class FeaturedJobCard extends StatelessWidget {
               color: isDark ? Colors.white : const Color(0xFF111827),
             ),
           ),
+
           const SizedBox(height: 4),
+
           Text(
             company,
             style: TextStyle(
@@ -98,7 +106,9 @@ class FeaturedJobCard extends StatelessWidget {
               color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
           ),
+
           const SizedBox(height: 20),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -114,7 +124,8 @@ class FeaturedJobCard extends StatelessWidget {
                 timePosted,
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.grey[500] : Colors.grey[500],
+                  color:
+                      isDark ? Colors.grey[500] : Colors.grey[500],
                 ),
               ),
             ],

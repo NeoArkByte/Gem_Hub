@@ -30,7 +30,6 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
     final goRouter = ref.watch(routerProvider);
 
     return MaterialApp.router(
@@ -48,8 +47,6 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-
-      
       routerConfig: goRouter,
     );
   }

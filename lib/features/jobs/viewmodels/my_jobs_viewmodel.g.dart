@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'marketplace_viewmodel.dart';
+part of 'my_jobs_viewmodel.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,34 +9,33 @@ part of 'marketplace_viewmodel.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(MarketplaceViewModel)
-final marketplaceViewModelProvider = MarketplaceViewModelProvider._();
+@ProviderFor(MyJobsViewModel)
+final myJobsViewModelProvider = MyJobsViewModelProvider._();
 
-final class MarketplaceViewModelProvider
-    extends $AsyncNotifierProvider<MarketplaceViewModel, List<Job>> {
-  MarketplaceViewModelProvider._()
+final class MyJobsViewModelProvider
+    extends $AsyncNotifierProvider<MyJobsViewModel, List<Job>> {
+  MyJobsViewModelProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'marketplaceViewModelProvider',
+          name: r'myJobsViewModelProvider',
           isAutoDispose: true,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$marketplaceViewModelHash();
+  String debugGetCreateSourceHash() => _$myJobsViewModelHash();
 
   @$internal
   @override
-  MarketplaceViewModel create() => MarketplaceViewModel();
+  MyJobsViewModel create() => MyJobsViewModel();
 }
 
-String _$marketplaceViewModelHash() =>
-    r'53b61729170f488ba6eece308f6aa701dafd7e1f';
+String _$myJobsViewModelHash() => r'73d2d5a4e440aa620fcff237eff11bf432a935a7';
 
-abstract class _$MarketplaceViewModel extends $AsyncNotifier<List<Job>> {
+abstract class _$MyJobsViewModel extends $AsyncNotifier<List<Job>> {
   FutureOr<List<Job>> build();
   @$mustCallSuper
   @override
