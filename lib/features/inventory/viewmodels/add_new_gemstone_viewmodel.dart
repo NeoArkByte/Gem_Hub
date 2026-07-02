@@ -14,10 +14,13 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
 
   Future<void> saveGemstone({
     required GemstoneModel gem,
-    String? rawFirstImagePath,
-    String? rawFinalImagePath,
-    String? rawFirstVideoPath,
-    String? rawFinalVideoPath,
+    List<String> rawFirstLookPhotos = const [],
+    String? rawFirstLookVideo,
+    List<String> rawFinalPhotos = const [],
+    String? rawFinalVideo,
+    // Add raw media paths to certificates/value additions if needed 
+    // Here we assume the UI passed already vaulted/temp paths or we vault them here.
+    // For simplicity, we just vault first/final photos. 
   }) async {
     final repository = ref.read(inventoryRepositoryProvider);
     final vaultService = ref.read(mediaVaultProvider);
@@ -25,19 +28,12 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
     state = MediaProcessingState(isLoading: true, progress: 0);
 
     try {
-      String? vFirstImagePath = gem.firstImagePath;
-      String? vFinalImagePath = gem.finalImagePath;
-      String? vFirstVideoPath = gem.firstVideoPath;
-      String? vFinalVideoPath = gem.finalVideoPath;
+      List<String> vaultedFirstPhotos = [...gem.firstLookPhotos];
+      List<String> vaultedFinalPhotos = [...gem.finalPhotos];
+      String? vFirstVideoPath = gem.firstLookVideo;
+      String? vFinalVideoPath = gem.finalVideo;
 
-      final int totalSteps = [
-            rawFirstImagePath,
-            rawFinalImagePath,
-            rawFirstVideoPath,
-            rawFinalVideoPath,
-          ].where((e) => e != null).length +
-          1; // +1 for database transactions
-
+      final int totalSteps = rawFirstLookPhotos.length + rawFinalPhotos.length + (rawFirstLookVideo != null ? 1 : 0) + (rawFinalVideo != null ? 1 : 0) + 1;
       int currentStep = 0;
 
       void updateOverallProgress(double stepProgress) {
@@ -45,73 +41,66 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
         state = state.copyWith(progress: totalProgress);
       }
 
-      // --- STEP 1: VAULT IMAGES ---
-      if (rawFirstImagePath != null) {
+      for (String path in rawFirstLookPhotos) {
         final f = await vaultService.compressAndSaveToVault(
-          rawSourcePath: rawFirstImagePath,
+          rawSourcePath: path,
           type: MediaType.image,
         );
-        vFirstImagePath = f?.path;
+        if (f != null) vaultedFirstPhotos.add(f.path);
         currentStep++;
         updateOverallProgress(0);
       }
 
-      if (rawFinalImagePath != null) {
+      for (String path in rawFinalPhotos) {
         final f = await vaultService.compressAndSaveToVault(
-          rawSourcePath: rawFinalImagePath,
+          rawSourcePath: path,
           type: MediaType.image,
         );
-        vFinalImagePath = f?.path;
+        if (f != null) vaultedFinalPhotos.add(f.path);
         currentStep++;
         updateOverallProgress(0);
       }
 
-      // --- STEP 2: VAULT VIDEOS ---
-      if (rawFirstVideoPath != null) {
+      if (rawFirstLookVideo != null) {
         final f = await vaultService.compressAndSaveToVault(
-          rawSourcePath: rawFirstVideoPath,
+          rawSourcePath: rawFirstLookVideo,
           type: MediaType.video,
           onVideoProgress: (p) => updateOverallProgress(p / 100),
         );
-        vFirstVideoPath = f?.path;
+        if (f != null) vFirstVideoPath = f.path;
         currentStep++;
         updateOverallProgress(0);
       }
 
-      if (rawFinalVideoPath != null) {
+      if (rawFinalVideo != null) {
         final f = await vaultService.compressAndSaveToVault(
-          rawSourcePath: rawFinalVideoPath,
+          rawSourcePath: rawFinalVideo,
           type: MediaType.video,
           onVideoProgress: (p) => updateOverallProgress(p / 100),
         );
-        vFinalVideoPath = f?.path;
+        if (f != null) vFinalVideoPath = f.path;
         currentStep++;
         updateOverallProgress(0);
       }
 
-      // --- STEP 3: RECONSTRUCT DATA ---
       final gemstoneToSave = gem.copyWith(
-        firstImagePath: vFirstImagePath,
-        finalImagePath: vFinalImagePath,
-        firstVideoPath: vFirstVideoPath,
-        finalVideoPath: vFinalVideoPath,
+        firstLookPhotos: vaultedFirstPhotos,
+        finalPhotos: vaultedFinalPhotos,
+        firstLookVideo: vFirstVideoPath,
+        finalVideo: vFinalVideoPath,
       );
 
-      // --- STEP 4: DB STORAGE ---
       if (gemstoneToSave.id == null) {
         await repository.insertGemstone(gemstoneToSave);
       } else {
         await repository.updateGemstone(gemstoneToSave);
       }
 
-      // Finalize progress metrics before clearing views
       currentStep++;
       updateOverallProgress(0);
 
       state = state.copyWith(isLoading: false, progress: 1.0, isSuccess: true);
 
-      // --- STEP 5: MUTATION INVALIDATION ---
-      // Invalidating inside a microtask blocks asynchronous rendering bugs
       Future.microtask(() {
         ref.invalidate(inventoryViewModelProvider);
       });

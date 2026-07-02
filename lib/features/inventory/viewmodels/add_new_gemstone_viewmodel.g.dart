@@ -42,7 +42,7 @@ final class AddNewGemstoneViewModelProvider
 }
 
 String _$addNewGemstoneViewModelHash() =>
-    r'c50a6fa86619f27ae627b8373155d4a73dd6f284';
+    r'ea65c229ff8d5c5f678baee595ba06df795d1992';
 
 abstract class _$AddNewGemstoneViewModel
     extends $Notifier<MediaProcessingState> {

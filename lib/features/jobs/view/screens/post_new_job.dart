@@ -48,14 +48,14 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     'Other (Add Custom)',
   ];
 
-  bool get isEditMode => widget.jobToEdit != null; 
+  bool get isEditMode => widget.jobToEdit != null;
 
   @override
   void initState() {
     super.initState();
     if (isEditMode) {
       final job = widget.jobToEdit!;
-      
+
       if (job.companyInfo != null && job.companyInfo!.contains(' • ')) {
         final parts = job.companyInfo!.split(' • ');
         _companyNameCtrl.text = parts[0];
@@ -66,22 +66,23 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
 
       _jobTitleCtrl.text = job.title ?? '';
       _descriptionCtrl.text = job.description ?? '';
-      
-      if (job.minSalary != null) _minSalaryCtrl.text = job.minSalary!.toInt().toString();
-      if (job.maxSalary != null) _maxSalaryCtrl.text = job.maxSalary!.toInt().toString();
 
-    
+      if (job.minSalary != null) {
+        _minSalaryCtrl.text = job.minSalary!.toInt().toString();
+      }
+      if (job.maxSalary != null) {
+        _maxSalaryCtrl.text = job.maxSalary!.toInt().toString();
+      }
+
       try {
-        
         _phoneCtrl.text = (job as dynamic).phoneNumber ?? '';
         _whatsappCtrl.text = (job as dynamic).whatsappNumber ?? '';
       } catch (e) {
         print("Error accessing phone/whatsapp: $e");
       }
 
-      
-      if (job.tags != null && job.tags!.isNotEmpty) {
-        List<String> allTags = job.tags!.split(',');
+      if (job.tags.isNotEmpty) {
+        List<String> allTags = job.tags.split(',');
         if (allTags.isNotEmpty) {
           String cat = allTags.first.trim();
           if (_categories.contains(cat)) {
@@ -155,7 +156,6 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
       return;
     }
 
-   
     final minSalaryText = _minSalaryCtrl.text.trim();
     final maxSalaryText = _maxSalaryCtrl.text.trim();
 
@@ -187,15 +187,12 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
 
     String phone = _phoneCtrl.text.trim();
 
-   
     phone = phone.replaceAll(RegExp(r'\s+'), '');
 
-    
     if (phone.startsWith('0')) {
       phone = '+94${phone.substring(1)}';
     }
 
-    
     final sriLankaRegex = RegExp(r'^\+947\d{8}$');
 
     if (!sriLankaRegex.hasMatch(phone)) {
@@ -203,7 +200,6 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
       return;
     }
 
-  
     final sessionState = ref.read(sessionProvider);
     final authData = sessionState.value;
 
@@ -247,9 +243,13 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     bool isSuccess;
 
     if (isEditMode) {
-      isSuccess = await ref.read(postJobViewModelProvider.notifier).updateJob(submitJob);
+      isSuccess = await ref
+          .read(postJobViewModelProvider.notifier)
+          .updateJob(submitJob);
     } else {
-      isSuccess = await ref.read(postJobViewModelProvider.notifier).publishJob(submitJob);
+      isSuccess = await ref
+          .read(postJobViewModelProvider.notifier)
+          .publishJob(submitJob);
     }
 
     if (isSuccess && mounted) {
@@ -257,16 +257,17 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            isEditMode 
-              ? 'Job updated successfully! Waiting for Admin approval. ⏳' 
-              : 'Job submitted successfully! Waiting for Admin approval. ⏳',
+            isEditMode
+                ? 'Job updated successfully! Waiting for Admin approval. ⏳'
+                : 'Job submitted successfully! Waiting for Admin approval. ⏳',
           ),
           backgroundColor: const Color(0xFFFDB913),
         ),
       );
       context.pop();
     } else if (mounted) {
-      _showError(isEditMode ? "Failed to update job." : "Failed to submit job.");
+      _showError(
+          isEditMode ? "Failed to update job." : "Failed to submit job.");
     }
   }
 
@@ -299,9 +300,8 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     Color bgColor = isDark ? const Color(0xFF111827) : const Color(0xFFF8F9FA);
     Color textColor = isDark ? Colors.white : const Color(0xFF111827);
     Color fieldBg = isDark ? const Color(0xFF1F2937) : Colors.white;
-    Color dividerColor = isDark
-        ? const Color(0xFF374151)
-        : const Color(0xFFE5E7EB);
+    Color dividerColor =
+        isDark ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
     final divider = Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Divider(color: dividerColor, thickness: 1),
@@ -377,7 +377,9 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: _categories.contains(_selectedCategory) ? _selectedCategory : 'Other (Add Custom)',
+                        initialValue: _categories.contains(_selectedCategory)
+                            ? _selectedCategory
+                            : 'Other (Add Custom)',
                         dropdownColor: fieldBg,
                         style: TextStyle(color: textColor, fontSize: 16),
                         decoration: InputDecoration(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
 
@@ -67,7 +66,6 @@ class JobDetailsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeaderSection(textColor, greyText, isDark),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -80,10 +78,8 @@ class JobDetailsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                   _buildSalaryCard(textColor, greyText, isDark),
                   const SizedBox(height: 32),
-
                   _buildSafetyTipsSection(isDark),
                   const SizedBox(height: 32),
-
                   const SizedBox(height: 40),
                 ],
               ),
@@ -97,9 +93,8 @@ class JobDetailsScreen extends ConsumerWidget {
 
   Widget _buildHeaderSection(Color textColor, Color greyText, bool isDark) {
     List<String> companyParts = (job.companyInfo ?? '').split(' • ');
-    String companyName = companyParts.isNotEmpty
-        ? companyParts[0]
-        : 'Unknown Employer';
+    String companyName =
+        companyParts.isNotEmpty ? companyParts[0] : 'Unknown Employer';
     String location = companyParts.length > 1 ? companyParts[1] : 'Sri Lanka';
 
     String formattedDate = 'Recently';
@@ -107,7 +102,7 @@ class JobDetailsScreen extends ConsumerWidget {
       try {
         DateTime parsedDate = DateTime.parse(
           job.createdAt!,
-        ).toLocal(); 
+        ).toLocal();
         List<String> months = [
           'Jan',
           'Feb',
@@ -131,8 +126,7 @@ class JobDetailsScreen extends ConsumerWidget {
         formattedDate =
             "${parsedDate.day} ${months[parsedDate.month - 1]} $hour:$minute $period";
       } catch (e) {
-        formattedDate =
-            job.createdAt!; 
+        formattedDate = job.createdAt!;
       }
     }
 
@@ -152,7 +146,6 @@ class JobDetailsScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
           Text(
             job.title ?? 'Job Title',
             style: TextStyle(
@@ -163,7 +156,6 @@ class JobDetailsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 18),
-
           Row(
             children: [
               Icon(Icons.access_time, size: 16, color: greyText),
@@ -177,7 +169,6 @@ class JobDetailsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-
           Row(
             children: [
               Icon(Icons.location_on_outlined, size: 16, color: greyText),
@@ -191,8 +182,6 @@ class JobDetailsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 8),
-
-        
           Row(
             children: [
               Icon(Icons.business_center_outlined, size: 16, color: greyText),
@@ -229,10 +218,8 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildTagsRow(bool isDark) {
-    List<String> tagsList = (job.tags)
-        .split(',')
-        .where((t) => t.trim().isNotEmpty)
-        .toList();
+    List<String> tagsList =
+        (job.tags).split(',').where((t) => t.trim().isNotEmpty).toList();
 
     if (tagsList.isEmpty) return const SizedBox.shrink();
 
@@ -284,8 +271,8 @@ class JobDetailsScreen extends ConsumerWidget {
   Widget _buildAboutSection(Color textColor, Color greyText) {
     String descriptionText =
         (job.description != null && job.description!.trim().isNotEmpty)
-        ? job.description!
-        : 'No detailed description provided for this job.';
+            ? job.description!
+            : 'No detailed description provided for this job.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,18 +372,14 @@ class JobDetailsScreen extends ConsumerWidget {
   }
 
   Widget _buildSafetyTipsSection(bool isDark) {
-    Color warningBg = isDark
-        ? const Color(0xFF3F1919)
-        : const Color(0xFFFEF2F2);
-    Color warningBorder = isDark
-        ? const Color(0xFF7F1D1D)
-        : const Color(0xFFFECACA);
-    Color warningIcon = isDark
-        ? const Color(0xFFFCA5A5)
-        : const Color(0xFFEF4444);
-    Color warningText = isDark
-        ? const Color(0xFFFECACA)
-        : const Color(0xFF991B1B);
+    Color warningBg =
+        isDark ? const Color(0xFF3F1919) : const Color(0xFFFEF2F2);
+    Color warningBorder =
+        isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA);
+    Color warningIcon =
+        isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444);
+    Color warningText =
+        isDark ? const Color(0xFFFECACA) : const Color(0xFF991B1B);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -605,7 +588,6 @@ class JobDetailsScreen extends ConsumerWidget {
 String formatWhatsAppNumber(String number) {
   String cleanNumber = number.replaceAll(RegExp(r'\s+'), '');
 
- 
   if (cleanNumber.startsWith('+')) {
     cleanNumber = cleanNumber.substring(1);
   }

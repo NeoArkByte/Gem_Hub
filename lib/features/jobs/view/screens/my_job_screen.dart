@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:gemhub/data/models/job_market/job_model.dart';
-import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/jobs/viewmodels/my_jobs_viewmodel.dart';
 
 class MyJobsScreen extends ConsumerStatefulWidget {
@@ -218,9 +217,7 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
                 borderRadius: BorderRadius.circular(12)),
             child: Center(
                 child: Text(
-                    job.title != null && job.title!.isNotEmpty
-                        ? job.title![0].toUpperCase()
-                        : 'J',
+                    job.title.isNotEmpty ? job.title[0].toUpperCase() : 'J',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

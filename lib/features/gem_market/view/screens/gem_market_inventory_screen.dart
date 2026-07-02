@@ -35,9 +35,8 @@ class _GemMarketInventoryScreenState
     final gemsAsync = ref.watch(gemMarketInventoryViewModelProvider);
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackground,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -483,15 +482,14 @@ class _GemMarketInventoryScreenState
                 }
               },
               selectedColor: AppColors.primaryGreen,
-              backgroundColor: isDark
-                  ? AppColors.darkSurface
-                  : AppColors.lightSurface,
+              backgroundColor:
+                  isDark ? AppColors.darkSurface : AppColors.lightSurface,
               side: BorderSide(
                 color: selected
                     ? Colors.transparent
                     : (isDark
-                          ? AppColors.darkSurfaceAlt
-                          : AppColors.lightBorderAlt),
+                        ? AppColors.darkSurfaceAlt
+                        : AppColors.lightBorderAlt),
               ),
               labelStyle: TextStyle(
                 color: selected
@@ -588,8 +586,9 @@ class _GemMarketInventoryScreenState
                                 },
                               );
 
-                              if (confirmDelete != true || !context.mounted)
+                              if (confirmDelete != true || !context.mounted) {
                                 return;
+                              }
 
                               // 2. Perform the viewmodel logic sequence
                               final success = await ref
@@ -701,9 +700,8 @@ class _GemMarketInventoryScreenState
           Icon(
             Icons.image_outlined,
             size: 32,
-            color: isDark
-                ? AppColors.greyTextLight
-                : AppColors.greyTextSecondary,
+            color:
+                isDark ? AppColors.greyTextLight : AppColors.greyTextSecondary,
           ),
           const SizedBox(height: 4),
           Text(
@@ -724,9 +722,8 @@ class _GemMarketInventoryScreenState
     final Color bgColor = isCertified
         ? AppColors.accentGreenLight
         : AppColors.lightBackgroundGrey;
-    final Color textColor = isCertified
-        ? AppColors.primaryGreen
-        : AppColors.textDarkAlt;
+    final Color textColor =
+        isCertified ? AppColors.primaryGreen : AppColors.textDarkAlt;
     final String label = isCertified ? 'CERTIFIED' : 'NOT CERTIFIED';
 
     return Container(
@@ -783,8 +780,8 @@ class _GemMarketInventoryScreenState
           color: status == GemStatus.APPROVED
               ? AppColors.primaryGreen
               : status == GemStatus.REJECTED
-              ? AppColors.accentRed
-              : AppColors.greyTextLight,
+                  ? AppColors.accentRed
+                  : AppColors.greyTextLight,
           width: 1,
         ),
       ),
@@ -802,9 +799,7 @@ class _GemMarketInventoryScreenState
 
   // Full representation with standard comma separations
   String _formatPrice(double value) {
-    return value
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    return value.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (match) => '${match[1]},',
         );
