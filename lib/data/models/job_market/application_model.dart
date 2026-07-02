@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Application {
   final String applicationId;
   final String jobId;

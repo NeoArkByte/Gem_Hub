@@ -10,7 +10,6 @@ import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 import 'package:gemhub/data/models/backup/backup_state.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/core/router/app_router.dart';
-import 'package:share_plus/share_plus.dart';
 
 part 'backup_viewmodel.g.dart';
 

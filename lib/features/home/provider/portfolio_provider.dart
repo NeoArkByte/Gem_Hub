@@ -12,18 +12,10 @@ Future<Map<String, double>> portfolioData(Ref ref) async {
   double realizedProfit = 0;
 
   for (var gem in gems) {
-    final double totalCost =
-        gem.buyingPrice +
-        gem.treatmentCost +
-        gem.recutCost +
-        gem.otherProcessingCost +
-        gem.transportCost +
-        gem.otherCost;
-
     if (gem.isSold) {
-      realizedProfit += gem.sellingPrice - totalCost;
+      realizedProfit += gem.actualProfit;
     } else {
-      inventoryValue += gem.targetPrice;
+      inventoryValue += gem.salesTargetPrice;
     }
   }
 

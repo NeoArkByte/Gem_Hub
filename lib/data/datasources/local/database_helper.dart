@@ -44,11 +44,12 @@ class DatabaseHelper {
     return await openDatabase(
       path,
       password: password,
-      version: 1,
+      version: 2,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -87,7 +88,36 @@ class DatabaseHelper {
         first_image_path TEXT, 
         final_image_path TEXT,
         first_video_path TEXT,
-        final_video_path TEXT
+        final_video_path TEXT,
+        category TEXT DEFAULT 'Other',
+        origin TEXT DEFAULT 'Sri Lanka',
+        visibility TEXT DEFAULT 'Private',
+        recordDate TEXT,
+        buyingDate TEXT,
+        buyerName TEXT,
+        buyerContact TEXT,
+        buyingColor TEXT,
+        finalColor TEXT,
+        firstLookPhotos TEXT,
+        firstLookVideo TEXT,
+        finalPhotos TEXT,
+        finalVideo TEXT,
+        valueAdditions TEXT,
+        currentWeight REAL,
+        shape TEXT,
+        clarity TEXT,
+        status TEXT,
+        length REAL,
+        width REAL,
+        depth REAL,
+        isCertified INTEGER DEFAULT 0,
+        certificates TEXT,
+        isReadyToSale INTEGER DEFAULT 0,
+        salesTargetPrice REAL,
+        actualSoldPrice REAL,
+        cuttingCost REAL,
+        heatCost REAL,
+        certificateFees REAL
       )
     ''');
 
@@ -97,6 +127,51 @@ class DatabaseHelper {
         'name': type.name,
         'display_name': type.displayName,
       });
+    }
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      final List<String> newColumns = [
+        "ADD COLUMN category TEXT DEFAULT 'Other'",
+        "ADD COLUMN origin TEXT DEFAULT 'Sri Lanka'",
+        "ADD COLUMN visibility TEXT DEFAULT 'Private'",
+        "ADD COLUMN recordDate TEXT",
+        "ADD COLUMN buyingDate TEXT",
+        "ADD COLUMN buyerName TEXT",
+        "ADD COLUMN buyerContact TEXT",
+        "ADD COLUMN buyingColor TEXT",
+        "ADD COLUMN finalColor TEXT",
+        "ADD COLUMN firstLookPhotos TEXT",
+        "ADD COLUMN firstLookVideo TEXT",
+        "ADD COLUMN finalPhotos TEXT",
+        "ADD COLUMN finalVideo TEXT",
+        "ADD COLUMN valueAdditions TEXT",
+        "ADD COLUMN currentWeight REAL",
+        "ADD COLUMN shape TEXT",
+        "ADD COLUMN clarity TEXT",
+        "ADD COLUMN status TEXT",
+        "ADD COLUMN length REAL",
+        "ADD COLUMN width REAL",
+        "ADD COLUMN depth REAL",
+        "ADD COLUMN isCertified INTEGER DEFAULT 0",
+        "ADD COLUMN certificates TEXT",
+        "ADD COLUMN isReadyToSale INTEGER DEFAULT 0",
+        "ADD COLUMN salesTargetPrice REAL",
+        "ADD COLUMN actualSoldPrice REAL",
+        "ADD COLUMN cuttingCost REAL",
+        "ADD COLUMN heatCost REAL",
+        "ADD COLUMN certificateFees REAL"
+      ];
+
+      for (String column in newColumns) {
+        try {
+          await db.execute('ALTER TABLE gemstones $column');
+        } catch (e) {
+          // Column might already exist
+          print('Error adding column: \$e');
+        }
+      }
     }
   }
 

@@ -6,401 +6,701 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/models/inventory/media_processing_state.dart';
+import 'package:gemhub/data/models/inventory/value_addition_model.dart';
+import 'package:gemhub/data/models/inventory/certificate_model.dart';
+import 'package:gemhub/core/enums/inventory_enums.dart';
 import 'package:gemhub/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart';
 
 class AddNewGemstoneScreen extends ConsumerStatefulWidget {
-  final GemstoneModel? gemstoneToEdit; // Add this line
-
+  final GemstoneModel? gemstoneToEdit;
   const AddNewGemstoneScreen({super.key, this.gemstoneToEdit});
 
   @override
-  ConsumerState<AddNewGemstoneScreen> createState() =>
-      _AddNewGemstoneScreenState();
+  ConsumerState<AddNewGemstoneScreen> createState() => _AddNewGemstoneScreenState();
 }
 
 class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
+  int _currentStep = 0;
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
 
-  bool _isSold = false;
-  String? _firstImageError;
+  // STEP 1 - Basic Info
+  GemCategory _category = GemCategory.sapphire;
+  final TextEditingController _customCategoryCtrl = TextEditingController();
+  String _origin = 'Sri Lanka';
+  final List<String> _origins = ['Sri Lanka', 'Madagascar', 'Myanmar', 'Tanzania', 'Other'];
+  GemVisibility _visibility = GemVisibility.private;
 
-  // --- Media State ---
-  File? _firstImage;
-  File? _finalImage;
-  File? _firstVideo;
-  File? _finalVideo;
-
-  String? _rawFirstImagePath;
-  String? _rawFinalImagePath;
-  String? _rawFirstVideoPath;
-  String? _rawFinalVideoPath;
-
-  // --- Controllers ---
-  final TextEditingController _dateCtrl = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
-
-  String _selectedVariety = 'Sapphire';
-  final List<String> _varieties = [
-    'Sapphire',
-    'Ruby',
-    'Emerald',
-    'Spinel',
-    'Tourmaline',
-    'Chrysoberyl',
-    'Alexandrite',
-    'Other',
-  ];
-
-  final TextEditingController _colorCtrl = TextEditingController();
-  bool _isRough = true;
-  bool _isCut = false;
-
-  // Acquisition
+  // STEP 2 - Buying Details
   final TextEditingController _buyingWeightCtrl = TextEditingController();
-  final TextEditingController _buyingPriceCtrl = TextEditingController(
-    text: '0',
-  );
+  final TextEditingController _buyingPriceCtrl = TextEditingController(text: '0');
+  DateTime _recordDate = DateTime.now();
+  DateTime _buyingDate = DateTime.now();
+  final TextEditingController _buyerNameCtrl = TextEditingController();
+  final TextEditingController _buyerContactCtrl = TextEditingController();
+  final TextEditingController _varietyCtrl = TextEditingController();
+  final TextEditingController _buyingColorCtrl = TextEditingController();
 
-  // Value Addition (NEW)
-  final TextEditingController _treatmentCostCtrl = TextEditingController(
-    text: '0',
-  );
-  final TextEditingController _recutCostCtrl = TextEditingController(text: '0');
-  final TextEditingController _otherValueAddCostCtrl = TextEditingController(
-    text: '0',
-  );
-  final TextEditingController _valueAddDescCtrl =
-      TextEditingController(); // Description
+  // STEP 3 - First Look
+  List<String> _firstLookPhotos = [];
+  String? _firstLookVideo;
 
-  // Processing
-  final TextEditingController _treatmentStatusCtrl = TextEditingController();
+  // STEP 4 - Value Additions
+  List<ValueAdditionModel> _valueAdditions = [];
+
+  // STEP 5 - Final Stage
   final TextEditingController _finalWeightCtrl = TextEditingController();
+  GemShape _shape = GemShape.faceted;
+  final TextEditingController _customShapeCtrl = TextEditingController();
+  GemClarity _clarity = GemClarity.vvs1;
+  final TextEditingController _finalColorCtrl = TextEditingController();
+  InventoryGemStatus _status = InventoryGemStatus.rough;
+  final TextEditingController _lengthCtrl = TextEditingController();
+  final TextEditingController _widthCtrl = TextEditingController();
+  final TextEditingController _depthCtrl = TextEditingController();
 
-  // Final Costs & Prices (NEW)
-  final TextEditingController _transportCostCtrl = TextEditingController(
-    text: '0',
-  );
-  final TextEditingController _otherExpCostCtrl = TextEditingController(
-    text: '0',
-  );
-  final TextEditingController _otherExpDescCtrl = TextEditingController();
-  final TextEditingController _targetPriceCtrl = TextEditingController(
-    text: '0',
-  );
-  final TextEditingController _sellingPriceCtrl = TextEditingController(
-    text: '0',
-  );
+  // STEP 6 - Final Media
+  List<String> _finalPhotos = [];
+  String? _finalVideo;
+
+  // STEP 7 - Certification
+  bool _isCertified = false;
+  List<CertificateModel> _certificates = [];
+
+  // STEP 8 - Finance & Sales
+  final TextEditingController _salesTargetPriceCtrl = TextEditingController(text: '0');
+  bool _isReadyToSale = false;
+  bool _isSold = false;
+  final TextEditingController _actualSoldPriceCtrl = TextEditingController(text: '0');
 
   @override
   void initState() {
     super.initState();
-
-    // Set the default date display
-    _dateCtrl.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
-
-    // If editing, pre-fill all fields using your defined controller names
     if (widget.gemstoneToEdit != null) {
-      final gem = widget.gemstoneToEdit!;
-
-      // Basic Info
-      _dateCtrl.text = gem.date;
-      _selectedVariety = gem.variety;
-      _colorCtrl.text = gem.color;
-      _isRough = gem.isRough;
-      _isCut = gem.isCut;
-
-      // Acquisition & Weights
-      _buyingWeightCtrl.text = gem.buyingWeight.toString();
-      _buyingPriceCtrl.text = gem.buyingPrice.toString();
-      _finalWeightCtrl.text = gem.finalWeight.toString();
-
-      // Value Addition
-      _treatmentCostCtrl.text = gem.treatmentCost.toString();
-      _recutCostCtrl.text = gem.recutCost.toString();
-      _valueAddDescCtrl.text = gem.otherProcessingDesc;
-
-      // Final Costs & Target
-      _transportCostCtrl.text = gem.transportCost.toString();
-      _otherExpCostCtrl.text = gem.otherCost.toString();
-      _otherExpDescCtrl.text = gem.otherCostReason;
-      _targetPriceCtrl.text = gem.targetPrice.toString();
-      _sellingPriceCtrl.text = gem.sellingPrice.toString();
-
-      if (gem.firstImagePath != null) {
-        _firstImage = File(gem.firstImagePath!);
-      }
-      if (gem.finalImagePath != null) {
-        _finalImage = File(gem.finalImagePath!);
-      }
-      if (gem.firstVideoPath != null) {
-        _firstVideo = File(gem.firstVideoPath!);
-      }
-      if (gem.finalVideoPath != null) {
-        _finalVideo = File(gem.finalVideoPath!);
-      }
+      _loadExistingGemstone(widget.gemstoneToEdit!);
     }
+  }
+
+  void _loadExistingGemstone(GemstoneModel gem) {
+    try {
+      _category = GemCategory.values.firstWhere((e) => e.displayName == gem.category, orElse: () => GemCategory.other);
+    } catch (_) { _category = GemCategory.other; }
+    if (_category == GemCategory.other) _customCategoryCtrl.text = gem.category;
+
+    _origin = gem.origin.isNotEmpty ? gem.origin : 'Sri Lanka';
+    if (!_origins.contains(_origin)) _origin = 'Other';
+
+    try {
+      _visibility = GemVisibility.values.firstWhere((e) => e.displayName == gem.visibility, orElse: () => GemVisibility.private);
+    } catch (_) { _visibility = GemVisibility.private; }
+
+    _buyingWeightCtrl.text = gem.buyingWeight.toString();
+    _buyingPriceCtrl.text = gem.buyingPrice.toString();
+    
+    try {
+      _recordDate = DateTime.parse(gem.recordDate);
+    } catch (_) { _recordDate = DateTime.now(); }
+    
+    try {
+      _buyingDate = DateTime.parse(gem.buyingDate);
+    } catch (_) { _buyingDate = DateTime.now(); }
+
+    _buyerNameCtrl.text = gem.buyerName;
+    _buyerContactCtrl.text = gem.buyerContact;
+    _varietyCtrl.text = gem.variety;
+    _buyingColorCtrl.text = gem.buyingColor;
+
+    _firstLookPhotos = List.from(gem.firstLookPhotos);
+    _firstLookVideo = gem.firstLookVideo;
+
+    _valueAdditions = List.from(gem.valueAdditions);
+
+    _finalWeightCtrl.text = gem.finalWeight > 0 ? gem.finalWeight.toString() : gem.currentWeight.toString();
+    try {
+      _shape = GemShape.values.firstWhere((e) => e.displayName == gem.shape, orElse: () => GemShape.other);
+    } catch (_) { _shape = GemShape.other; }
+    if (_shape == GemShape.other) _customShapeCtrl.text = gem.shape;
+
+    try {
+      _clarity = GemClarity.values.firstWhere((e) => e.displayName == gem.clarity, orElse: () => GemClarity.vvs1);
+    } catch (_) { _clarity = GemClarity.vvs1; }
+
+    _finalColorCtrl.text = gem.finalColor;
+    try {
+      _status = InventoryGemStatus.values.firstWhere((e) => e.displayName == gem.status, orElse: () => InventoryGemStatus.rough);
+    } catch (_) { _status = gem.isCut ? InventoryGemStatus.cut : InventoryGemStatus.rough; }
+
+    _lengthCtrl.text = gem.length.toString();
+    _widthCtrl.text = gem.width.toString();
+    _depthCtrl.text = gem.depth.toString();
+
+    _finalPhotos = List.from(gem.finalPhotos);
+    _finalVideo = gem.finalVideo;
+
+    _isCertified = gem.isCertified;
+    _certificates = List.from(gem.certificates);
+
+    _salesTargetPriceCtrl.text = gem.salesTargetPrice.toString();
+    _isReadyToSale = gem.isReadyToSale;
+    _isSold = gem.isSold;
+    _actualSoldPriceCtrl.text = gem.actualSoldPrice.toString();
   }
 
   @override
   void dispose() {
-    _dateCtrl.dispose();
-    _colorCtrl.dispose();
+    _customCategoryCtrl.dispose();
     _buyingWeightCtrl.dispose();
     _buyingPriceCtrl.dispose();
-    _treatmentCostCtrl.dispose();
-    _recutCostCtrl.dispose();
-    _otherValueAddCostCtrl.dispose();
-    _valueAddDescCtrl.dispose();
-    _treatmentStatusCtrl.dispose();
+    _buyerNameCtrl.dispose();
+    _buyerContactCtrl.dispose();
+    _varietyCtrl.dispose();
+    _buyingColorCtrl.dispose();
     _finalWeightCtrl.dispose();
-    _transportCostCtrl.dispose();
-    _otherExpCostCtrl.dispose();
-    _otherExpDescCtrl.dispose();
-    _targetPriceCtrl.dispose();
-    _sellingPriceCtrl.dispose();
+    _customShapeCtrl.dispose();
+    _finalColorCtrl.dispose();
+    _lengthCtrl.dispose();
+    _widthCtrl.dispose();
+    _depthCtrl.dispose();
+    _salesTargetPriceCtrl.dispose();
+    _actualSoldPriceCtrl.dispose();
     super.dispose();
   }
 
-  // --- Helper: Calculation Logic ---
+  double get _totalValueAdditionCosts => _valueAdditions.fold(0.0, (sum, addition) => sum + addition.cost);
+  double get _totalCertificateFees => _certificates.fold(0.0, (sum, cert) => sum + cert.certificateFees);
+  
   double get _totalFinalCost {
     double buying = double.tryParse(_buyingPriceCtrl.text) ?? 0;
-    double treatment = double.tryParse(_treatmentCostCtrl.text) ?? 0;
-    double recut = double.tryParse(_recutCostCtrl.text) ?? 0;
-    double vAddOther = double.tryParse(_otherValueAddCostCtrl.text) ?? 0;
-    double transport = double.tryParse(_transportCostCtrl.text) ?? 0;
-    double expOther = double.tryParse(_otherExpCostCtrl.text) ?? 0;
-    return buying + treatment + recut + vAddOther + transport + expOther;
+    return buying + _totalValueAdditionCosts + _totalCertificateFees;
   }
 
-  double get _profitAmount {
-    double selling = double.tryParse(_sellingPriceCtrl.text) ?? 0;
-    return selling - _totalFinalCost;
+  double get _targetProfit {
+    double salesTarget = double.tryParse(_salesTargetPriceCtrl.text) ?? 0;
+    return salesTarget > 0 ? (salesTarget - _totalFinalCost) : 0;
   }
 
-  double get _profitPercentage {
-    if (_totalFinalCost == 0) return 0;
-    return (_profitAmount / _totalFinalCost) * 100;
+  double get _targetMargin {
+    double salesTarget = double.tryParse(_salesTargetPriceCtrl.text) ?? 0;
+    return (salesTarget > 0 && _totalFinalCost > 0) ? (_targetProfit / _totalFinalCost) * 100 : 0.0;
   }
 
-  // --- Image Picker Logic ---
-  Future<void> _pickMedia(bool isFirst) async {
-    final ImageSource? source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera (Image)'),
-              onTap: () => Navigator.pop(context, ImageSource.camera),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery (Image)'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam),
-              title: const Text('Video (Gallery)'),
-              onTap: () => Navigator.pop(context, ImageSource.gallery),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (source == null) return;
-
-    // Show another picker for Video if needed, or just handle based on button?
-    // Let's re-work the picker to be more explicit.
+  double get _actualProfit {
+    double actualSold = double.tryParse(_actualSoldPriceCtrl.text) ?? 0;
+    return (_isSold && actualSold > 0) ? (actualSold - _totalFinalCost) : 0;
   }
 
-  Future<void> _pickImage(bool isFirst) async {
-    await _handleMediaPick(isFirst, isVideo: false);
+  double get _actualMargin {
+    return (_isSold && _totalFinalCost > 0) ? (_actualProfit / _totalFinalCost) * 100 : 0.0;
   }
 
-  Future<void> _pickVideo(bool isFirst) async {
-    await _handleMediaPick(isFirst, isVideo: true);
+  double get _currentWeight {
+    if (_valueAdditions.isNotEmpty) {
+      return _valueAdditions.last.currentWeight;
+    }
+    return double.tryParse(_buyingWeightCtrl.text) ?? 0.0;
   }
 
-  Future<void> _handleMediaPick(bool isFirst, {required bool isVideo}) async {
-    final XFile? pickedFile = isVideo
-        ? await _picker.pickVideo(source: ImageSource.gallery)
-        : await _picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      final File file = File(pickedFile.path);
-      final int sizeInBytes = await file.length();
-      final double sizeInMb = sizeInBytes / (1024 * 1024);
-
-      if (isVideo) {
-        if (sizeInMb > 600) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Video size exceeds 100MB limit.')),
-            );
-          }
-          return;
-        }
-      } else {
-        if (sizeInMb > 10) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Image size exceeds 10MB limit.')),
-            );
-          }
-          return;
-        }
-      }
-
+  Future<void> _pickImage(List<String> list, int maxPhotos) async {
+    if (list.length >= maxPhotos) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Maximum $maxPhotos photos allowed.')));
+      return;
+    }
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
       setState(() {
-        if (isVideo) {
-          if (isFirst) {
-            _firstVideo = file;
-            _rawFirstVideoPath = pickedFile.path;
-          } else {
-            _finalVideo = file;
-            _rawFinalVideoPath = pickedFile.path;
-          }
-        } else {
-          if (isFirst) {
-            _firstImage = file;
-            _rawFirstImagePath = pickedFile.path;
-          } else {
-            _finalImage = file;
-            _rawFinalImagePath = pickedFile.path;
-          }
-        }
+        list.add(image.path);
       });
     }
+  }
+
+  Future<void> _pickVideo(Function(String?) onPicked) async {
+    final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+    if (video != null) {
+      setState(() {
+        onPicked(video.path);
+      });
+    }
+  }
+
+  void _addValueAddition() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        CostType type = CostType.treatment;
+        final nameCtrl = TextEditingController();
+        final reasonCtrl = TextEditingController();
+        final costCtrl = TextEditingController();
+        final weightCtrl = TextEditingController(text: _currentWeight.toString());
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Add Value Addition'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<CostType>(
+                      initialValue: type,
+                      items: CostType.values.map((e) => DropdownMenuItem(value: e, child: Text(e.displayName))).toList(),
+                      onChanged: (val) => setStateDialog(() => type = val!),
+                      decoration: const InputDecoration(labelText: 'Cost Type'),
+                    ),
+                    if (type == CostType.treatment)
+                      TextFormField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Treatment Name')),
+                    if (type == CostType.other)
+                      TextFormField(controller: reasonCtrl, decoration: const InputDecoration(labelText: 'Reason')),
+                    TextFormField(
+                      controller: costCtrl,
+                      decoration: const InputDecoration(labelText: 'Cost'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    TextFormField(
+                      controller: weightCtrl,
+                      decoration: const InputDecoration(labelText: 'Current Weight (ct)'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _valueAdditions.add(ValueAdditionModel(
+                        costType: type,
+                        treatmentName: nameCtrl.text,
+                        reason: reasonCtrl.text,
+                        cost: double.tryParse(costCtrl.text) ?? 0.0,
+                        currentWeight: double.tryParse(weightCtrl.text) ?? 0.0,
+                      ));
+                      _finalWeightCtrl.text = weightCtrl.text;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _addCertificate() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final labCtrl = TextEditingController();
+        final feeCtrl = TextEditingController();
+        List<String> images = [];
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Add Certificate'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(controller: labCtrl, decoration: const InputDecoration(labelText: 'Lab Name')),
+                    TextFormField(
+                      controller: feeCtrl,
+                      decoration: const InputDecoration(labelText: 'Certificate Fees'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (images.length >= 2) return;
+                        final img = await _picker.pickImage(source: ImageSource.gallery);
+                        if (img != null) setStateDialog(() => images.add(img.path));
+                      },
+                      child: Text('Add Image (${images.length}/2)'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _certificates.add(CertificateModel(
+                        labName: labCtrl.text,
+                        certificateFees: double.tryParse(feeCtrl.text) ?? 0.0,
+                        images: images,
+                      ));
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _publishInventoryItem() async {
-    setState(() {
-      _firstImageError = null;
-    });
-
-    final double treatmentCost =
-        double.tryParse(_treatmentCostCtrl.text) ?? 0.0;
-    final double otherProcessingCost =
-        double.tryParse(_otherValueAddCostCtrl.text) ?? 0.0;
-    final double otherExpenses = double.tryParse(_otherExpCostCtrl.text) ?? 0.0;
-
-    if (_firstImage == null && widget.gemstoneToEdit?.firstImagePath == null) {
-      setState(() {
-        _firstImageError = 'First Look media is required.';
-      });
-    }
-
-    if (_treatmentStatusCtrl.text.trim().isEmpty) {
-      _treatmentStatusCtrl.text = treatmentCost > 0 ? 'Heated' : 'Unheated';
-    }
-
-    if (!_formKey.currentState!.validate() || _firstImageError != null) {
-      return;
-    }
-
-    if (otherProcessingCost > 0 && _valueAddDescCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter a description for other processing cost.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    if (otherExpenses > 0 && _otherExpDescCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a description for other expenses.'),
-        ),
-      );
-      return;
-    }
-
-    final int? existingId = widget.gemstoneToEdit?.id;
-
+    if (!_formKey.currentState!.validate()) return;
+    
     final newGem = GemstoneModel(
-      id: existingId,
-      date: _dateCtrl.text,
-      variety: _selectedVariety,
-      color: _colorCtrl.text,
-      isRough: _isRough,
-      isCut: _isCut,
-      isSold: _isSold,
-      sellingPrice: _isSold
-          ? (double.tryParse(_sellingPriceCtrl.text) ?? 0.0)
-          : 0.0,
+      id: widget.gemstoneToEdit?.id,
+      category: _category == GemCategory.other ? _customCategoryCtrl.text : _category.displayName,
+      origin: _origin,
+      visibility: _visibility.displayName,
+      recordDate: _recordDate.toIso8601String(),
+      buyingDate: _buyingDate.toIso8601String(),
+      buyerName: _buyerNameCtrl.text,
+      buyerContact: _buyerContactCtrl.text,
       buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
       buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
-      treatmentCost: double.tryParse(_treatmentCostCtrl.text) ?? 0.0,
-      recutCost: double.tryParse(_recutCostCtrl.text) ?? 0.0,
-      otherProcessingCost: double.tryParse(_otherValueAddCostCtrl.text) ?? 0.0,
-      otherProcessingDesc: _valueAddDescCtrl.text,
+      variety: _varietyCtrl.text,
+      buyingColor: _buyingColorCtrl.text,
+      finalColor: _finalColorCtrl.text,
+      isRough: _status == InventoryGemStatus.rough,
+      isCut: _status == InventoryGemStatus.cut,
+      valueAdditions: _valueAdditions,
+      currentWeight: _currentWeight,
       finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
-      transportCost: double.tryParse(_transportCostCtrl.text) ?? 0.0,
-      otherCost: double.tryParse(_otherExpCostCtrl.text) ?? 0.0,
-      otherCostReason: _otherExpDescCtrl.text,
-      targetPrice: double.tryParse(_targetPriceCtrl.text) ?? 0.0,
-      firstImagePath:
-          _firstImage?.path ?? widget.gemstoneToEdit?.firstImagePath,
-      finalImagePath:
-          _finalImage?.path ?? widget.gemstoneToEdit?.finalImagePath,
-      firstVideoPath:
-          _firstVideo?.path ?? widget.gemstoneToEdit?.firstVideoPath,
-      finalVideoPath:
-          _finalVideo?.path ?? widget.gemstoneToEdit?.finalVideoPath,
+      shape: _shape == GemShape.other ? _customShapeCtrl.text : _shape.displayName,
+      clarity: _clarity.displayName,
+      status: _status.displayName,
+      length: double.tryParse(_lengthCtrl.text) ?? 0.0,
+      width: double.tryParse(_widthCtrl.text) ?? 0.0,
+      depth: double.tryParse(_depthCtrl.text) ?? 0.0,
+      isCertified: _isCertified,
+      certificates: _certificates,
+      isReadyToSale: _isReadyToSale,
+      isSold: _isSold,
+      salesTargetPrice: double.tryParse(_salesTargetPriceCtrl.text) ?? 0.0,
+      actualSoldPrice: double.tryParse(_actualSoldPriceCtrl.text) ?? 0.0,
+      firstLookPhotos: _firstLookPhotos,
+      finalPhotos: _finalPhotos,
     );
 
     try {
-      await ref
-          .read(addNewGemstoneViewModelProvider.notifier)
-          .saveGemstone(
-            gem: newGem,
-            rawFirstImagePath: _rawFirstImagePath,
-            rawFinalImagePath: _rawFinalImagePath,
-            rawFirstVideoPath: _rawFirstVideoPath,
-            rawFinalVideoPath: _rawFinalVideoPath,
-          );
+      await ref.read(addNewGemstoneViewModelProvider.notifier).saveGemstone(
+        gem: newGem,
+        rawFirstLookPhotos: _firstLookPhotos,
+        rawFirstLookVideo: _firstLookVideo,
+        rawFinalPhotos: _finalPhotos,
+        rawFinalVideo: _finalVideo,
+      );
 
       if (mounted) {
-        // Wait for 2 seconds so the user can see the success state in the overlay
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) {
-          Navigator.pop(context);
-        }
+        if (mounted) Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
+  }
+
+  Widget _buildTextField(String label, TextEditingController controller, {bool isNumber = false, String? Function(String?)? validator}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          filled: true,
+        ),
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _buildDatePicker(String label, DateTime date, Function(DateTime) onSelect) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: InkWell(
+        onTap: () async {
+          final selected = await showDatePicker(
+            context: context,
+            initialDate: date,
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+          );
+          if (selected != null) onSelect(selected);
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+          ),
+          child: Text(DateFormat('yyyy-MM-dd').format(date)),
+        ),
+      ),
+    );
+  }
+
+  List<Step> _buildSteps() {
+    return [
+      Step(
+        title: const Text('Basic Info'),
+        content: Column(
+          children: [
+            DropdownButtonFormField<GemCategory>(
+              initialValue: _category,
+              decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
+              items: GemCategory.values.map((e) => DropdownMenuItem(value: e, child: Text(e.displayName))).toList(),
+              onChanged: (val) => setState(() => _category = val!),
+            ),
+            const SizedBox(height: 16),
+            if (_category == GemCategory.other) _buildTextField('Custom Category', _customCategoryCtrl),
+            DropdownButtonFormField<String>(
+              initialValue: _origin,
+              decoration: const InputDecoration(labelText: 'Origin', border: OutlineInputBorder()),
+              items: _origins.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (val) => setState(() => _origin = val!),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<GemVisibility>(
+              initialValue: _visibility,
+              decoration: const InputDecoration(labelText: 'Visibility', border: OutlineInputBorder()),
+              items: GemVisibility.values.map((e) => DropdownMenuItem(value: e, child: Text(e.displayName))).toList(),
+              onChanged: (val) => setState(() => _visibility = val!),
+            ),
+          ],
+        ),
+        isActive: _currentStep >= 0,
+        state: _currentStep > 0 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('Buying Details'),
+        content: Column(
+          children: [
+            _buildTextField('Buying Weight (ct)', _buyingWeightCtrl, isNumber: true, validator: (v) => v!.isEmpty ? 'Required' : null),
+            _buildTextField('Buying Price', _buyingPriceCtrl, isNumber: true, validator: (v) => v!.isEmpty ? 'Required' : null),
+            _buildDatePicker('Buying Date', _buyingDate, (d) => setState(() => _buyingDate = d)),
+            _buildTextField('Buyer Name', _buyerNameCtrl),
+            _buildTextField('Buyer Contact Number', _buyerContactCtrl),
+            _buildTextField('Variety', _varietyCtrl),
+            _buildTextField('Buying Color', _buyingColorCtrl),
+          ],
+        ),
+        isActive: _currentStep >= 1,
+        state: _currentStep > 1 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('First Look'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ElevatedButton(
+              onPressed: () => _pickImage(_firstLookPhotos, 4),
+              child: Text('Add Photo (${_firstLookPhotos.length}/4)'),
+            ),
+            Wrap(
+              spacing: 8,
+              children: _firstLookPhotos.map((path) => Chip(
+                label: const Text('Photo'),
+                onDeleted: () => setState(() => _firstLookPhotos.remove(path)),
+              )).toList(),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _pickVideo((path) => _firstLookVideo = path),
+              child: Text(_firstLookVideo != null ? 'Change Video' : 'Add Video'),
+            ),
+          ],
+        ),
+        isActive: _currentStep >= 2,
+        state: _currentStep > 2 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('Value Additions'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ElevatedButton.icon(
+              onPressed: _addValueAddition,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Value Addition'),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _valueAdditions.length,
+              itemBuilder: (context, index) {
+                final va = _valueAdditions[index];
+                return ListTile(
+                  title: Text('${va.costType.displayName} - Rs. ${va.cost}'),
+                  subtitle: Text('Weight: ${va.currentWeight} ct'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => setState(() => _valueAdditions.removeAt(index)),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        isActive: _currentStep >= 3,
+        state: _currentStep > 3 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('Final Stage'),
+        content: Column(
+          children: [
+            _buildTextField('Final Weight (ct)', _finalWeightCtrl, isNumber: true),
+            DropdownButtonFormField<GemShape>(
+              initialValue: _shape,
+              decoration: const InputDecoration(labelText: 'Shape', border: OutlineInputBorder()),
+              items: GemShape.values.map((e) => DropdownMenuItem(value: e, child: Text(e.displayName))).toList(),
+              onChanged: (val) => setState(() => _shape = val!),
+            ),
+            const SizedBox(height: 16),
+            if (_shape == GemShape.other) _buildTextField('Custom Shape', _customShapeCtrl),
+            DropdownButtonFormField<GemClarity>(
+              initialValue: _clarity,
+              decoration: const InputDecoration(labelText: 'Clarity', border: OutlineInputBorder()),
+              items: GemClarity.values.map((e) => DropdownMenuItem(value: e, child: Text(e.displayName))).toList(),
+              onChanged: (val) => setState(() => _clarity = val!),
+            ),
+            const SizedBox(height: 16),
+            _buildTextField('Final Color', _finalColorCtrl),
+            DropdownButtonFormField<InventoryGemStatus>(
+              initialValue: _status,
+              decoration: const InputDecoration(labelText: 'Status', border: OutlineInputBorder()),
+              items: InventoryGemStatus.values.map((e) => DropdownMenuItem(value: e, child: Text(e.displayName))).toList(),
+              onChanged: (val) => setState(() => _status = val!),
+            ),
+            if (_status == InventoryGemStatus.cut) ...[
+              const SizedBox(height: 16),
+              const Text('Dimensions', style: TextStyle(fontWeight: FontWeight.bold)),
+              Row(
+                children: [
+                  Expanded(child: _buildTextField('Length', _lengthCtrl, isNumber: true)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildTextField('Width', _widthCtrl, isNumber: true)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _buildTextField('Depth', _depthCtrl, isNumber: true)),
+                ],
+              ),
+            ]
+          ],
+        ),
+        isActive: _currentStep >= 4,
+        state: _currentStep > 4 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('Final Media'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ElevatedButton(
+              onPressed: () => _pickImage(_finalPhotos, 4),
+              child: Text('Add Final Photo (${_finalPhotos.length}/4)'),
+            ),
+            Wrap(
+              spacing: 8,
+              children: _finalPhotos.map((path) => Chip(
+                label: const Text('Photo'),
+                onDeleted: () => setState(() => _finalPhotos.remove(path)),
+              )).toList(),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _pickVideo((path) => _finalVideo = path),
+              child: Text(_finalVideo != null ? 'Change Final Video' : 'Add Final Video'),
+            ),
+          ],
+        ),
+        isActive: _currentStep >= 5,
+        state: _currentStep > 5 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('Certification'),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SwitchListTile(
+              title: const Text('Is this certified?'),
+              value: _isCertified,
+              onChanged: (v) => setState(() => _isCertified = v),
+            ),
+            if (_isCertified) ...[
+              ElevatedButton.icon(
+                onPressed: _addCertificate,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Certificate'),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _certificates.length,
+                itemBuilder: (context, index) {
+                  final cert = _certificates[index];
+                  return ListTile(
+                    title: Text(cert.labName),
+                    subtitle: Text('Fee: Rs. ${cert.certificateFees}'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => setState(() => _certificates.removeAt(index)),
+                    ),
+                  );
+                },
+              ),
+            ]
+          ],
+        ),
+        isActive: _currentStep >= 6,
+        state: _currentStep > 6 ? StepState.complete : StepState.indexed,
+      ),
+      Step(
+        title: const Text('Finance & Sales'),
+        content: Column(
+          children: [
+            ListTile(
+              title: const Text('Total Final Cost'),
+              trailing: Text('Rs. ${_totalFinalCost.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+            _buildTextField('Sales Target Price', _salesTargetPriceCtrl, isNumber: true),
+            ListTile(
+              title: const Text('Target Profit / Margin'),
+              trailing: Text('Rs. ${_targetProfit.toStringAsFixed(2)} / ${_targetMargin.toStringAsFixed(2)}%'),
+            ),
+            SwitchListTile(
+              title: const Text('Ready To Sale'),
+              value: _isReadyToSale,
+              onChanged: (v) => setState(() => _isReadyToSale = v),
+            ),
+            SwitchListTile(
+              title: const Text('Sold'),
+              value: _isSold,
+              onChanged: (v) => setState(() => _isSold = v),
+            ),
+            if (_isSold) ...[
+              _buildTextField('Actual Sold Price', _actualSoldPriceCtrl, isNumber: true),
+              ListTile(
+                title: const Text('Actual Profit / Margin'),
+                trailing: Text('Rs. ${_actualProfit.toStringAsFixed(2)} / ${_actualMargin.toStringAsFixed(2)}%'),
+              ),
+            ]
+          ],
+        ),
+        isActive: _currentStep >= 7,
+        state: StepState.indexed,
+      ),
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    // Keep the provider alive while this widget is mounted
-    ref.watch(addNewGemstoneViewModelProvider);
-
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark
-        ? AppColors.darkBackground
-        : AppColors.lightBackground;
-    Color textColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color dividerColor = isDark
-        ? AppColors.darkSurfaceAlt
-        : AppColors.lightBorder;
-
-    final MediaProcessingState state = ref.watch(
-      addNewGemstoneViewModelProvider,
-    );
-    final bool isLoading = state.isLoading || state.isSuccess;
+    Color bgColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final state = ref.watch(addNewGemstoneViewModelProvider);
+    final isLoading = state.isLoading || state.isSuccess;
 
     return WillPopScope(
       onWillPop: () async => !isLoading,
@@ -408,940 +708,58 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         backgroundColor: bgColor,
         appBar: AppBar(
           backgroundColor: bgColor,
-          elevation: 0,
+          title: Text(widget.gemstoneToEdit != null ? 'Edit Gemstone' : 'Add Gemstone'),
           centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.close, color: AppColors.primaryYellow, size: 28),
-            onPressed: isLoading ? null : () => Navigator.pop(context),
-          ),
-          title: Text(
-            widget.gemstoneToEdit != null
-                ? "Edit Gemstone"
-                : "Add New Gemstone",
-            style: TextStyle(
-              color: textColor,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
         ),
-        body: Stack(
-          children: [
-            Form(
+        body: isLoading 
+          ? Center(child: CircularProgressIndicator(value: state.progress))
+          : Form(
               key: _formKey,
-              child: Column(
-                children: [
-                  Divider(color: dividerColor, height: 1, thickness: 1),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // --- Photos ---
-                          _buildSectionHeader(
-                            Icons.camera_alt_outlined,
-                            'GEMSTONE PHOTOS',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildMediaTile(
-                                  "First Look (Img)",
-                                  _firstImage,
-                                  () => _pickImage(true),
-                                  isVideo: false,
-                                  showError: _firstImageError != null,
-                                  errorText: _firstImageError,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildMediaTile(
-                                  "First Look (Vid)",
-                                  _firstVideo,
-                                  () => _pickVideo(true),
-                                  isVideo: true,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildMediaTile(
-                                  "Final Look (Img)",
-                                  _finalImage,
-                                  () => _pickImage(false),
-                                  isVideo: false,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildMediaTile(
-                                  "Final Look (Vid)",
-                                  _finalVideo,
-                                  () => _pickVideo(false),
-                                  isVideo: true,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Divider(),
-                          ),
-
-                          // --- General ---
-                          _buildSectionHeader(
-                            Icons.calendar_month,
-                            'RECORD DATE',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDatePickerTextField(context: context),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Divider(),
-                          ),
-
-                          // --- Stone Details ---
-                          _buildSectionHeader(
-                            Icons.diamond_outlined,
-                            'STONE DETAILS',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildVarietyDropdown(
-                                  context,
-                                  textColor,
-                                  dividerColor,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildTextField(
-                                  context: context,
-                                  label: 'Color/Varietial',
-                                  hint: 'e.g. Royal Blue',
-                                  controller: _colorCtrl,
-                                  validator: (value) {
-                                    if (_selectedVariety == 'Other' &&
-                                        (value == null ||
-                                            value.trim().isEmpty)) {
-                                      return 'Please enter a color for Other variety.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          _buildBuyingStateSelectors(textColor),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Divider(),
-                          ),
-
-                          // --- Acquisition ---
-                          _buildSectionHeader(
-                            Icons.shopping_bag_outlined,
-                            'ACQUISITION METRICS',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildTextField(
-                                  context: context,
-                                  label: 'Buying Weight (ct)',
-                                  hint: '0.00',
-                                  controller: _buyingWeightCtrl,
-                                  keyboardType: TextInputType.number,
-                                  validator: (value) {
-                                    final parsed = double.tryParse(value ?? '');
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Buying weight is required.';
-                                    }
-                                    if (parsed == null || parsed <= 0) {
-                                      return 'Enter a valid buying weight.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildTextField(
-                                  context: context,
-                                  label: 'Buying Price (Rs)',
-                                  hint: '0',
-                                  controller: _buyingPriceCtrl,
-                                  keyboardType: TextInputType.number,
-                                  prefixIcon: Icons.currency_rupee,
-                                  validator: (value) {
-                                    final parsed = double.tryParse(value ?? '');
-                                    if (value == null || value.trim().isEmpty) {
-                                      return 'Buying price is required.';
-                                    }
-                                    if (parsed == null || parsed <= 0) {
-                                      return 'Enter a valid buying price.';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Divider(),
-                          ),
-
-                          // --- Value Addition ---
-                          _buildSectionHeader(
-                            Icons.auto_awesome,
-                            'VALUE ADDITION COSTS',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildTextField(
-                                  context: context,
-                                  label: 'Treatment (Cost)',
-                                  hint: '0',
-                                  controller: _treatmentCostCtrl,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildTextField(
-                                  context: context,
-                                  label: 'Recut (Cost)',
-                                  hint: '0',
-                                  controller: _recutCostCtrl,
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          _buildTextField(
-                            context: context,
-                            label: 'Other Processing Cost',
-                            hint: '0',
-                            controller: _otherValueAddCostCtrl,
-                            keyboardType: TextInputType.number,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildTextField(
-                            context: context,
-                            label: 'Value Add Description',
-                            hint: 'Details about treatment/recutting...',
-                            controller: _valueAddDescCtrl,
-                            maxLines: 2,
-                            validator: (value) {
-                              final otherCost =
-                                  double.tryParse(
-                                    _otherValueAddCostCtrl.text,
-                                  ) ??
-                                  0;
-                              if (otherCost > 0 &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'Please describe the other processing cost.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Divider(),
-                          ),
-
-                          // --- Processing & Final State ---
-                          _buildSectionHeader(
-                            Icons.precision_manufacturing_outlined,
-                            'FINAL SPECIFICATIONS',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            context: context,
-                            label: 'Treatment Status',
-                            hint: 'e.g. Unheated',
-                            controller: _treatmentStatusCtrl,
-                            validator: (value) {
-                              final treatmentCost =
-                                  double.tryParse(_treatmentCostCtrl.text) ?? 0;
-                              if (treatmentCost > 0 &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'If treatment cost is entered, treatment status is required.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-                          _buildTextField(
-                            context: context,
-                            label: 'Final Carat Weight',
-                            hint: '0.00',
-                            controller: _finalWeightCtrl,
-                            keyboardType: TextInputType.number,
-                            suffixText: 'ct',
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: Divider(),
-                          ),
-
-                          // --- Financials & Sales Status ---
-                          _buildSectionHeader(
-                            Icons.query_stats,
-                            'FINANCIAL SUMMARY',
-                            AppColors.primaryYellow,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            context: context,
-                            label: 'Transport Cost',
-                            hint: '0',
-                            controller: _transportCostCtrl,
-                            keyboardType: TextInputType.number,
-                            prefixIcon: Icons.local_shipping_outlined,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildTextField(
-                            context: context,
-                            label: 'Other Expenses',
-                            hint: '0',
-                            controller: _otherExpCostCtrl,
-                            keyboardType: TextInputType.number,
-                            prefixIcon: Icons.more_horiz,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildTextField(
-                            context: context,
-                            label: 'Expense Description',
-                            hint: 'e.g. Lab reports',
-                            controller: _otherExpDescCtrl,
-                            validator: (value) {
-                              final otherExpenses =
-                                  double.tryParse(_otherExpCostCtrl.text) ?? 0;
-                              if (otherExpenses > 0 &&
-                                  (value == null || value.trim().isEmpty)) {
-                                return 'Please describe the other expenses.';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Totals Display (Read Only)
-                          _buildDisplayBox(
-                            "Total Final Cost",
-                            "Rs. ${NumberFormat('#,###').format(_totalFinalCost)}",
-                            isDark,
-                          ),
-                          const SizedBox(height: 24),
-
-                          // --- Sales Toggle ---
-                          Container(
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.05)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: dividerColor),
-                            ),
-                            child: SwitchListTile(
-                              title: Text(
-                                "Mark as Sold",
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              subtitle: const Text(
-                                "Record selling price to calculate profit",
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              value: _isSold,
-                              activeColor: AppColors.primaryYellow,
-                              onChanged: (bool value) =>
-                                  setState(() => _isSold = value),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Conditionally show Target Price vs Selling Price
-                          if (!_isSold) ...[
-                            _buildTextField(
-                              context: context,
-                              label: 'Target Price',
-                              hint: 'Expected selling price',
-                              controller: _targetPriceCtrl,
-                              keyboardType: TextInputType.number,
-                              prefixIcon: Icons.track_changes,
-                              validator: (value) {
-                                final parsed = double.tryParse(value ?? '');
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Target price is required.';
-                                }
-                                if (parsed == null || parsed <= 0) {
-                                  return 'Enter a valid target price.';
-                                }
-                                return null;
-                              },
-                            ),
-                          ] else ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildTextField(
-                                    context: context,
-                                    label: 'Target Price',
-                                    hint: '0',
-                                    controller: _targetPriceCtrl,
-                                    keyboardType: TextInputType.number,
-                                    prefixIcon: Icons.track_changes,
-                                    validator: (value) {
-                                      final parsed = double.tryParse(
-                                        value ?? '',
-                                      );
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'Target price is required.';
-                                      }
-                                      if (parsed == null || parsed <= 0) {
-                                        return 'Enter a valid target price.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildTextField(
-                                    context: context,
-                                    label: 'Selling Price',
-                                    hint: 'Final price',
-                                    controller: _sellingPriceCtrl,
-                                    keyboardType: TextInputType.number,
-                                    prefixIcon: Icons.sell_outlined,
-                                    validator: (value) {
-                                      if (!_isSold) return null;
-                                      final parsed = double.tryParse(
-                                        value ?? '',
-                                      );
-                                      if (value == null ||
-                                          value.trim().isEmpty) {
-                                        return 'Selling price is required when sold.';
-                                      }
-                                      if (parsed == null || parsed <= 0) {
-                                        return 'Enter a valid selling price.';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            // Profit Metrics (Only if Sold)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildDisplayBox(
-                                    "Final Profit",
-                                    "Rs. ${NumberFormat('#,###').format(_profitAmount)}",
-                                    isDark,
-                                    color: _profitAmount >= 0
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildDisplayBox(
-                                    "Margin",
-                                    "${_profitPercentage.toStringAsFixed(1)}%",
-                                    isDark,
-                                    color: _profitAmount >= 0
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                          const SizedBox(height: 40),
-                        ],
-                      ),
-                    ),
-                  ),
-                  _buildBottomAction(bgColor, AppColors.primaryYellow),
-                ],
-              ),
-            ),
-            if (isLoading)
-              Container(
-                color: Colors.black54,
-                child: Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(32),
-                    margin: const EdgeInsets.symmetric(horizontal: 40),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1F2937) : Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+              child: Stepper(
+                physics: const ClampingScrollPhysics(),
+                currentStep: _currentStep,
+                onStepContinue: () {
+                  if (_currentStep < _buildSteps().length - 1) {
+                    setState(() => _currentStep += 1);
+                  } else {
+                    _publishInventoryItem();
+                  }
+                },
+                onStepCancel: () {
+                  if (_currentStep > 0) setState(() => _currentStep -= 1);
+                },
+                onStepTapped: (step) => setState(() => _currentStep = step),
+                steps: _buildSteps(),
+                controlsBuilder: (context, details) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Row(
                       children: [
-                        const CircularProgressIndicator(
-                          strokeWidth: 3,
-                          color: AppColors.primaryYellow,
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          state.isSuccess
-                              ? (widget.gemstoneToEdit != null
-                                    ? "Updated Successfully"
-                                    : "Added Successfully")
-                              : "Compressing & Vaulting media...",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: details.onStepContinue,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: AppColors.primaryYellow,
+                            ),
+                            child: Text(_currentStep == _buildSteps().length - 1 ? 'PUBLISH' : 'NEXT', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                           ),
                         ),
+                        if (_currentStep > 0) const SizedBox(width: 12),
+                        if (_currentStep > 0)
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: details.onStepCancel,
+                              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                              child: const Text('BACK'),
+                            ),
+                          ),
                       ],
                     ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-  // --- UI Components ---
-
-  Widget _buildDisplayBox(
-    String label,
-    String value,
-    bool isDark, {
-    Color? color,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMediaTile(
-    String label,
-    File? file,
-    VoidCallback onTap, {
-    required bool isVideo,
-    bool showError = false,
-    String? errorText,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            height: 110,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.lightBorder),
-            ),
-            child: file != null
-                ? Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: isVideo
-                            ? Container(
-                                color: Colors.black12,
-                                width: double.infinity,
-                                height: double.infinity,
-                                child: const Icon(
-                                  Icons.movie_creation_outlined,
-                                  size: 30,
-                                  color: Colors.grey,
-                                ),
-                              )
-                            : Image.file(
-                                file,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                      ),
-                      if (isVideo)
-                        const Center(
-                          child: Icon(
-                            Icons.play_circle_outline,
-                            color: Colors.white70,
-                            size: 30,
-                          ),
-                        ),
-                      Positioned(
-                        right: 4,
-                        top: 4,
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              if (isVideo) {
-                                if (label.contains("First")) {
-                                  _firstVideo = null;
-                                  _rawFirstVideoPath = null;
-                                } else {
-                                  _finalVideo = null;
-                                  _rawFinalVideoPath = null;
-                                }
-                              } else {
-                                if (label.contains("First")) {
-                                  _firstImage = null;
-                                  _rawFirstImagePath = null;
-                                } else {
-                                  _finalImage = null;
-                                  _rawFinalImagePath = null;
-                                }
-                              }
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Center(
-                    child: Icon(
-                      isVideo
-                          ? Icons.videocam_outlined
-                          : Icons.add_a_photo_outlined,
-                      color: AppColors.primaryYellow,
-                      size: 24,
-                    ),
-                  ),
-          ),
-        ),
-        if (showError && errorText != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            errorText,
-            style: const TextStyle(color: Colors.red, fontSize: 10),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSectionHeader(IconData icon, String title, Color color) {
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 18),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[500],
-            letterSpacing: 1,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTextField({
-    required BuildContext context,
-    required String label,
-    required String hint,
-    required TextEditingController controller,
-    TextInputType keyboardType = TextInputType.text,
-    IconData? prefixIcon,
-    int maxLines = 1,
-    String? suffixText,
-    String? Function(String?)? validator,
-    Color? fillColor,
-    Color? textColor,
-    Color? labelColor,
-    Color? borderColor,
-  }) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    fillColor ??= isDark ? const Color(0xFF1F2937) : Colors.white;
-    textColor ??= isDark ? Colors.white : Colors.black;
-    labelColor ??= isDark ? Colors.grey[300]! : Colors.grey;
-    borderColor ??= isDark ? const Color(0xFF374151) : AppColors.lightBorder;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: labelColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          validator: validator,
-          style: TextStyle(color: textColor),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: fillColor,
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            prefixIcon: prefixIcon != null
-                ? Icon(prefixIcon, color: AppColors.primaryYellow, size: 18)
-                : null,
-            suffixText: suffixText,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primaryYellow, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDatePickerTextField({required BuildContext context}) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color fieldBg = isDark ? const Color(0xFF1F2937) : Colors.white;
-    final Color borderColor = isDark
-        ? const Color(0xFF374151)
-        : AppColors.lightBorder;
-    final Color contentColor = isDark ? Colors.white : AppColors.darkBackground;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Acquisition/Record Date',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey[300] : Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _dateCtrl,
-          readOnly: true,
-          style: TextStyle(color: contentColor),
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: _selectedDate,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-            );
-            if (picked != null)
-              setState(() {
-                _selectedDate = picked;
-                _dateCtrl.text = DateFormat('yyyy.MM.dd').format(picked);
-              });
-          },
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: fieldBg,
-            suffixIcon: Icon(Icons.event_note, color: AppColors.primaryYellow),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: borderColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primaryYellow, width: 2),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVarietyDropdown(
-    BuildContext context,
-    Color textColor,
-    Color dividerColor,
-  ) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color fieldBg = isDark ? const Color(0xFF1F2937) : Colors.white;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Stone Variety',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.grey[300] : Colors.grey,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedVariety,
-          dropdownColor: fieldBg,
-          style: TextStyle(color: textColor, fontSize: 16),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: fieldBg,
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: dividerColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.primaryYellow, width: 2),
-            ),
-          ),
-          items: _varieties
-              .map((v) => DropdownMenuItem(value: v, child: Text(v)))
-              .toList(),
-          onChanged: (val) => setState(() => _selectedVariety = val!),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBuyingStateSelectors(Color textColor) {
-    return Row(
-      children: [
-        Checkbox(
-          value: _isRough,
-          activeColor: AppColors.primaryYellow,
-          onChanged: (val) => setState(() => _isRough = val!),
-        ),
-        Text('Rough', style: TextStyle(color: textColor)),
-        const SizedBox(width: 32),
-        Checkbox(
-          value: _isCut,
-          activeColor: AppColors.primaryYellow,
-          onChanged: (val) => setState(() => _isCut = val!),
-        ),
-        Text('Cut', style: TextStyle(color: textColor)),
-      ],
-    );
-  }
-
-  Widget _buildBottomAction(Color bgColor, Color color) {
-    final state = ref.watch(addNewGemstoneViewModelProvider);
-    final isLoading = state.isLoading;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: const Border(top: BorderSide(color: AppColors.lightBorder)),
-      ),
-      child: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          height: 54,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : _publishInventoryItem,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                  );
+                },
               ),
             ),
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.black,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text(
-                    widget.gemstoneToEdit != null
-                        ? "Update Details"
-                        : "Publish Item",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-          ),
-        ),
       ),
     );
   }

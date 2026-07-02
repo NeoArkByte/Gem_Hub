@@ -77,6 +77,21 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
     ).format(amount);
   }
 
+  String _formatDate(String dateString) {
+    if (dateString.isEmpty) return 'N/A';
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      return DateFormat('dd MMM yyyy').format(date);
+    } catch (_) {
+      final cleaned = dateString.split(' ').first;
+      try {
+        return DateFormat('dd MMM yyyy').format(DateTime.parse(cleaned));
+      } catch (_) {
+        return cleaned;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -220,7 +235,7 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
                   color: AppColors.primaryGreen, size: 14),
               const SizedBox(width: 8),
               Text(
-                widget.gemstone.date,
+                _formatDate(widget.gemstone.date),
                 style: TextStyle(color: textColor, fontSize: 12),
               ),
             ],
@@ -520,11 +535,7 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
         isDark ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1);
 
     final gemstone = widget.gemstone;
-    final totalInvested = gemstone.buyingPrice +
-        gemstone.treatmentCost +
-        gemstone.recutCost +
-        gemstone.transportCost +
-        gemstone.otherProcessingCost;
+    final totalInvested = gemstone.totalFinalCost;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -554,23 +565,85 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
                     _buildInvestmentRow(context, 'Buying Price',
                         _formatCurrency(gemstone.buyingPrice),
                         isBold: true),
+                    if (gemstone.valueAdditions.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Value Additions',
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...gemstone.valueAdditions.map((va) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: _buildInvestmentRow(
+                            context,
+                            '${va.costType.displayName}${va.treatmentName.isNotEmpty ? ' (${va.treatmentName})' : ''}',
+                            _formatCurrency(va.cost),
+                          ),
+                        );
+                      }),
+                    ],
+                    if (gemstone.certificates.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Certificates',
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ...gemstone.certificates.map((cert) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10.0),
+                          child: _buildInvestmentRow(
+                            context,
+                            'Certificate (${cert.labName})',
+                            _formatCurrency(cert.certificateFees),
+                          ),
+                        );
+                      }),
+                    ],
                     const SizedBox(height: 16),
-                    _buildInvestmentRow(context, 'Treatment',
-                        _formatCurrency(gemstone.treatmentCost),
-                        isMuted: gemstone.treatmentCost == 0),
-                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    _buildInvestmentRow(context, 'Target Valuation',
+                        _formatCurrency(gemstone.salesTargetPrice)),
+                    const SizedBox(height: 12),
+                    if (gemstone.isSold)
+                      _buildInvestmentRow(context, 'Actual Sold Price',
+                          _formatCurrency(gemstone.actualSoldPrice)),
+                    if (gemstone.isSold) const SizedBox(height: 12),
                     _buildInvestmentRow(
-                        context,
-                        'Recut/Processing',
-                        _formatCurrency(
-                            gemstone.recutCost + gemstone.otherProcessingCost),
-                        isMuted: (gemstone.recutCost +
-                                gemstone.otherProcessingCost) ==
-                            0),
-                    const SizedBox(height: 16),
-                    _buildInvestmentRow(context, 'Transport',
-                        _formatCurrency(gemstone.transportCost),
-                        isMuted: gemstone.transportCost == 0),
+                      context,
+                      gemstone.isSold ? 'Actual Profit' : 'Projected Profit',
+                      _formatCurrency(gemstone.isSold
+                          ? gemstone.actualProfit
+                          : gemstone.targetProfit),
+                      isBold: true,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInvestmentRow(
+                      context,
+                      gemstone.isSold ? 'Actual Margin' : 'Target Margin',
+                      '${(gemstone.isSold ? gemstone.actualMargin : gemstone.targetMargin).toStringAsFixed(1)}%',
+                      isMuted: true,
+                    ),
                   ],
                 ),
               ),
