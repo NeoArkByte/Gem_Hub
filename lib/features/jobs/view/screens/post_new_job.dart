@@ -6,11 +6,13 @@ import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/jobs/viewmodels/post_job_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart';
+import 'package:gemhub/features/auth/viewmodels/admin_all_jobs_viewmodel.dart';
 
 class PostJobScreen extends ConsumerStatefulWidget {
-  final Job? jobToEdit; 
+  final Job? jobToEdit;
+  final bool isAdmin; 
 
-  const PostJobScreen({super.key, this.jobToEdit});
+  const PostJobScreen({super.key, this.jobToEdit, this.isAdmin = false});
 
   @override
   ConsumerState<PostJobScreen> createState() => _PostJobScreenState();
@@ -74,7 +76,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
         _phoneCtrl.text = (job as dynamic).phoneNumber ?? '';
         _whatsappCtrl.text = (job as dynamic).whatsappNumber ?? '';
       } catch (e) {
-        // අවුලක් නෑ
+        print("Error accessing phone/whatsapp: $e");
       }
 
       
@@ -225,17 +227,20 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
         : _selectedCategory;
 
     
+    
     Job submitJob = Job(
-      jobId: isEditMode ? widget.jobToEdit!.jobId : null, 
+      jobId: isEditMode ? widget.jobToEdit!.jobId : null,
       employerId: currentEmployerId,
       title: _jobTitleCtrl.text.trim(),
       companyInfo: '${_companyNameCtrl.text.trim()} • $_selectedLocation',
       minSalary: parsedMinSalary,
       maxSalary: parsedMaxSalary,
-      phoneNumber: phone, 
+      phoneNumber: phone,
       whatsappNumber: _whatsappCtrl.text.trim(),
       tags: '$finalCategory,${_skills.join(',')}',
-      status: 'pending', 
+      status: widget.isAdmin 
+          ? (widget.jobToEdit?.status ?? 'approved') 
+          : 'pending', 
       description: _descriptionCtrl.text.trim(),
     );
 
@@ -248,6 +253,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     }
 
     if (isSuccess && mounted) {
+      ref.invalidate(adminAllJobsViewModelProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -258,7 +264,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
           backgroundColor: const Color(0xFFFDB913),
         ),
       );
-      context.pop(); // 💡 context.go('/jobs') වෙනුවට pop පාවිච්චි කරාම Edit කරලා ආපහු My Jobs එකටම එනවා
+      context.pop();
     } else if (mounted) {
       _showError(isEditMode ? "Failed to update job." : "Failed to submit job.");
     }
@@ -315,7 +321,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          isEditMode ? 'Edit Job Post' : 'Post a New Job', // 💡 Title එක මාරු වෙනවා
+          isEditMode ? 'Edit Job Post' : 'Post a New Job',
           style: TextStyle(
             color: textColor,
             fontSize: 18,

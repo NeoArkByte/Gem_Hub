@@ -164,7 +164,6 @@ class JobDetailsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
 
-          
           Row(
             children: [
               Icon(Icons.access_time, size: 16, color: greyText),
