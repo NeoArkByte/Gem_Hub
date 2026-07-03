@@ -11,7 +11,8 @@ class AuthRepository {
   String get _webClientId {
     final key = dotenv.env['WEB_CLIENT'];
     if (key == null || key.isEmpty) {
-      throw Exception('AuthRepository: WEB_CLIENT key is missing from your .env file!');
+      throw Exception(
+          'AuthRepository: WEB_CLIENT key is missing from your .env file!');
     }
     return key;
   }
@@ -19,15 +20,17 @@ class AuthRepository {
   Future<User?> signInWithGoogleNative() async {
     final googleSignIn = GoogleSignIn(serverClientId: _webClientId);
     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-    
+
     if (googleUser == null) return null;
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
     final String? idToken = googleAuth.idToken;
     final String? accessToken = googleAuth.accessToken;
 
     if (idToken == null) {
-      throw const AuthException('Missing Google ID Token during authentication.');
+      throw const AuthException(
+          'Missing Google ID Token during authentication.');
     }
 
     final AuthResponse res = await _client.auth.signInWithIdToken(
@@ -37,7 +40,8 @@ class AuthRepository {
     );
 
     if (res.session == null) {
-      throw const AuthException('Supabase failed to initialize an active session.');
+      throw const AuthException(
+          'Supabase failed to initialize an active session.');
     }
 
     return res.user;
@@ -58,7 +62,7 @@ class AuthRepository {
 
   Future<User?> signUp(String email, String password) async {
     final res = await _client.auth.signUp(
-      email: email, 
+      email: email,
       password: password,
     );
     return res.user;
@@ -80,7 +84,6 @@ class AuthRepository {
     } catch (_) {}
   }
 
-
   Future<ProfileUser?> getUserProfile(String userId) async {
     try {
       final response = await _client
@@ -95,7 +98,6 @@ class AuthRepository {
       return null;
     }
   }
-
 
   Stream<AuthState> get authState => _client.auth.onAuthStateChange;
   User? get currentUser => _client.auth.currentUser;

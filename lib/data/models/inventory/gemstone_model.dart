@@ -1,3 +1,5 @@
+//lib\data\models\inventory\gemstone_model.dart
+
 import 'dart:convert';
 import 'package:gemhub/data/models/inventory/value_addition_model.dart';
 import 'package:gemhub/data/models/inventory/certificate_model.dart';
