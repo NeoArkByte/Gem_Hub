@@ -1,7 +1,10 @@
+//lib\features\inventory\view\add_new_gemstone_inventory.dart
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemhub/features/inventory/validators/gem_form_validator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
@@ -90,6 +93,16 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   // Whether the user has changed clarity from its default (we don't want
   // the default 'VVS1' to narrow the initial DB query to zero rows).
   bool _clarityUserSet = false;
+
+  String? _firstLookMediaError;
+  String? _finalMediaError;
+
+  double get _currentBaselineWeight {
+    if (_valueAdditions.isNotEmpty) {
+      return _valueAdditions.last.currentWeight;
+    }
+    return double.tryParse(_buyingWeightCtrl.text) ?? 0.0;
+  }
 
   @override
   void initState() {
@@ -404,8 +417,8 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                 ),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.auto_awesome,
-                  color: Colors.white, size: 20),
+              child:
+                  const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
             const Expanded(
@@ -422,8 +435,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           OutlinedButton(
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
@@ -437,8 +449,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             icon: const Icon(Icons.auto_awesome, size: 16),
             label: const Text('Yes, show me'),
             style: ElevatedButton.styleFrom(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               backgroundColor: const Color(0xFF6366F1),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
@@ -498,133 +509,129 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               ),
               const SizedBox(height: 10),
               // ── Loading state ────────────────────────────────────────────
-              if (_isLoadingPrediction) ...
-                [
-                  const SizedBox(height: 4),
-                  const LinearProgressIndicator(minHeight: 2),
-                  const SizedBox(height: 12),
-                  const Center(
-                    child: Text('Calculating prediction…',
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ),
-                  const SizedBox(height: 8),
-                ]
-              else if (!hasData) ...
+              if (_isLoadingPrediction) ...[
+                const SizedBox(height: 4),
+                const LinearProgressIndicator(minHeight: 2),
+                const SizedBox(height: 12),
+                const Center(
+                  child: Text('Calculating prediction…',
+                      style: TextStyle(fontSize: 12, color: Colors.grey)),
+                ),
+                const SizedBox(height: 8),
+              ] else if (!hasData) ...
                 // ── No-data state ─────────────────────────────────────────
                 [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                          color: Colors.amber.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline,
-                            size: 16, color: Colors.amber),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'No sufficient historical records available for prediction.',
-                            style: TextStyle(fontSize: 12, color: Colors.amber),
-                          ),
-                        ),
-                      ],
-                    ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border:
+                        Border.all(color: Colors.amber.withValues(alpha: 0.3)),
                   ),
-                ]
-              else ...
-                // ── Data state ────────────────────────────────────────────
-                [
-                  Text(
-                    'Based on $recordCount similar inventory records',
-                    style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic),
-                  ),
-                  const SizedBox(height: 12),
-                  const Divider(height: 1),
-                  const SizedBox(height: 12),
-                  _buildPredictionMetric(
-                    'Expected Selling Price',
-                    _prediction!.expectedSellingPrice,
-                    icon: Icons.attach_money,
-                    isCurrency: true,
-                  ),
-                  _buildPredictionMetric(
-                    'Expected Expenses',
-                    _prediction!.expectedExpenses,
-                    icon: Icons.receipt_long,
-                    isCurrency: true,
-                  ),
-                  _buildPredictionMetric(
-                    'Expected Profit',
-                    _prediction!.expectedProfit,
-                    icon: Icons.trending_up,
-                    isCurrency: true,
-                    valueColor: _prediction!.expectedProfit >= 0
-                        ? AppColors.successGreen
-                        : AppColors.accentRed,
-                  ),
-                  _buildPredictionMetric(
-                    'Expected Selling Time',
-                    _prediction!.expectedDaysToSell,
-                    icon: Icons.schedule,
-                    suffix: ' days',
-                    isCurrency: false,
-                  ),
-                  _buildPredictionMetric(
-                    'Avg. Profit Margin',
-                    _prediction!.profitMarginPercent,
-                    icon: Icons.percent,
-                    suffix: '%',
-                    isCurrency: false,
-                  ),
-                  const SizedBox(height: 10),
-                  const Divider(height: 1),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Row(
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.shield_outlined,
-                              size: 16,
-                              color: _confidenceColor(confidenceLabel)),
-                          const SizedBox(width: 6),
-                          const Text('Confidence Level',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600, fontSize: 13)),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _confidenceColor(confidenceLabel)
-                              .withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: _confidenceColor(confidenceLabel)
-                                .withValues(alpha: 0.4),
-                          ),
-                        ),
+                      const Icon(Icons.info_outline,
+                          size: 16, color: Colors.amber),
+                      const SizedBox(width: 8),
+                      const Expanded(
                         child: Text(
-                          confidenceLabel,
-                          style: TextStyle(
-                            color: _confidenceColor(confidenceLabel),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
+                          'No sufficient historical records available for prediction.',
+                          style: TextStyle(fontSize: 12, color: Colors.amber),
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+              ] else ...
+                // ── Data state ────────────────────────────────────────────
+                [
+                Text(
+                  'Based on $recordCount similar inventory records',
+                  style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                      fontStyle: FontStyle.italic),
+                ),
+                const SizedBox(height: 12),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                _buildPredictionMetric(
+                  'Expected Selling Price',
+                  _prediction!.expectedSellingPrice,
+                  icon: Icons.attach_money,
+                  isCurrency: true,
+                ),
+                _buildPredictionMetric(
+                  'Expected Expenses',
+                  _prediction!.expectedExpenses,
+                  icon: Icons.receipt_long,
+                  isCurrency: true,
+                ),
+                _buildPredictionMetric(
+                  'Expected Profit',
+                  _prediction!.expectedProfit,
+                  icon: Icons.trending_up,
+                  isCurrency: true,
+                  valueColor: _prediction!.expectedProfit >= 0
+                      ? AppColors.successGreen
+                      : AppColors.accentRed,
+                ),
+                _buildPredictionMetric(
+                  'Expected Selling Time',
+                  _prediction!.expectedDaysToSell,
+                  icon: Icons.schedule,
+                  suffix: ' days',
+                  isCurrency: false,
+                ),
+                _buildPredictionMetric(
+                  'Avg. Profit Margin',
+                  _prediction!.profitMarginPercent,
+                  icon: Icons.percent,
+                  suffix: '%',
+                  isCurrency: false,
+                ),
+                const SizedBox(height: 10),
+                const Divider(height: 1),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.shield_outlined,
+                            size: 16, color: _confidenceColor(confidenceLabel)),
+                        const SizedBox(width: 6),
+                        const Text('Confidence Level',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 13)),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _confidenceColor(confidenceLabel)
+                            .withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _confidenceColor(confidenceLabel)
+                              .withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        confidenceLabel,
+                        style: TextStyle(
+                          color: _confidenceColor(confidenceLabel),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -944,6 +951,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
 
   List<Step> _buildSteps() {
     return [
+      // ── STEP 1: BASIC INFO ──────────────────────────────────────────────────
       Step(
         title: const Text('Basic Info'),
         content: Column(
@@ -951,19 +959,31 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             DropdownButtonFormField<GemCategory>(
               initialValue: _category,
               decoration: const InputDecoration(
-                  labelText: 'Category', border: OutlineInputBorder()),
+                  labelText: 'Category *', border: OutlineInputBorder()),
               items: GemCategory.values
                   .map((e) =>
                       DropdownMenuItem(value: e, child: Text(e.displayName)))
                   .toList(),
               onChanged: (val) {
-                setState(() => _category = val!);
+                setState(() {
+                  _category = val!;
+                  // Rule: Automatically populate Variety field using Category selection
+                  if (_category != GemCategory.other) {
+                    _varietyCtrl.text = _category.displayName;
+                  } else {
+                    _varietyCtrl.text = _customCategoryCtrl.text;
+                  }
+                });
                 _refreshPredictionFromInputs();
               },
             ),
             const SizedBox(height: 16),
-            if (_category == GemCategory.other)
-              _buildTextField('Custom Category', _customCategoryCtrl),
+            if (_category == GemCategory.other) ...[
+              _buildTextField('Custom Category *', _customCategoryCtrl,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Required' : null),
+              const SizedBox(height: 16),
+            ],
             DropdownButtonFormField<String>(
               initialValue: _origin,
               decoration: const InputDecoration(
@@ -992,27 +1012,53 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         isActive: _currentStep >= 0,
         state: _currentStep > 0 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 2: BUYING DETAILS ──────────────────────────────────────────────
       Step(
         title: const Text('Buying Details'),
         content: Column(
           children: [
-            _buildTextField('Buying Weight (ct)', _buyingWeightCtrl,
+            // Rule: Required, Must be > 0, Cannot be negative/zero
+            _buildTextField('Buying Weight (ct) *', _buyingWeightCtrl,
                 isNumber: true,
-                validator: (v) => v!.isEmpty ? 'Required' : null),
-            _buildTextField('Buying Price', _buyingPriceCtrl,
+                validator: GemFormValidator.validateBuyingWeight),
+
+            // Rule: Required, Cannot be negative, Greater than zero
+            _buildTextField('Buying Price *', _buyingPriceCtrl,
                 isNumber: true,
-                validator: (v) => v!.isEmpty ? 'Required' : null),
+                validator: GemFormValidator.validateBuyingPrice),
+
             _buildDatePicker('Buying Date', _buyingDate,
                 (d) => setState(() => _buyingDate = d)),
-            _buildTextField('Buyer Name', _buyerNameCtrl),
-            _buildTextField('Buyer Contact Number', _buyerContactCtrl),
-            _buildTextField('Variety', _varietyCtrl),
-            _buildTextField('Buying Color', _buyingColorCtrl),
+
+            _buildTextField('Buyer Name (Optional)', _buyerNameCtrl),
+
+            // Note: If using a dedicated phone package, replace this field with your international picker
+            _buildTextField(
+                'Buyer Contact Number (Optional)', _buyerContactCtrl),
+
+            // Rule: Automatically populated from Step 1. Disabled to prevent manual changes.
+            TextFormField(
+              controller: _varietyCtrl,
+              enabled: false, // This cleanly locks the field from manual typing
+              decoration: const InputDecoration(
+                labelText: 'Variety (Auto-Populated)',
+                border: OutlineInputBorder(),
+                filled: true,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Rule: Required, Cannot be empty
+            _buildTextField('Buying Color *', _buyingColorCtrl,
+                validator: GemFormValidator.validateBuyingColor),
           ],
         ),
         isActive: _currentStep >= 1,
         state: _currentStep > 1 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 3: FIRST LOOK MEDIA ────────────────────────────────────────────
       Step(
         title: const Text('First Look'),
         content: Column(
@@ -1034,15 +1080,30 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => _pickVideo((path) => _firstLookVideo = path),
+              onPressed: () =>
+                  _pickVideo((path) => setState(() => _firstLookVideo = path)),
               child:
                   Text(_firstLookVideo != null ? 'Change Video' : 'Add Video'),
             ),
+
+            // Rule: Dynamic requirement count messaging displayed cleanly to the user
+            if (_firstLookMediaError != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _firstLookMediaError!,
+                style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
           ],
         ),
         isActive: _currentStep >= 2,
         state: _currentStep > 2 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 4: VALUE ADDITIONS ─────────────────────────────────────────────
       Step(
         title: const Text('Value Additions'),
         content: Column(
@@ -1075,12 +1136,18 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         isActive: _currentStep >= 3,
         state: _currentStep > 3 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 5: FINAL STAGE ─────────────────────────────────────────────────
       Step(
         title: const Text('Final Stage'),
         content: Column(
           children: [
-            _buildTextField('Final Weight (ct)', _finalWeightCtrl,
-                isNumber: true),
+            // Rule: Validation checks against previous current baseline weight histories
+            _buildTextField('Final Weight (ct) *', _finalWeightCtrl,
+                isNumber: true,
+                validator: (v) => GemFormValidator.validateFinalWeight(
+                    v, _currentBaselineWeight)),
+
             DropdownButtonFormField<GemShape>(
               initialValue: _shape,
               decoration: const InputDecoration(
@@ -1092,8 +1159,10 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               onChanged: (val) => setState(() => _shape = val!),
             ),
             const SizedBox(height: 16),
-            if (_shape == GemShape.other)
+            if (_shape == GemShape.other) ...[
               _buildTextField('Custom Shape', _customShapeCtrl),
+              const SizedBox(height: 16),
+            ],
             DropdownButtonFormField<GemClarity>(
               initialValue: _clarity,
               decoration: const InputDecoration(
@@ -1105,13 +1174,19 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               onChanged: (val) {
                 setState(() {
                   _clarity = val!;
-                  _clarityUserSet = true; // user explicitly picked a clarity
+                  _clarityUserSet = true;
                 });
                 _refreshPredictionFromInputs();
               },
             ),
             const SizedBox(height: 16),
-            _buildTextField('Final Color', _finalColorCtrl),
+
+            // Rule: Cannot be empty
+            _buildTextField('Final Color *', _finalColorCtrl,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Final color is required'
+                    : null),
+
             DropdownButtonFormField<InventoryGemStatus>(
               initialValue: _status,
               decoration: const InputDecoration(
@@ -1122,23 +1197,35 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   .toList(),
               onChanged: (val) => setState(() => _status = val!),
             ),
+
+            // Rule: Length, Width, Depth validation dynamically enforced if Status == Cut
             if (_status == InventoryGemStatus.cut) ...[
               const SizedBox(height: 16),
-              const Text('Dimensions',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Dimensions (Required for Cut Status) *',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                      child: _buildTextField('Length', _lengthCtrl,
-                          isNumber: true)),
+                      child: _buildTextField('Length *', _lengthCtrl,
+                          isNumber: true,
+                          validator: (v) => GemFormValidator.validateDimension(
+                              v, _status.displayName))),
                   const SizedBox(width: 8),
                   Expanded(
-                      child:
-                          _buildTextField('Width', _widthCtrl, isNumber: true)),
+                      child: _buildTextField('Width *', _widthCtrl,
+                          isNumber: true,
+                          validator: (v) => GemFormValidator.validateDimension(
+                              v, _status.displayName))),
                   const SizedBox(width: 8),
                   Expanded(
-                      child:
-                          _buildTextField('Depth', _depthCtrl, isNumber: true)),
+                      child: _buildTextField('Depth *', _depthCtrl,
+                          isNumber: true,
+                          validator: (v) => GemFormValidator.validateDimension(
+                              v, _status.displayName))),
                 ],
               ),
             ]
@@ -1147,6 +1234,8 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         isActive: _currentStep >= 4,
         state: _currentStep > 4 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 6: FINAL MEDIA ─────────────────────────────────────────────────
       Step(
         title: const Text('Final Media'),
         content: Column(
@@ -1168,16 +1257,31 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => _pickVideo((path) => _finalVideo = path),
+              onPressed: () =>
+                  _pickVideo((path) => setState(() => _finalVideo = path)),
               child: Text(_finalVideo != null
                   ? 'Change Final Video'
                   : 'Add Final Video'),
             ),
+
+            // Rule: Display remaining requirements dynamically to user
+            if (_finalMediaError != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _finalMediaError!,
+                style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
           ],
         ),
         isActive: _currentStep >= 5,
         state: _currentStep > 5 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 7: CERTIFICATION ───────────────────────────────────────────────
       Step(
         title: const Text('Certification'),
         content: Column(
@@ -1217,6 +1321,8 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         isActive: _currentStep >= 6,
         state: _currentStep > 6 ? StepState.complete : StepState.indexed,
       ),
+
+      // ── STEP 8: FINANCE & SALES ─────────────────────────────────────────────
       Step(
         title: const Text('Finance & Sales'),
         content: Column(
@@ -1262,6 +1368,116 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     ];
   }
 
+  // === NEW STEP VALIDATOR LOGIC ===
+  bool _validateCurrentStep() {
+    // Reset display errors cleanly
+    setState(() {
+      _firstLookMediaError = null;
+      _finalMediaError = null;
+    });
+
+    switch (_currentStep) {
+      case 0: // Basic Information
+        // Rule: Automatically populate Variety field using Category selection
+        if (_varietyCtrl.text.isEmpty) {
+          _varietyCtrl.text = _category == GemCategory.other
+              ? _customCategoryCtrl.text
+              : _category.displayName;
+        }
+        return true;
+
+      case 1: // Buying Details
+        // Variety verification fallback
+        if (_varietyCtrl.text.isEmpty) {
+          _varietyCtrl.text = _category == GemCategory.other
+              ? _customCategoryCtrl.text
+              : _category.displayName;
+        }
+
+        // Form field layout runner checking Weight, Price, and Color text controllers
+        final isFormValid = _formKey.currentState?.validate() ?? false;
+        if (!isFormValid) return false;
+
+        // Clean Contact Number automatically if provided
+        if (_buyerContactCtrl.text.isNotEmpty) {
+          // Remove spaces, dashes, and keep only clean digits after any formatting
+          final cleanDigits =
+              _buyerContactCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
+          _buyerContactCtrl.text = cleanDigits;
+        }
+        return true;
+
+      case 2: // First Look Media Check
+        final imgCount = _firstLookPhotos.length;
+        final hasVid = _firstLookVideo != null;
+
+        // Rule: Require minimum 2 images and 1 video. Display remaining count dynamically.
+        if (imgCount < 2 && !hasVid) {
+          setState(() => _firstLookMediaError =
+              'Please add ${2 - imgCount} more image(s) and 1 video.');
+          return false;
+        } else if (imgCount < 2) {
+          setState(() => _firstLookMediaError =
+              'Please add ${2 - imgCount} more image(s).');
+          return false;
+        } else if (!hasVid) {
+          setState(() => _firstLookMediaError = 'Please add 1 video.');
+          return false;
+        }
+        return true;
+
+      case 3: // Value Addition History Check
+        return true; // Array additions individually checked during Dialog creation sequence
+
+      case 4: // Final Stage Fields
+        // Rule: Auto-populate Final Color from Buying Color if unedited
+        if (_finalColorCtrl.text.trim().isEmpty) {
+          _finalColorCtrl.text = _buyingColorCtrl.text;
+        }
+
+        // Rule: Auto-initialize Final Weight using latest Baseline Weight from Value Additions
+        if (_finalWeightCtrl.text.trim().isEmpty) {
+          _finalWeightCtrl.text = _currentBaselineWeight.toString();
+        }
+
+        return _formKey.currentState?.validate() ?? false;
+
+      case 5: // Final Media Check
+        final imgCount = _finalPhotos.length;
+        final hasVid = _finalVideo != null;
+
+        // Rule: Enforce minimum 2 images and 1 video before finishing wizard tracking
+        if (imgCount < 2 && !hasVid) {
+          setState(() => _finalMediaError =
+              'Please add ${2 - imgCount} more image(s) and 1 video.');
+          return false;
+        } else if (imgCount < 2) {
+          setState(() =>
+              _finalMediaError = 'Please add ${2 - imgCount} more image(s).');
+          return false;
+        } else if (!hasVid) {
+          setState(() => _finalMediaError = 'Please add 1 video.');
+          return false;
+        }
+        return true;
+
+      case 6: // Certification Step Validation
+        if (_isCertified && _certificates.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'Please add at least one certificate or disable certification.')),
+          );
+          return false;
+        }
+        return true;
+
+      default:
+        return _formKey.currentState?.validate() ?? false;
+    }
+  }
+  // ================================
+
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1289,10 +1505,10 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   borderRadius: BorderRadius.circular(24),
                   onTap: _showPredictionBottomSheet,
                   child: Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 4),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
@@ -1302,8 +1518,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.auto_awesome,
-                            color: Colors.white, size: 14),
+                        Icon(Icons.auto_awesome, color: Colors.white, size: 14),
                         SizedBox(width: 4),
                         Text('AI',
                             style: TextStyle(
@@ -1322,21 +1537,25 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             ? Center(child: CircularProgressIndicator(value: state.progress))
             : Form(
                 key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Stepper(
                   physics: const ClampingScrollPhysics(),
                   currentStep: _currentStep,
                   onStepContinue: () {
-                    final steps = _buildSteps();
-                    if (_currentStep < steps.length - 1) {
-                      setState(() => _currentStep += 1);
-                      // After advancing past Buying Details (step index 1),
-                      // prompt the user to view AI predictions.
-                      if (_currentStep == 2) {
-                        WidgetsBinding.instance.addPostFrameCallback(
-                            (_) => _showAiPromptDialog());
+                    // ONLY CHANGE: Wrap your original transition code in the validator check
+                    if (_validateCurrentStep()) {
+                      final steps = _buildSteps();
+                      if (_currentStep < steps.length - 1) {
+                        setState(() => _currentStep += 1);
+                        // After advancing past Buying Details (step index 1),
+                        // prompt the user to view AI predictions.
+                        if (_currentStep == 2) {
+                          WidgetsBinding.instance.addPostFrameCallback(
+                              (_) => _showAiPromptDialog());
+                        }
+                      } else {
+                        _publishInventoryItem();
                       }
-                    } else {
-                      _publishInventoryItem();
                     }
                   },
                   onStepCancel: () {
@@ -1406,8 +1625,7 @@ class _PredictionSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark ? AppColors.darkSurface : Colors.white;
+    final bgColor = isDark ? AppColors.darkSurface : Colors.white;
     final recordCount = prediction?.matchingRecordCount ?? 0;
     final hasData = recordCount > 0;
     final confidenceLabel = prediction?.confidenceLevel ?? 'Low';
@@ -1469,8 +1687,7 @@ class _PredictionSheet extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 17)),
                         Text('AI-powered market analysis',
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.grey)),
+                            style: TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
                   ),
@@ -1493,8 +1710,8 @@ class _PredictionSheet extends StatelessWidget {
               child: SingleChildScrollView(
                 controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                child: _buildContent(context, hasData, recordCount,
-                    confidenceLabel, isDark),
+                child: _buildContent(
+                    context, hasData, recordCount, confidenceLabel, isDark),
               ),
             ),
           ],
@@ -1530,8 +1747,7 @@ class _PredictionSheet extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.amber.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
-              border:
-                  Border.all(color: Colors.amber.withValues(alpha: 0.35)),
+              border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
             ),
             child: Column(
               children: [
@@ -1540,15 +1756,14 @@ class _PredictionSheet extends StatelessWidget {
                 const Text(
                   'No sufficient historical records available for prediction.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 13, height: 1.6, color: Colors.amber),
+                  style:
+                      TextStyle(fontSize: 13, height: 1.6, color: Colors.amber),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Add more sold inventory records to improve accuracy.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                      fontSize: 12, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                 ),
               ],
             ),
@@ -1563,8 +1778,7 @@ class _PredictionSheet extends StatelessWidget {
       children: [
         // Record count badge
         Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: AppColors.primaryGreen.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
@@ -1632,8 +1846,7 @@ class _PredictionSheet extends StatelessWidget {
             color: confidenceColor(confidenceLabel).withValues(alpha: 0.07),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-                color:
-                    confidenceColor(confidenceLabel).withValues(alpha: 0.3)),
+                color: confidenceColor(confidenceLabel).withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -1642,19 +1855,19 @@ class _PredictionSheet extends StatelessWidget {
               const SizedBox(width: 12),
               const Expanded(
                 child: Text('Confidence Level',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14)),
+                    style:
+                        TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: confidenceColor(confidenceLabel)
-                      .withValues(alpha: 0.15),
+                  color:
+                      confidenceColor(confidenceLabel).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: confidenceColor(confidenceLabel)
-                        .withValues(alpha: 0.5),
+                    color:
+                        confidenceColor(confidenceLabel).withValues(alpha: 0.5),
                   ),
                 ),
                 child: Text(
