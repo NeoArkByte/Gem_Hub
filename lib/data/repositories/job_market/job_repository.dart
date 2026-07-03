@@ -24,7 +24,6 @@ class JobRepository {
     }
   }
 
-  
   Future<List<Job>> getApprovedJobs({
     String keyword = "",
     String category = "",
@@ -72,9 +71,9 @@ class JobRepository {
   Future<List<Job>> getMyJobs(String employerId) async {
     try {
       final response = await _dio.get(
-        'jobs/', 
+        'jobs/',
         queryParameters: {
-          'employerId': employerId, 
+          'employerId': employerId,
         },
       );
 
@@ -169,5 +168,20 @@ class JobRepository {
       return 'Error ${e.response?.statusCode}: ${e.response?.data}';
     }
     return 'Connection failed: ${e.message}';
+  }
+
+  Future<List<Job>> getAllJobs() async {
+    try {
+      final response = await _dio.get('jobs/');
+
+      if (response.statusCode == 200) {
+        return _parseJobList(response.data);
+      }
+
+      throw Exception('Failed to load all jobs');
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return [];
+    }
   }
 }

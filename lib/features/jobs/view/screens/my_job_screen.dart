@@ -16,7 +16,6 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
   final Color primaryYellow = const Color(0xFFFDB913);
   final Color primaryGreen = const Color(0xFF10C971);
 
-  // 💡 Popup එක පෙන්වන Function එක (මේක අනිවාර්යයෙන්ම _MyJobsScreenState ඇතුළේ තියෙන්න ඕනේ)
   void _showDeleteConfirmation(String jobId) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -257,13 +256,11 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
               ],
             ),
           ),
-          // 💡 Edit & Delete Buttons දෙක එක ළඟ
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 onPressed: () {
-                  // 💡 Edit එක එබුවම Post Job Screen එකට Job එක අරන් යනවා
                   context.push('/post-job', extra: job);
                 },
                 icon: const Icon(Icons.edit_outlined, color: Colors.blue),
