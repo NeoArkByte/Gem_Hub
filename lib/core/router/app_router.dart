@@ -181,6 +181,14 @@ GoRouter router(Ref ref) {
           return PostJobScreen(jobToEdit: jobToEdit);
         },
       ),
+      GoRoute(
+        path: '/admin-edit-job',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>;
+          final job = data['job'] as Job?;
+          return PostJobScreen(jobToEdit: job, isAdmin: true);
+        },
+      ),
     ],
   );
 }

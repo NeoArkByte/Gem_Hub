@@ -63,37 +63,64 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               children: [
                 _buildHeader(primaryText, surfaceBg),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                  child: CustomScrollView(
                     physics: const BouncingScrollPhysics(),
-                    children: [
-                      _buildSnapshotCard(
-                        availableCount: availableGems.length,
-                        soldCount: soldGems.length,
-                        activeValuation: activeValuation,
-                        textColor: primaryText,
-                        subTextColor: secondaryText,
-                        isDark: isDark,
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate(
+                            [
+                              _buildSnapshotCard(
+                                availableCount: availableGems.length,
+                                soldCount: soldGems.length,
+                                activeValuation: activeValuation,
+                                textColor: primaryText,
+                                subTextColor: secondaryText,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildSearchBar(
+                                  isDark, primaryText, surfaceBgAlt),
+                              const SizedBox(height: 12),
+                              _buildUnifiedFilters(
+                                  isDark, surfaceBg, primaryText),
+                              const SizedBox(height: 12),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 16),
-                      _buildSearchBar(isDark, primaryText, surfaceBgAlt),
-                      const SizedBox(height: 12),
-                      _buildUnifiedFilters(isDark, surfaceBg, primaryText),
-                      const SizedBox(height: 12),
-                      displayGems.isEmpty
-                          ? _buildEmptyState(secondaryText)
-                          : ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: displayGems.length,
-                              itemBuilder: (context, index) => _buildGemCard(
+                      if (displayGems.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
+                            child: _buildEmptyState(secondaryText),
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
+                          sliver: SliverGrid(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => _buildGemCard(
                                 gem: displayGems[index],
                                 cardBg: surfaceBg,
                                 textColor: primaryText,
                                 subTextColor: secondaryText,
                                 isDark: isDark,
                               ),
+                              childCount: displayGems.length,
                             ),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 0.53,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -146,26 +173,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               letterSpacing: -0.5,
             ),
           ),
-          Material(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {},
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: textColor.withOpacity(0.08),
-                    width: 1,
-                  ),
-                ),
-                child: Icon(Icons.tune_rounded,
-                    color: textColor.withOpacity(0.8), size: 22),
-              ),
-            ),
-          ),
+          const SizedBox(width: 1),
         ],
       ),
     );
@@ -438,7 +446,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     return Opacity(
       opacity: isSold ? 0.85 : 1.0,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
+        margin: const EdgeInsets.symmetric(vertical: 1),
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(20),
@@ -483,7 +491,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       left: 0,
                       right: 0,
                       child: Container(
-                        padding: const EdgeInsets.fromLTRB(14, 24, 14, 10),
+                        padding: const EdgeInsets.fromLTRB(6, 8, 6, 5),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
@@ -491,13 +499,28 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             colors: [
                               Colors.transparent,
                               Colors.black.withOpacity(0.3),
-                              Colors.black.withOpacity(0.6),
+                              Colors.black.withOpacity(0.7),
                             ],
                           ),
                         ),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
+                            Expanded(
+                              child: Text(
+                                gem.variety,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Hanken Grotesk',
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 4),
@@ -522,34 +545,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(6.0, 4.0, 6.0, 4.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  gem.variety,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor,
-                                    fontFamily: 'Hanken Grotesk',
-                                    letterSpacing: -0.3,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
                                   gem.color,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: subTextColor,
-                                    fontSize: 13,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.w500,
                                     fontFamily: 'Inter',
                                   ),
@@ -559,12 +573,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ),
                           const SizedBox(width: 8),
                           Column(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
                                 "Rs. ${(isSold ? gem.sellingPrice : gem.targetPrice).toStringAsFixed(0)}",
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 14,
                                   fontWeight: FontWeight.w800,
                                   color: isSold
                                       ? AppColors.dangerRed
@@ -572,20 +587,20 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                   fontFamily: 'Hanken Grotesk',
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 0),
                               Text(
                                 isSold ? "Closing price" : "Target valuation",
                                 style: TextStyle(
-                                    fontSize: 10,
-                                    color: subTextColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontFamily: 'Inter'),
+                                  fontSize: 8,
+                                  color: subTextColor,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter',
+                                ),
                               ),
                             ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
                     ],
                   ),
                 ),
@@ -600,15 +615,18 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   // Media Render Image Frame
   Widget _buildCardImage(String? imagePath, bool isDark, Color textColor) {
     if (imagePath != null && imagePath.isNotEmpty) {
-      return Image.file(
-        File(imagePath),
-        height: 180,
+      return SizedBox(
+        height: 110,
         width: double.infinity,
-        fit: BoxFit.cover,
+        child: Image.file(
+          File(imagePath),
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
       );
     }
     return Container(
-      height: 180,
+      height: 110,
       width: double.infinity,
       color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
       child: Icon(Icons.diamond_outlined,

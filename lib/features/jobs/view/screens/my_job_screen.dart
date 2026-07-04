@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:gemhub/data/models/job_market/job_model.dart';
-import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/jobs/viewmodels/my_jobs_viewmodel.dart';
 
 class MyJobsScreen extends ConsumerStatefulWidget {
@@ -17,7 +16,6 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
   final Color primaryYellow = const Color(0xFFFDB913);
   final Color primaryGreen = const Color(0xFF10C971);
 
-  // 💡 Popup එක පෙන්වන Function එක (මේක අනිවාර්යයෙන්ම _MyJobsScreenState ඇතුළේ තියෙන්න ඕනේ)
   void _showDeleteConfirmation(String jobId) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -219,9 +217,7 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
                 borderRadius: BorderRadius.circular(12)),
             child: Center(
                 child: Text(
-                    job.title != null && job.title!.isNotEmpty
-                        ? job.title![0].toUpperCase()
-                        : 'J',
+                    job.title.isNotEmpty ? job.title[0].toUpperCase() : 'J',
                     style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -260,13 +256,11 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
               ],
             ),
           ),
-          // 💡 Edit & Delete Buttons දෙක එක ළඟ
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 onPressed: () {
-                  // 💡 Edit එක එබුවම Post Job Screen එකට Job එක අරන් යනවා
                   context.push('/post-job', extra: job);
                 },
                 icon: const Icon(Icons.edit_outlined, color: Colors.blue),

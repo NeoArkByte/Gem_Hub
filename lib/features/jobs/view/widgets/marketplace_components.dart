@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
 import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart'; // PostJobLocationPicker එක තියෙන තැන
-import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
+// marketplaceViewModelProvider තියෙන තැන
 
 class MarketplaceSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -82,7 +82,6 @@ void _showFilterBottomSheet(BuildContext context) {
   );
 }
 
-
 class JobFilterBottomSheet extends ConsumerStatefulWidget {
   const JobFilterBottomSheet({super.key});
 
@@ -91,11 +90,9 @@ class JobFilterBottomSheet extends ConsumerStatefulWidget {
       _JobFilterBottomSheetState();
 }
 
-
 class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
   final Color primaryGreen = const Color(0xFF10C971);
 
-  
   late String _selectedCategory;
   late String _selectedLocation;
   late RangeValues _salaryRange;
@@ -116,12 +113,10 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
 
     final viewModel = ref.read(marketplaceViewModelProvider.notifier);
 
-    
     _selectedCategory = viewModel.currentCategory.isEmpty
         ? 'All Jobs'
         : viewModel.currentCategory;
 
-    
     _selectedLocation = viewModel.currentLocation.isEmpty
         ? 'All Locations'
         : viewModel.currentLocation;
@@ -166,7 +161,6 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
                     color: textColor,
                   ),
                 ),
-
                 Row(
                   children: [
                     TextButton(
@@ -213,9 +207,8 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
                 child: DropdownButton<String>(
                   value: _selectedCategory,
                   isExpanded: true,
-                  dropdownColor: isDark
-                      ? const Color(0xFF1F2937)
-                      : Colors.white,
+                  dropdownColor:
+                      isDark ? const Color(0xFF1F2937) : Colors.white,
                   style: TextStyle(color: textColor, fontSize: 16),
                   items: _categories.map((category) {
                     return DropdownMenuItem(
@@ -307,9 +300,7 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
               height: 56,
               child: ElevatedButton(
                 onPressed: () {
-                  ref
-                      .read(marketplaceViewModelProvider.notifier)
-                      .updateFilters(
+                  ref.read(marketplaceViewModelProvider.notifier).updateFilters(
                         category: _selectedCategory == 'All Jobs'
                             ? ''
                             : _selectedCategory,
@@ -339,7 +330,7 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
               ),
             ),
             const SizedBox(height: 20),
-          ], 
+          ],
         ),
       ),
     );
@@ -413,9 +404,8 @@ class _MarketplaceCategoriesState extends State<MarketplaceCategories> {
                       color: isSelected
                           ? Colors.white
                           : (isDark ? Colors.grey[300] : Colors.grey[700]),
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.w500,
                     ),
                   ),
                 ),

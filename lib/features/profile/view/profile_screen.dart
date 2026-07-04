@@ -5,8 +5,10 @@ import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:gemhub/features/profile/view/edit_profile_screen.dart';
 import 'package:gemhub/shared/widgets/custom_confirm_dialog.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -59,13 +61,36 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             _buildSectionTitle("Account Details"),
             _buildMenuCard(cardColor, [
-              _buildMenuTile(
-                Icons.person,
-                Colors.blue.shade50,
-                Colors.blue,
-                "Edit Personal Profile",
-                textColor,
-              ),
+              InkWell(
+  onTap: () async {
+    // 1. Get the current authenticated user directly from Supabase
+    final currentUser = Supabase.instance.client.auth.currentUser;
+
+    // 2. Navigate to your edit screen safely
+    final dataChanged = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(
+          currentUsername: profile?.username ?? currentUser?.email?.split('@')[0] ?? "Gem Owner",
+          currentDescription: profile?.description ?? "",
+          currentAvatarUrl: profile?.avatarUrl,
+        ),
+      ),
+    );
+    
+    // 3. Refresh user profile data from Supabase if changes were successfully made
+    if (dataChanged == true) {
+      // Call your profile loading/fetching method here (e.g., fetchUserProfile();)
+    }
+  },
+  child: _buildMenuTile(
+    Icons.person,
+    Colors.blue.shade50,
+    Colors.blue,
+    "Edit Personal Profile",
+    textColor,
+  ),
+),
               _buildMenuTile(
                 Icons.cloud_sync,
                 Colors.indigo.shade50,
