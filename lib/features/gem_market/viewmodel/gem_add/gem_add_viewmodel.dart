@@ -67,7 +67,7 @@ class GemAddViewModel extends _$GemAddViewModel {
         color: color,
         imageUrl: imageUrl,
         certificateUrl: certUrl ?? '',
-        status: GemStatus.APPROVED,
+        status: GemStatus.PENDING,
       );
 
       // Create record
