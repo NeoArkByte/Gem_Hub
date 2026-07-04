@@ -41,7 +41,7 @@ final class ChartTrendDataProvider extends $FunctionalProvider<
   }
 }
 
-String _$chartTrendDataHash() => r'18c956cef4d6803f1e09122aabf0e2f0dd414686';
+String _$chartTrendDataHash() => r'32298ddc4c915bb9392aac7adeb15e938e36cd6b';
 
 @ProviderFor(heatmapData)
 final heatmapDataProvider = HeatmapDataProvider._();

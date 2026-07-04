@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/core/enums/gem_type.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
-import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
 import 'package:gemhub/features/gem_market/viewmodel/gem_market/gem_marketplace_viewmodel.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +18,7 @@ class GemMarketPlaceScreen extends ConsumerStatefulWidget {
 }
 
 class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
-  int _selectedCategory = 0;
+  GemType _selectedCategory = GemType.allGems;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -40,9 +39,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackgroundAlt,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackgroundAlt,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: const SizedBox(height: 12)),
@@ -72,9 +70,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: isDark
-                      ? AppColors.darkSurfaceAlt
-                      : AppColors.lightBorder,
+                  color:
+                      isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
                 ),
                 boxShadow: isDark
                     ? []
@@ -129,9 +126,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
               color: isDark ? AppColors.darkSurface : Colors.white,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark
-                    ? AppColors.darkSurfaceAlt
-                    : AppColors.lightBorder,
+                color:
+                    isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
               ),
               boxShadow: isDark
                   ? []
@@ -156,66 +152,86 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   //  Latest Gems Section
   Widget _LatestGemsSection() {
-    final latestGemsAsync = ref.watch(latestApprovedGemsProvider);
+    final gemsAsync = ref.watch(gemMarketplaceViewModelProvider);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return latestGemsAsync.when(
-      loading: () => const SizedBox(height: 180),
-      error: (err, stack) => const SizedBox.shrink(),
-      data: (gems) {
-        if (gems.isEmpty) return const SizedBox.shrink();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-              child: Row(
-                children: [
-                  Text(
-                    'Latest Arrivals',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : AppColors.darkBackground,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'NEW',
-                      style: TextStyle(
-                        color: AppColors.primaryGreen,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          child: Row(
+            children: [
+              Text(
+                'Latest Arrivals',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : AppColors.darkBackground,
+                  letterSpacing: -0.5,
+                ),
               ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'NEW',
+                  style: TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        gemsAsync.when(
+          loading: () => const SizedBox(
+            height: 200,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGreen),
             ),
-            SizedBox(
+          ),
+          error: (err, stack) => const SizedBox.shrink(),
+          data: (gems) {
+            final latestGems = gems.reversed.take(5).toList();
+
+            if (latestGems.isEmpty) {
+              return SizedBox(
+                height: 200,
+                child: Center(
+                  child: Text(
+                    'No latest arrivals matching filters',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : AppColors.greyText,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return SizedBox(
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: gems.length,
+                itemCount: latestGems.length,
                 itemBuilder: (context, index) =>
-                    _LatestGemCard(gem: gems[index]),
+                    _LatestGemCard(gem: latestGems[index]),
               ),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -373,29 +389,28 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
           separatorBuilder: (_, __) => const SizedBox(width: 10),
           itemBuilder: (context, index) {
             final type = GemType.values[index];
-            final selected = _selectedCategory == index;
+            final selected = _selectedCategory == type;
             return ChoiceChip(
               label: Text(type.displayName),
               selected: selected,
               showCheckmark: false,
               onSelected: (value) {
                 if (value) {
-                  setState(() => _selectedCategory = index);
-                  // ref
-                  //     .read(gemMarketplaceViewModelProvider.notifier)
-                  //     .updateType(type);
+                  setState(() => _selectedCategory = type);
+                  ref
+                      .read(gemMarketplaceViewModelProvider.notifier)
+                      .updateSelectedCategory(type);
                 }
               },
               selectedColor: AppColors.primaryGreen,
-              backgroundColor: isDark
-                  ? AppColors.darkSurface
-                  : AppColors.lightSurface,
+              backgroundColor:
+                  isDark ? AppColors.darkSurface : AppColors.lightSurface,
               side: BorderSide(
                 color: selected
                     ? Colors.transparent
                     : (isDark
-                          ? AppColors.darkSurfaceAlt
-                          : AppColors.lightBorderAlt),
+                        ? AppColors.darkSurfaceAlt
+                        : AppColors.lightBorderAlt),
               ),
               labelStyle: TextStyle(
                 fontSize: 13,
@@ -430,17 +445,16 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
           ),
           GestureDetector(
             onTap: () {
-              setState(() => _selectedCategory = 0);
-              // ref
-              //     .read(gemMarketplaceViewModelProvider.notifier)
-              //     .updateType(GemType.allGems);
+              setState(() => _selectedCategory = GemType.allGems);
+              ref
+                  .read(gemMarketplaceViewModelProvider.notifier)
+                  .updateSelectedCategory(GemType.allGems);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurface
-                    : AppColors.accentGreenLight,
+                color:
+                    isDark ? AppColors.darkSurface : AppColors.accentGreenLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -649,9 +663,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
 
   String _fmt(double? price) {
     if (price == null) return '0';
-    return price
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    return price.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
         );
