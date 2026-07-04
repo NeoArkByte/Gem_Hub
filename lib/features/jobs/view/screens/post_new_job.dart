@@ -6,11 +6,11 @@ import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/jobs/viewmodels/post_job_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart';
-import 'package:gemhub/features/auth/viewmodels/admin_all_jobs_viewmodel.dart';
+import 'package:gemhub/features/auth/viewmodels/admin_screen_viewmodel.dart';
 
 class PostJobScreen extends ConsumerStatefulWidget {
   final Job? jobToEdit;
-  final bool isAdmin; 
+  final bool isAdmin;
 
   const PostJobScreen({super.key, this.jobToEdit, this.isAdmin = false});
 
@@ -222,8 +222,6 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
         ? _customCategoryCtrl.text.trim()
         : _selectedCategory;
 
-    
-    
     Job submitJob = Job(
       jobId: isEditMode ? widget.jobToEdit!.jobId : null,
       employerId: currentEmployerId,
@@ -234,9 +232,8 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
       phoneNumber: phone,
       whatsappNumber: _whatsappCtrl.text.trim(),
       tags: '$finalCategory,${_skills.join(',')}',
-      status: widget.isAdmin 
-          ? (widget.jobToEdit?.status ?? 'approved') 
-          : 'pending', 
+      status:
+          widget.isAdmin ? (widget.jobToEdit?.status ?? 'approved') : 'pending',
       description: _descriptionCtrl.text.trim(),
     );
 
@@ -253,7 +250,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     }
 
     if (isSuccess && mounted) {
-      ref.invalidate(adminAllJobsViewModelProvider);
+      ref.invalidate(adminScreenViewModelProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
