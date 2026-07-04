@@ -14,7 +14,7 @@ class JobRepository {
       );
 
       if (response.statusCode == 200) {
-        return _parseJobList(response.data);
+        return _parseJobList(response.data['results']);
       }
 
       throw Exception('Failed to load pending jobs');
@@ -58,7 +58,7 @@ class JobRepository {
           await _dio.get('jobs/', queryParameters: queryParams);
 
       if (response.statusCode == 200) {
-        return _parseJobList(response.data);
+        return _parseJobList(response.data['results']);
       }
 
       throw Exception('Failed to load approved jobs');
@@ -78,7 +78,7 @@ class JobRepository {
       );
 
       if (response.statusCode == 200) {
-        return _parseJobList(response.data);
+        return _parseJobList(response.data['results']);
       }
 
       throw Exception('Failed to load my jobs');
@@ -175,7 +175,7 @@ class JobRepository {
       final response = await _dio.get('jobs/');
 
       if (response.statusCode == 200) {
-        return _parseJobList(response.data);
+        return _parseJobList(response.data['results']);
       }
 
       throw Exception('Failed to load all jobs');
