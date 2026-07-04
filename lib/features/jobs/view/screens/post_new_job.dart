@@ -193,7 +193,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
       phone = '+94${phone.substring(1)}';
     }
 
-    final sriLankaRegex = RegExp(r'^\+947\d{8}$');
+    final sriLankaRegex = RegExp(r'^\+94\d{9}$');
 
     if (!sriLankaRegex.hasMatch(phone)) {
       _showError("Enter a valid Sri Lankan phone number");

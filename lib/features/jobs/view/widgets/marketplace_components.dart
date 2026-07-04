@@ -191,7 +191,6 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
             ),
             const SizedBox(height: 20),
 
-            /// CATEGORY
             Text(
               'Job Category',
               style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -225,10 +224,10 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
               ),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Location',
-              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
-            ),
+            // Text(
+            //   'Location',
+            //   style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+            // ),
             const SizedBox(height: 8),
 
             PostJobLocationPicker(
@@ -252,7 +251,7 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
 
             const SizedBox(height: 24),
 
-            /// SALARY
+            
             Text(
               'Monthly Salary (LKR)',
               style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -311,7 +310,7 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
                         maxSalary: _salaryRange.end,
                       );
 
-                  Navigator.pop(context); // Bottom Sheet එක වහනවා
+                  Navigator.pop(context); 
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,
