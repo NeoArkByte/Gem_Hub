@@ -1,3 +1,5 @@
+//lib\features\inventory\viewmodels\add_new_gemstone_viewmodel.dart
+
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/models/inventory/media_processing_state.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
