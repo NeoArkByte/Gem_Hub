@@ -71,9 +71,8 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
 
   Future<void> _loadVarieties() async {
     try {
-      final varieties = await ref
-          .read(gemUpdateViewModelProvider.notifier)
-          .getGemVarieties();
+      final varieties =
+          await ref.read(gemUpdateViewModelProvider.notifier).getGemVarieties();
       if (mounted) {
         setState(() {
           _varieties = List<String>.from(varieties);
@@ -112,25 +111,34 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_locationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select or specify a location.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
-    final success = await ref
-        .read(gemUpdateViewModelProvider.notifier)
-        .updateGem(
-          gemId: widget.gem.gemId!,
-          originalGem: widget.gem,
-          name: _nameController.text.trim(),
-          carat: double.tryParse(_caratController.text.trim()),
-          price: double.tryParse(_priceController.text.trim()),
-          description: _descriptionController.text.trim(),
-          location: _locationController.text.trim(),
-          sellerPhone: _sellerPhoneController.text.trim(),
-          variety: _selectedVariety,
-          color: _colorController.text.trim(),
-          // Directly forward your picked file hooks (they will naturally be null if untouched)
-          newImageFile: _gemImage, // Your picked File? object
-          newCertificateFile: _certificateFile, // Your picked File? object
-        );
+    final success =
+        await ref.read(gemUpdateViewModelProvider.notifier).updateGem(
+              gemId: widget.gem.gemId!,
+              originalGem: widget.gem,
+              name: _nameController.text.trim(),
+              carat: double.tryParse(_caratController.text.trim()),
+              price: double.tryParse(_priceController.text.trim()),
+              description: _descriptionController.text.trim(),
+              location: _locationController.text.trim(),
+              sellerPhone: _sellerPhoneController.text.trim(),
+              variety: _selectedVariety,
+              color: _colorController.text.trim(),
+              // Directly forward your picked file hooks (they will naturally be null if untouched)
+              newImageFile: _gemImage, // Your picked File? object
+              newCertificateFile: _certificateFile, // Your picked File? object
+            );
 
     if (!mounted) return;
 
@@ -183,13 +191,11 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark
-        ? AppColors.darkBackground
-        : AppColors.lightBackground;
+    Color bgColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
     Color textColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color dividerColor = isDark
-        ? AppColors.darkSurfaceAlt
-        : AppColors.lightBorder;
+    Color dividerColor =
+        isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -267,6 +273,15 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                       label: 'Gem Name',
                       hint: 'e.g. Royal Blue Sapphire',
                       controller: _nameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a gem name';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Gem name must be at least 3 characters';
+                        }
+                        return null;
+                      },
                     ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,6 +305,16 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                                         });
                                       },
                                     ),
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Please enter custom variety';
+                                      }
+                                      if (value.trim().length < 2) {
+                                        return 'Variety name is too short';
+                                      }
+                                      return null;
+                                    },
                                   )
                                 : GemFormDropdownField(
                                     key: const ValueKey('dropdown_variety'),
@@ -306,7 +331,6 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                                         }
                                       });
                                     },
-                                    optional: true,
                                   ),
                           ),
                         ),
@@ -316,7 +340,12 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                             label: 'Color',
                             hint: 'e.g. Blue',
                             controller: _colorController,
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a color';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -332,7 +361,16 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                               decimal: true,
                             ),
                             suffixText: 'ct',
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter carat weight';
+                              }
+                              final carat = double.tryParse(value.trim());
+                              if (carat == null || carat <= 0) {
+                                return 'Enter a valid weight > 0';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -345,7 +383,16 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                               decimal: true,
                             ),
                             prefixIcon: Icons.payments_outlined,
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a price';
+                              }
+                              final price = double.tryParse(value.trim());
+                              if (price == null || price <= 0) {
+                                return 'Enter a valid price > 0';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -375,6 +422,18 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: Icons.phone_outlined,
                       optional: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return null;
+                        }
+                        final cleanVal =
+                            value.replaceAll(RegExp(r'[\s\-()]'), '');
+                        final slRegex = RegExp(r'^(?:\+94|94|0)?[1-9]\d{8}$');
+                        if (!slRegex.hasMatch(cleanVal)) {
+                          return 'Enter a valid Sri Lankan number';
+                        }
+                        return null;
+                      },
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),
