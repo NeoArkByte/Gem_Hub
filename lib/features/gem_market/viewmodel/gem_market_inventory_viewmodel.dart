@@ -34,7 +34,7 @@ class GemMarketInventoryViewModel extends _$GemMarketInventoryViewModel {
 
   Future<bool> deleteGem(String id) async {
     // Keep previous data visible while the network request is in-flight
-    // ignore: invalid_use_of_internal_member
+    
     state = const AsyncLoading<List<Gem>>().copyWithPrevious(state);
 
     try {
