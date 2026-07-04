@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemhub/features/inventory/provider/inventory_provider.dart';
 import 'package:gemhub/features/inventory/validators/gem_form_validator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -95,7 +96,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   bool _clarityUserSet = false;
 
   String? _firstLookMediaError;
-  String? _finalMediaError;
+  // String? _finalMediaError;
 
   double get _currentBaselineWeight {
     if (_valueAdditions.isNotEmpty) {
@@ -147,6 +148,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     }
 
     _buyingWeightCtrl.text = gem.buyingWeight.toString();
+
     _buyingPriceCtrl.text = gem.buyingPrice.toString();
 
     try {
@@ -680,15 +682,23 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   Future<void> _pickImage(List<String> list, int maxPhotos) async {
     if (list.length >= maxPhotos) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Maximum $maxPhotos photos allowed.')));
+        SnackBar(content: Text('Maximum $maxPhotos photos allowed.')),
+      );
       return;
     }
+
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        list.add(image.path);
-      });
-    }
+
+    if (image == null) return;
+
+    setState(() {
+      final String path = image.path;
+
+      // 🔥 FIX: prevent duplicates (this was causing your 17 images)
+      if (!list.contains(path)) {
+        list.add(path);
+      }
+    });
   }
 
   Future<void> _pickVideo(Function(String?) onPicked) async {
@@ -712,43 +722,55 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             TextEditingController(text: _currentWeight.toString());
         return StatefulBuilder(
           builder: (context, setStateDialog) {
+            final formKey = GlobalKey<FormState>();
+
             return AlertDialog(
               title: const Text('Add Value Addition'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    DropdownButtonFormField<CostType>(
-                      initialValue: type,
-                      items: CostType.values
-                          .map((e) => DropdownMenuItem(
-                              value: e, child: Text(e.displayName)))
-                          .toList(),
-                      onChanged: (val) => setStateDialog(() => type = val!),
-                      decoration: const InputDecoration(labelText: 'Cost Type'),
-                    ),
-                    if (type == CostType.treatment)
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownButtonFormField<CostType>(
+                        initialValue: type,
+                        items: CostType.values
+                            .map((e) => DropdownMenuItem(
+                                value: e, child: Text(e.displayName)))
+                            .toList(),
+                        onChanged: (val) => setStateDialog(() => type = val!),
+                        decoration:
+                            const InputDecoration(labelText: 'Cost Type'),
+                      ),
+                      if (type == CostType.treatment)
+                        TextFormField(
+                            controller: nameCtrl,
+                            decoration: const InputDecoration(
+                                labelText: 'Treatment Name')),
+                      if (type == CostType.other)
+                        TextFormField(
+                            controller: reasonCtrl,
+                            decoration:
+                                const InputDecoration(labelText: 'Reason')),
                       TextFormField(
-                          controller: nameCtrl,
-                          decoration: const InputDecoration(
-                              labelText: 'Treatment Name')),
-                    if (type == CostType.other)
+                        controller: costCtrl,
+                        decoration: const InputDecoration(labelText: 'Cost'),
+                        keyboardType: TextInputType.number,
+                        validator: GemFormValidator.validateValueAdditionCost,
+                      ),
                       TextFormField(
-                          controller: reasonCtrl,
-                          decoration:
-                              const InputDecoration(labelText: 'Reason')),
-                    TextFormField(
-                      controller: costCtrl,
-                      decoration: const InputDecoration(labelText: 'Cost'),
-                      keyboardType: TextInputType.number,
-                    ),
-                    TextFormField(
-                      controller: weightCtrl,
-                      decoration: const InputDecoration(
-                          labelText: 'Current Weight (ct)'),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ],
+                        controller: weightCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Current Weight (ct)'),
+                        keyboardType: TextInputType.number,
+                        validator: (value) =>
+                            GemFormValidator.validateValueAdditionWeight(
+                          value,
+                          _currentWeight,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -757,6 +779,8 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     child: const Text('Cancel')),
                 ElevatedButton(
                   onPressed: () {
+                    if (!formKey.currentState!.validate()) return;
+
                     setState(() {
                       _valueAdditions.add(ValueAdditionModel(
                         costType: type,
@@ -765,8 +789,10 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                         cost: double.tryParse(costCtrl.text) ?? 0.0,
                         currentWeight: double.tryParse(weightCtrl.text) ?? 0.0,
                       ));
+
                       _finalWeightCtrl.text = weightCtrl.text;
                     });
+
                     Navigator.pop(context);
                   },
                   child: const Text('Add'),
@@ -844,8 +870,43 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
+  bool _validateAllSteps() {
+    final isMainFormValid = _formKey.currentState?.validate() ?? false;
+
+    if (!isMainFormValid) return false;
+
+    // Step 2 validations
+    if (_buyingWeightCtrl.text.isEmpty ||
+        double.tryParse(_buyingWeightCtrl.text) == null) {
+      return false;
+    }
+
+    if (_buyingPriceCtrl.text.isEmpty ||
+        double.tryParse(_buyingPriceCtrl.text) == null) {
+      return false;
+    }
+
+    // Step 3 (example)
+    if (_finalWeightCtrl.text.isEmpty ||
+        double.tryParse(_finalWeightCtrl.text) == null) {
+      return false;
+    }
+
+    return true;
+  }
+
   void _publishInventoryItem() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_validateAllSteps()) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Please complete all required fields'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      return;
+    }
 
     final newGem = GemstoneModel(
       id: widget.gemstoneToEdit?.id,
@@ -893,16 +954,12 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             rawFinalPhotos: _finalPhotos,
             rawFinalVideo: _finalVideo,
           );
+      ref.invalidate(inventoryProvider);
 
-      if (mounted) {
-        await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.pop(context);
-      }
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -1181,11 +1238,23 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Rule: Cannot be empty
-            _buildTextField('Final Color *', _finalColorCtrl,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Final color is required'
-                    : null),
+            // Rule: Cannot be empty * Filled default with Buying color
+
+            TextFormField(
+              controller: _buyingColorCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Final Color',
+                border: OutlineInputBorder(),
+                filled: true,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Final color is required';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
 
             DropdownButtonFormField<InventoryGemStatus>(
               initialValue: _status,
@@ -1265,16 +1334,16 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
             ),
 
             // Rule: Display remaining requirements dynamically to user
-            if (_finalMediaError != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                _finalMediaError!,
-                style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500),
-              ),
-            ],
+            // if (_finalMediaError != null) ...[
+            //   const SizedBox(height: 12),
+            //   Text(
+            //     _finalMediaError!,
+            //     style: const TextStyle(
+            //         color: Colors.red,
+            //         fontSize: 13,
+            //         fontWeight: FontWeight.w500),
+            //   ),
+            // ],
           ],
         ),
         isActive: _currentStep >= 5,
@@ -1368,17 +1437,15 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     ];
   }
 
-  // === NEW STEP VALIDATOR LOGIC ===
+  // === NEW STEP VALIDATOR LOGIC (SAFE REFACTORED) ===
   bool _validateCurrentStep() {
     // Reset display errors cleanly
     setState(() {
       _firstLookMediaError = null;
-      _finalMediaError = null;
     });
 
     switch (_currentStep) {
       case 0: // Basic Information
-        // Rule: Automatically populate Variety field using Category selection
         if (_varietyCtrl.text.isEmpty) {
           _varietyCtrl.text = _category == GemCategory.other
               ? _customCategoryCtrl.text
@@ -1387,31 +1454,33 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         return true;
 
       case 1: // Buying Details
-        // Variety verification fallback
         if (_varietyCtrl.text.isEmpty) {
           _varietyCtrl.text = _category == GemCategory.other
               ? _customCategoryCtrl.text
               : _category.displayName;
         }
 
-        // Form field layout runner checking Weight, Price, and Color text controllers
-        final isFormValid = _formKey.currentState?.validate() ?? false;
-        if (!isFormValid) return false;
+        // 🔥 FIX: avoid global form validation explosion
+        if (_buyingWeightCtrl.text.trim().isEmpty) return false;
+        if (double.tryParse(_buyingWeightCtrl.text) == null) return false;
+
+        if (_buyingPriceCtrl.text.trim().isEmpty) return false;
+        if (double.tryParse(_buyingPriceCtrl.text) == null) return false;
+
+        if (_buyingColorCtrl.text.trim().isEmpty) return false;
 
         // Clean Contact Number automatically if provided
         if (_buyerContactCtrl.text.isNotEmpty) {
-          // Remove spaces, dashes, and keep only clean digits after any formatting
-          final cleanDigits =
+          _buyerContactCtrl.text =
               _buyerContactCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
-          _buyerContactCtrl.text = cleanDigits;
         }
+
         return true;
 
       case 2: // First Look Media Check
         final imgCount = _firstLookPhotos.length;
         final hasVid = _firstLookVideo != null;
 
-        // Rule: Require minimum 2 images and 1 video. Display remaining count dynamically.
         if (imgCount < 2 && !hasVid) {
           setState(() => _firstLookMediaError =
               'Please add ${2 - imgCount} more image(s) and 1 video.');
@@ -1424,56 +1493,46 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           setState(() => _firstLookMediaError = 'Please add 1 video.');
           return false;
         }
+
         return true;
 
-      case 3: // Value Addition History Check
-        return true; // Array additions individually checked during Dialog creation sequence
+      case 3:
+        return true;
 
       case 4: // Final Stage Fields
-        // Rule: Auto-populate Final Color from Buying Color if unedited
         if (_finalColorCtrl.text.trim().isEmpty) {
           _finalColorCtrl.text = _buyingColorCtrl.text;
         }
 
-        // Rule: Auto-initialize Final Weight using latest Baseline Weight from Value Additions
         if (_finalWeightCtrl.text.trim().isEmpty) {
-          _finalWeightCtrl.text = _currentBaselineWeight.toString();
+          _finalWeightCtrl.text = _currentBaselineWeight > 0
+              ? _currentBaselineWeight.toString()
+              : _buyingWeightCtrl.text;
         }
 
-        return _formKey.currentState?.validate() ?? false;
+        // 🔥 FIX: avoid global form validate
+        if (_finalWeightCtrl.text.trim().isEmpty) return false;
 
-      case 5: // Final Media Check
-        final imgCount = _finalPhotos.length;
-        final hasVid = _finalVideo != null;
-
-        // Rule: Enforce minimum 2 images and 1 video before finishing wizard tracking
-        if (imgCount < 2 && !hasVid) {
-          setState(() => _finalMediaError =
-              'Please add ${2 - imgCount} more image(s) and 1 video.');
-          return false;
-        } else if (imgCount < 2) {
-          setState(() =>
-              _finalMediaError = 'Please add ${2 - imgCount} more image(s).');
-          return false;
-        } else if (!hasVid) {
-          setState(() => _finalMediaError = 'Please add 1 video.');
-          return false;
-        }
         return true;
 
-      case 6: // Certification Step Validation
+      case 5:
+        return true;
+
+      case 6:
         if (_isCertified && _certificates.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text(
-                    'Please add at least one certificate or disable certification.')),
+              content: Text(
+                'Please add at least one certificate or disable certification.',
+              ),
+            ),
           );
           return false;
         }
         return true;
 
       default:
-        return _formKey.currentState?.validate() ?? false;
+        return true;
     }
   }
   // ================================
@@ -1484,7 +1543,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     Color bgColor =
         isDark ? AppColors.darkBackground : AppColors.lightBackground;
     final state = ref.watch(addNewGemstoneViewModelProvider);
-    final isLoading = state.isLoading || state.isSuccess;
+    final isLoading = state.isLoading;
 
     return WillPopScope(
       onWillPop: () async => !isLoading,
@@ -1542,20 +1601,31 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   physics: const ClampingScrollPhysics(),
                   currentStep: _currentStep,
                   onStepContinue: () {
-                    // ONLY CHANGE: Wrap your original transition code in the validator check
                     if (_validateCurrentStep()) {
                       final steps = _buildSteps();
+
                       if (_currentStep < steps.length - 1) {
                         setState(() => _currentStep += 1);
-                        // After advancing past Buying Details (step index 1),
-                        // prompt the user to view AI predictions.
+
                         if (_currentStep == 2) {
                           WidgetsBinding.instance.addPostFrameCallback(
-                              (_) => _showAiPromptDialog());
+                            (_) => _showAiPromptDialog(),
+                          );
                         }
                       } else {
                         _publishInventoryItem();
                       }
+                    } else {
+                      // 🔥 THIS IS MISSING IN YOUR CODE
+                      ScaffoldMessenger.of(context)
+                        ..clearSnackBars()
+                        ..showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('Please complete all required fields'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
                     }
                   },
                   onStepCancel: () {

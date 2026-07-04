@@ -23,14 +23,17 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Default to the first available media
-    _currentSelectedPath = widget.gemstone.finalImagePath ??
-        widget.gemstone.firstImagePath ??
-        widget.gemstone.finalVideoPath ??
-        widget.gemstone.firstVideoPath ??
-        '';
-    _isShowingVideo = _currentSelectedPath == widget.gemstone.finalVideoPath ||
-        _currentSelectedPath == widget.gemstone.firstVideoPath;
+
+    _currentSelectedPath = widget.gemstone.finalPhotos.isNotEmpty
+        ? widget.gemstone.finalPhotos.first
+        : widget.gemstone.firstLookPhotos.isNotEmpty
+            ? widget.gemstone.firstLookPhotos.first
+            : widget.gemstone.finalVideo ??
+                widget.gemstone.firstLookVideo ??
+                '';
+
+    _isShowingVideo = _currentSelectedPath == widget.gemstone.finalVideo ||
+        _currentSelectedPath == widget.gemstone.firstLookVideo;
 
     if (_isShowingVideo && _currentSelectedPath.isNotEmpty) {
       _initVideoPlayer(_currentSelectedPath);
@@ -279,35 +282,35 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                if (widget.gemstone.firstImagePath != null)
+                for (final photo in widget.gemstone.firstLookPhotos) ...[
                   _buildThumbnail(
                     context,
-                    widget.gemstone.firstImagePath!,
-                    isActive:
-                        _currentSelectedPath == widget.gemstone.firstImagePath,
+                    photo,
+                    isActive: _currentSelectedPath == photo,
                     onTap: () {
                       setState(() {
-                        _currentSelectedPath = widget.gemstone.firstImagePath!;
+                        _currentSelectedPath = photo;
                         _isShowingVideo = false;
                         _disposeVideoController();
                       });
                     },
                   ),
-                if (widget.gemstone.finalImagePath != null) ...[
                   const SizedBox(width: 12),
+                ],
+                for (final photo in widget.gemstone.finalPhotos) ...[
                   _buildThumbnail(
                     context,
-                    widget.gemstone.finalImagePath!,
-                    isActive:
-                        _currentSelectedPath == widget.gemstone.finalImagePath,
+                    photo,
+                    isActive: _currentSelectedPath == photo,
                     onTap: () {
                       setState(() {
-                        _currentSelectedPath = widget.gemstone.finalImagePath!;
+                        _currentSelectedPath = photo;
                         _isShowingVideo = false;
                         _disposeVideoController();
                       });
                     },
                   ),
+                  const SizedBox(width: 12),
                 ],
                 if (widget.gemstone.firstVideoPath != null) ...[
                   const SizedBox(width: 12),
