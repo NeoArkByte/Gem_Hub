@@ -61,7 +61,7 @@ class AnalyticsScreen extends ConsumerWidget {
                     title: Text(insight),
                   ),
                 ))
-            .toList(),
+            ,
       ],
     );
   }

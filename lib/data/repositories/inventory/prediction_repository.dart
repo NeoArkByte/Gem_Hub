@@ -81,18 +81,18 @@ class PredictionRepository implements PredictionRepositoryProtocol {
     final rows = await db.rawQuery('''
       SELECT
         COUNT(*) AS matchingRecordCount,
-        AVG(CASE WHEN actualSoldPrice > 0 THEN (actualSoldPrice - buyingPrice - certificateFees - otherCost) ELSE NULL END) AS averageProfit,
-        AVG(CASE WHEN actualSoldPrice > 0 THEN (buyingPrice + certificateFees + otherCost) ELSE NULL END) AS averageExpenses,
-        AVG(CASE WHEN actualSoldPrice > 0 THEN actualSoldPrice ELSE NULL END) AS averageSellingPrice,
+        AVG(CASE WHEN selling_price > 0 THEN (selling_price - buying_price - certificateFees - other_cost) ELSE NULL END) AS averageProfit,
+        AVG(CASE WHEN selling_price > 0 THEN (buying_price + certificateFees + other_cost) ELSE NULL END) AS averageExpenses,
+        AVG(CASE WHEN selling_price > 0 THEN selling_price ELSE NULL END) AS averageSellingPrice,
         AVG(CASE WHEN recordDate IS NOT NULL AND buyingDate IS NOT NULL THEN (julianday(recordDate) - julianday(buyingDate)) ELSE NULL END) AS averageDaysToSell,
-        SUM(CASE WHEN actualSoldPrice > 0 THEN (actualSoldPrice - buyingPrice - certificateFees - otherCost) ELSE 0 END) AS totalInventoryProfit,
+        SUM(CASE WHEN selling_price > 0 THEN (selling_price - buying_price - certificateFees - other_cost) ELSE 0 END) AS totalInventoryProfit,
         (
           SELECT substr(recordDate, 1, 7)
           FROM gemstones
           WHERE is_sold = 1
             AND (${whereSql ?? '1=1'})
           GROUP BY substr(recordDate, 1, 7)
-          ORDER BY SUM(CASE WHEN actualSoldPrice > 0 THEN (actualSoldPrice - buyingPrice - certificateFees - otherCost) ELSE 0 END) DESC
+          ORDER BY SUM(CASE WHEN selling_price > 0 THEN (selling_price - buying_price - certificateFees - other_cost) ELSE 0 END) DESC
           LIMIT 1
         ) AS bestSellingMonth,
         (
@@ -101,7 +101,7 @@ class PredictionRepository implements PredictionRepositoryProtocol {
           WHERE is_sold = 1
             AND (${whereSql ?? '1=1'})
           GROUP BY variety
-          ORDER BY SUM(CASE WHEN actualSoldPrice > 0 THEN (actualSoldPrice - buyingPrice - certificateFees - otherCost) ELSE 0 END) DESC
+          ORDER BY SUM(CASE WHEN selling_price > 0 THEN (selling_price - buying_price - certificateFees - other_cost) ELSE 0 END) DESC
           LIMIT 1
         ) AS mostProfitableGemType
       FROM gemstones
