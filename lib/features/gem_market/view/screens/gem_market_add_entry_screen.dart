@@ -51,9 +51,8 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
 
   Future<void> _loadVarieties() async {
     try {
-      final varieties = await ref
-          .read(gemAddViewModelProvider.notifier)
-          .getGemVarieties();
+      final varieties =
+          await ref.read(gemAddViewModelProvider.notifier).getGemVarieties();
       if (mounted) {
         setState(() {
           _varieties = List<String>.from(varieties);
@@ -101,9 +100,7 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
 
     setState(() => _isPublishing = true);
 
-    final success = await ref
-        .read(gemAddViewModelProvider.notifier)
-        .createGem(
+    final success = await ref.read(gemAddViewModelProvider.notifier).createGem(
           name: _nameController.text.trim(),
           imageFile: _gemImage!,
           certificateFile: _certificateFile,
@@ -124,6 +121,7 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
 
     if (success) {
       ref.invalidate(gemListProvider);
+      ref.invalidate(userSpecificGemsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -169,13 +167,11 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark
-        ? AppColors.darkBackground
-        : AppColors.lightBackground;
+    Color bgColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
     Color textColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color dividerColor = isDark
-        ? AppColors.darkSurfaceAlt
-        : AppColors.lightBorder;
+    Color dividerColor =
+        isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
 
     return Scaffold(
       backgroundColor: bgColor,
