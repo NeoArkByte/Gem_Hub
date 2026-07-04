@@ -1,4 +1,4 @@
-//lib\features\inventory\viewmodels\add_new_gemstone_viewmodel.dart
+//lib/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart
 
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/models/inventory/media_processing_state.dart';
@@ -20,9 +20,6 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
     String? rawFirstLookVideo,
     List<String> rawFinalPhotos = const [],
     String? rawFinalVideo,
-    // Add raw media paths to certificates/value additions if needed 
-    // Here we assume the UI passed already vaulted/temp paths or we vault them here.
-    // For simplicity, we just vault first/final photos. 
   }) async {
     final repository = ref.read(inventoryRepositoryProvider);
     final vaultService = ref.read(mediaVaultProvider);
@@ -30,12 +27,17 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
     state = MediaProcessingState(isLoading: true, progress: 0);
 
     try {
-      List<String> vaultedFirstPhotos = [...gem.firstLookPhotos];
-      List<String> vaultedFinalPhotos = [...gem.finalPhotos];
+      List<String> vaultedFirstPhotos = [];
+      List<String> vaultedFinalPhotos = [];
       String? vFirstVideoPath = gem.firstLookVideo;
       String? vFinalVideoPath = gem.finalVideo;
 
-      final int totalSteps = rawFirstLookPhotos.length + rawFinalPhotos.length + (rawFirstLookVideo != null ? 1 : 0) + (rawFinalVideo != null ? 1 : 0) + 1;
+      final int totalSteps = rawFirstLookPhotos.length +
+          rawFinalPhotos.length +
+          (rawFirstLookVideo != null ? 1 : 0) +
+          (rawFinalVideo != null ? 1 : 0) +
+          1;
+
       int currentStep = 0;
 
       void updateOverallProgress(double stepProgress) {
@@ -48,7 +50,11 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
           rawSourcePath: path,
           type: MediaType.image,
         );
-        if (f != null) vaultedFirstPhotos.add(f.path);
+
+        if (f != null) {
+          vaultedFirstPhotos.add(f.path);
+        }
+
         currentStep++;
         updateOverallProgress(0);
       }
@@ -58,7 +64,11 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
           rawSourcePath: path,
           type: MediaType.image,
         );
-        if (f != null) vaultedFinalPhotos.add(f.path);
+
+        if (f != null) {
+          vaultedFinalPhotos.add(f.path);
+        }
+
         currentStep++;
         updateOverallProgress(0);
       }
@@ -69,7 +79,9 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
           type: MediaType.video,
           onVideoProgress: (p) => updateOverallProgress(p / 100),
         );
+
         if (f != null) vFirstVideoPath = f.path;
+
         currentStep++;
         updateOverallProgress(0);
       }
@@ -80,12 +92,14 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
           type: MediaType.video,
           onVideoProgress: (p) => updateOverallProgress(p / 100),
         );
+
         if (f != null) vFinalVideoPath = f.path;
+
         currentStep++;
         updateOverallProgress(0);
       }
 
-      final gemstoneToSave = gem.copyWith(
+      var gemstoneToSave = gem.copyWith(
         firstLookPhotos: vaultedFirstPhotos,
         finalPhotos: vaultedFinalPhotos,
         firstLookVideo: vFirstVideoPath,
@@ -93,22 +107,33 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
       );
 
       if (gemstoneToSave.id == null) {
-        await repository.insertGemstone(gemstoneToSave);
+        final id = await repository.insertGemstone(gemstoneToSave);
+        gemstoneToSave = gemstoneToSave.copyWith(id: id);
       } else {
-        await repository.updateGemstone(gemstoneToSave);
+        final updatedRows = await repository.updateGemstone(gemstoneToSave);
+
+        if (updatedRows == 0) {
+          final id = await repository.insertGemstone(gemstoneToSave);
+          gemstoneToSave = gemstoneToSave.copyWith(id: id);
+        }
       }
 
       currentStep++;
       updateOverallProgress(0);
 
-      state = state.copyWith(isLoading: false, progress: 1.0, isSuccess: true);
+      // 🔥 THIS IS THE ONLY IMPORTANT FIX (UI REFRESH)
+      ref.invalidate(inventoryViewModelProvider);
 
-      Future.microtask(() {
-        ref.invalidate(inventoryViewModelProvider);
-      });
-
+      state = state.copyWith(
+        isLoading: false,
+        progress: 1.0,
+        isSuccess: true,
+      );
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
       rethrow;
     }
   }

@@ -13,7 +13,7 @@ class GemFormValidator {
     if (value == null || value.trim().isEmpty) return 'Buying price is required';
     final price = double.tryParse(value);
     if (price == null) return 'Enter a valid number';
-    if (price <= 0) return 'Buying price must be greater than 0';
+    if (price < 0) return 'Buying price must be positive';
     return null;
   }
 
@@ -35,19 +35,20 @@ class GemFormValidator {
     if (value == null || value.trim().isEmpty) return 'Current weight is required';
     final weight = double.tryParse(value);
     if (weight == null) return 'Enter a valid number';
-    if (weight < previousWeight) {
-      return 'Weight cannot decrease! Must be ≥ ${previousWeight.toStringAsFixed(2)} ct';
+    if (weight > previousWeight) {
+      return 'Weight cannot increase!';
     }
     return null;
   }
 
   // --- Step 5 Final Stage Rules ---
   static String? validateFinalWeight(String? value, double baselineWeight) {
+     
     if (value == null || value.trim().isEmpty) return 'Final weight is required';
     final weight = double.tryParse(value);
     if (weight == null) return 'Enter a valid number';
-    if (weight < baselineWeight) {
-      return 'Weight cannot be less than previous stage (${baselineWeight.toStringAsFixed(2)} ct)';
+    if (weight > baselineWeight) {
+      return 'Weight cannot be greater than baseline weight (${baselineWeight.toStringAsFixed(2)} ct)';
     }
     return null;
   }
@@ -84,4 +85,6 @@ class GemFormValidator {
     if (fee <= 0) return 'Fee must be greater than zero';
     return null;
   }
+
+  
 }
