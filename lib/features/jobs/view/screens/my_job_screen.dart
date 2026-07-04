@@ -176,7 +176,11 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            onPressed: () => context.push('/post-job'),
+            // 💡 වෙනස 1: මෙතන await කරලා invalidate කරන කෑල්ල දැම්මා
+            onPressed: () async {
+              await context.push('/post-job');
+              ref.invalidate(myJobsViewModelProvider);
+            },
             icon: const Icon(Icons.add, color: Colors.black),
             label: const Text('Post a Job',
                 style: TextStyle(
@@ -260,8 +264,10 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                onPressed: () {
-                  context.push('/post-job', extra: job);
+                // 💡 වෙනස 2: මෙතනත් await කරලා invalidate කරන කෑල්ල දැම්මා
+                onPressed: () async {
+                  await context.push('/post-job', extra: job);
+                  ref.invalidate(myJobsViewModelProvider);
                 },
                 icon: const Icon(Icons.edit_outlined, color: Colors.blue),
                 tooltip: 'Edit Job',
