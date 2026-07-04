@@ -4,11 +4,13 @@ import 'package:gemhub/core/constants/app_colors.dart';
 class GemBottomActionBar extends StatelessWidget {
   final bool isFavourite;
   final VoidCallback onFavouriteToggle;
+  final VoidCallback? onContactSeller;
 
   const GemBottomActionBar({
     super.key,
     required this.isFavourite,
     required this.onFavouriteToggle,
+    this.onContactSeller,
   });
 
   @override
@@ -44,8 +46,8 @@ class GemBottomActionBar extends StatelessWidget {
                 color: isFavourite
                     ? AppColors.redPale
                     : (isDark
-                          ? AppColors.darkSurfaceAlt
-                          : AppColors.lightBackgroundGrey),
+                        ? AppColors.darkSurfaceAlt
+                        : AppColors.lightBackgroundGrey),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -71,7 +73,7 @@ class GemBottomActionBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: onContactSeller,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   foregroundColor: Colors.white,
@@ -82,7 +84,7 @@ class GemBottomActionBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                icon: const Icon(Icons.phone_outlined, size: 18),
                 label: const Text(
                   'Contact Seller',
                   style: TextStyle(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
 import 'package:gemhub/features/gem_market/view/widgets/detail/gem_bottom_action_bar.dart';
 import 'package:gemhub/features/gem_market/view/widgets/detail/gem_detail_app_bar.dart';
@@ -29,6 +30,26 @@ class _GemListingDetailScreenState extends State<GemListingDetailScreen> {
         : [];
   }
 
+  Future<void> _dialNumber(String phoneNumber, BuildContext context) async {
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: cleanNumber,
+    );
+
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not open dialer'),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
@@ -45,7 +66,6 @@ class _GemListingDetailScreenState extends State<GemListingDetailScreen> {
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [
-          
           CustomScrollView(
             slivers: [
               GemDetailAppBar(
@@ -70,7 +90,6 @@ class _GemListingDetailScreenState extends State<GemListingDetailScreen> {
               ),
             ],
           ),
-
           Positioned(
             left: 0,
             right: 0,
@@ -79,11 +98,14 @@ class _GemListingDetailScreenState extends State<GemListingDetailScreen> {
               isFavourite: _isFavourite,
               onFavouriteToggle: () =>
                   setState(() => _isFavourite = !_isFavourite),
+              onContactSeller: widget.gem.sellerPhone != null &&
+                      widget.gem.sellerPhone!.trim().isNotEmpty
+                  ? () => _dialNumber(widget.gem.sellerPhone!, context)
+                  : null,
             ),
           ),
         ],
       ),
     );
   }
-
 }
