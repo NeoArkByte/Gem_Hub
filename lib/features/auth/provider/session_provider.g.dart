@@ -45,4 +45,4 @@ final class SessionProvider extends $FunctionalProvider<
   }
 }
 
-String _$sessionHash() => r'c39af3ab6d70f75eaae994a033537908412b81d1';
+String _$sessionHash() => r'bb56eea8139158fa17ddc7039208da9be549a479';
