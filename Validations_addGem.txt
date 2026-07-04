@@ -1,0 +1,179 @@
+2. Buying Details
+Buying Weight
+Required
+Must be greater than 0
+Cannot be zero
+Cannot be negative
+
+Examples:
+
+? 1.25
+
+? 3.60
+
+? 0
+
+? -2
+
+Buying Price
+Required
+Cannot be negative
+Zero is allowed only if business rules permit; otherwise require greater than zero.
+Buyer Name
+Optional
+Contact Number
+Optional
+
+If provided:
+
+Country code must be selected using a dropdown.
+Default to the user's country if appropriate.
+Store country code separately from the local number.
+Validate according to the selected country's numbering rules.
+Remove spaces automatically.
+Prevent invalid characters.
+Accept only digits after formatting.
+
+Use a professional phone number validation package if appropriate.
+
+Display formatted numbers like:
+
++94 77 123 4567
+
++91 98765 43210
+
+Variety
+
+Automatically populate this field using the selected value from Step 1 (Basic Information ? Category).
+
+Users should not have to enter it manually.
+
+Buying Color
+Required
+Cannot be empty
+3. First Look
+
+Require:
+
+Minimum 2 images
+Minimum 1 video
+
+Prevent moving to the next step until both conditions are satisfied.
+
+Display remaining requirements to the user.
+
+Example:
+
+"Please add one more image."
+
+4. Value Addition
+Cost
+Cannot be negative
+Current Weight
+
+Each Value Addition entry has a Current Weight.
+
+Validation:
+
+Current Weight
+
+= Previous Current Weight
+
+Never allow it to decrease.
+
+Example
+
+Buying Weight
+
+2.30
+
+Stage 1
+
+2.35 ?
+
+Stage 2
+
+2.42 ?
+
+Stage 3
+
+2.30 ?
+
+Stage 3
+
+2.20 ?
+
+Display an appropriate validation message.
+
+5. Final Stage
+Final Weight
+
+Automatically initialize using the latest Current Weight from Value Addition.
+
+Users may increase it if business rules allow.
+
+Never allow:
+
+Final Weight < Previous Current Weight
+
+Final Color
+
+Automatically initialize using the Buying Color.
+
+Users may edit it.
+
+Cannot be empty.
+
+Dimensions
+
+If Status == "Cut"
+
+Require:
+
+Length
+
+Width
+
+Height (or Depth)
+
+Validation:
+
+Required
+Must be greater than zero
+Cannot be negative
+
+If Status != Cut
+
+Dimensions should be optional.
+
+6. Final Media
+
+Require:
+
+Minimum 2 images
+Minimum 1 video
+
+Prevent completion until requirements are met.
+
+7. Certificate
+Lab Name
+
+Required
+
+Cannot be empty
+
+Certificate Fee
+
+Required
+
+Must be greater than zero
+
+Cannot be zero
+
+Cannot be negative
+
+Certificate Images
+
+Require at least one image.
+
+Prevent completion until uploaded.
