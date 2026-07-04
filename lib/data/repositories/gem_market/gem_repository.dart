@@ -9,7 +9,7 @@ class GemRepository {
   Future<List<Gem>> getAllGems() async {
     try {
       final response = await _dio.get('gems/');
-      final List data = response.data["results"];
+      final List data = response.data;
       return data.map((json) => Gem.fromMap(json)).toList();
     } on DioException catch (e) {
       throw _handleError(e);
@@ -18,8 +18,8 @@ class GemRepository {
 
   Future<List<Gem>> getAllGemsByUserId(String userId) async {
     try {
-      final response = await _dio.get('gems/', queryParameters: {'owner_id': userId});
-      final List data = response.data["results"];
+      final response = await _dio.get('gems/by_owner/$userId/');
+      final List data = response.data;
       return data.map((json) => Gem.fromMap(json)).toList();
     } on DioException catch (e) {
       throw _handleError(e);
