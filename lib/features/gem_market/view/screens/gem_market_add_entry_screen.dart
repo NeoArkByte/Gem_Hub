@@ -51,9 +51,8 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
 
   Future<void> _loadVarieties() async {
     try {
-      final varieties = await ref
-          .read(gemAddViewModelProvider.notifier)
-          .getGemVarieties();
+      final varieties =
+          await ref.read(gemAddViewModelProvider.notifier).getGemVarieties();
       if (mounted) {
         setState(() {
           _varieties = List<String>.from(varieties);
@@ -99,11 +98,19 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
       return;
     }
 
+    if (_locationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select or specify a location.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isPublishing = true);
 
-    final success = await ref
-        .read(gemAddViewModelProvider.notifier)
-        .createGem(
+    final success = await ref.read(gemAddViewModelProvider.notifier).createGem(
           name: _nameController.text.trim(),
           imageFile: _gemImage!,
           certificateFile: _certificateFile,
@@ -124,6 +131,7 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
 
     if (success) {
       ref.invalidate(gemListProvider);
+      ref.invalidate(userSpecificGemsProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -169,13 +177,11 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark
-        ? AppColors.darkBackground
-        : AppColors.lightBackground;
+    Color bgColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
     Color textColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color dividerColor = isDark
-        ? AppColors.darkSurfaceAlt
-        : AppColors.lightBorder;
+    Color dividerColor =
+        isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -251,6 +257,15 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                       label: 'Gem Name',
                       hint: 'e.g. Royal Blue Sapphire',
                       controller: _nameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a gem name';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Gem name must be at least 3 characters';
+                        }
+                        return null;
+                      },
                     ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,6 +289,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                                         });
                                       },
                                     ),
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Please enter custom variety';
+                                      }
+                                      if (value.trim().length < 2) {
+                                        return 'Variety name is too short';
+                                      }
+                                      return null;
+                                    },
                                   )
                                 : GemFormDropdownField(
                                     key: const ValueKey('dropdown_variety'),
@@ -290,7 +315,6 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                                         }
                                       });
                                     },
-                                    optional: true,
                                   ),
                           ),
                         ),
@@ -300,7 +324,12 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                             label: 'Color',
                             hint: 'e.g. Blue',
                             controller: _colorController,
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a color';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -316,7 +345,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                               decimal: true,
                             ),
                             suffixText: 'ct',
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter carat weight';
+                              }
+                              final carat = double.tryParse(value.trim());
+                              if (carat == null || carat <= 0) {
+                                return 'Enter a valid weight > 0';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -329,7 +367,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                               decimal: true,
                             ),
                             prefixIcon: Icons.payments_outlined,
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a price';
+                              }
+                              final price = double.tryParse(value.trim());
+                              if (price == null || price <= 0) {
+                                return 'Enter a valid price > 0';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -358,6 +405,18 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: Icons.phone_outlined,
                       optional: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return null;
+                        }
+                        final cleanVal =
+                            value.replaceAll(RegExp(r'[\s\-()]'), '');
+                        final slRegex = RegExp(r'^(?:\+94|94|0)?[1-9]\d{8}$');
+                        if (!slRegex.hasMatch(cleanVal)) {
+                          return 'Enter a valid Sri Lankan number';
+                        }
+                        return null;
+                      },
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),

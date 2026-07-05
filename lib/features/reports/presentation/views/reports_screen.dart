@@ -50,7 +50,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 return SingleChildScrollView(
                   child: Column(
                     children: [
-                      // 2. Pass the freshly calculated total here
                       _buildTotalHeader(totalPortfolio),
                       ListView.builder(
                         shrinkWrap: true,

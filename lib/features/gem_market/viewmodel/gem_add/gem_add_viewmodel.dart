@@ -38,6 +38,7 @@ class GemAddViewModel extends _$GemAddViewModel {
     if (ownerProfileId == null || supabaseUid == null) return false;
 
     state = true;
+    final keepAliveLink = ref.keepAlive();
 
     try {
       final storageRepo = ref.read(storageRepositoryProvider);
@@ -66,16 +67,18 @@ class GemAddViewModel extends _$GemAddViewModel {
         color: color,
         imageUrl: imageUrl,
         certificateUrl: certUrl ?? '',
-        status: GemStatus.APPROVED,
+        status: GemStatus.PENDING,
       );
 
       // Create record
       await gemRepo.createGem(gem);
 
       state = false;
+      keepAliveLink.close();
       return true;
     } catch (e) {
       state = false;
+      keepAliveLink.close();
       return false;
     }
   }

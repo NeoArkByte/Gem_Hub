@@ -26,6 +26,8 @@ import 'package:gemhub/features/profile/view/backup_screen.dart';
 import 'package:gemhub/features/inventory/view/gem_details_inventory_screen.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/features/jobs/view/screens/my_job_screen.dart';
+import 'package:gemhub/features/other/view/help_center_screen.dart';
+import 'package:gemhub/features/other/view/terms_privacy_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -140,6 +142,16 @@ GoRouter router(Ref ref) {
               ),
             ],
           ),
+          GoRoute(
+            path: '/help-center',
+            name: 'help_center',
+            builder: (context, state) => const HelpCenterScreen(),
+          ),
+          GoRoute(
+            path: '/terms-privacy',
+            name: 'terms_privacy',
+            builder: (context, state) => const TermsPrivacyScreen(),
+          ),
         ],
       ),
       GoRoute(
@@ -179,6 +191,14 @@ GoRouter router(Ref ref) {
         builder: (context, state) {
           final jobToEdit = state.extra as Job?;
           return PostJobScreen(jobToEdit: jobToEdit);
+        },
+      ),
+      GoRoute(
+        path: '/admin-edit-job',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>;
+          final job = data['job'] as Job?;
+          return PostJobScreen(jobToEdit: job, isAdmin: true);
         },
       ),
     ],

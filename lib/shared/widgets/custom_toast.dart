@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 
 class CustomToast {
-  /// Displays a floating, high-fidelity success snackbar
   static void showSuccess(BuildContext context, String message) {
     _show(
       context,
@@ -12,7 +11,7 @@ class CustomToast {
     );
   }
 
-  /// Displays a floating, high-fidelity error/danger snackbar
+  
   static void showError(BuildContext context, String message) {
     _show(
       context,
@@ -22,14 +21,14 @@ class CustomToast {
     );
   }
 
-  /// Base private builder to keep layout styling strictly unified
+  
   static void _show(
     BuildContext context, {
     required String message,
     required Color backgroundColor,
     required IconData icon,
   }) {
-    // Clear any active snackbars immediately so animations don't stack up laggy
+    
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     ScaffoldMessenger.of(context).showSnackBar(

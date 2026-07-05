@@ -73,7 +73,7 @@ final class ApprovedGemsProvider extends $FunctionalProvider<
   }
 }
 
-String _$approvedGemsHash() => r'b41ce103c4c5afdd426795475d2046cade008bd9';
+String _$approvedGemsHash() => r'53ed2e2a91061388feebdc4c5d0c9e166b40c4d2';
 
 @ProviderFor(latestApprovedGems)
 final latestApprovedGemsProvider = LatestApprovedGemsProvider._();
@@ -140,7 +140,7 @@ final class PendingGemsProvider extends $FunctionalProvider<
   }
 }
 
-String _$pendingGemsHash() => r'ad60436e86aeab8f9bf6a70abb82360b5220eb5e';
+String _$pendingGemsHash() => r'ef4df9af8236baee907822e1057a3a2a93889341';
 
 @ProviderFor(userSpecificGems)
 final userSpecificGemsProvider = UserSpecificGemsProvider._();

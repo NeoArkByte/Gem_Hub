@@ -121,7 +121,6 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
       currentStep++;
       updateOverallProgress(0);
 
-      // 🔥 THIS IS THE ONLY IMPORTANT FIX (UI REFRESH)
       ref.invalidate(inventoryViewModelProvider);
 
       state = state.copyWith(

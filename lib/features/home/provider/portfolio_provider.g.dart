@@ -45,4 +45,4 @@ final class PortfolioDataProvider extends $FunctionalProvider<
   }
 }
 
-String _$portfolioDataHash() => r'4c5f9a465840f6d653e9b7d1643b53ad6974618a';
+String _$portfolioDataHash() => r'b600c662b7477ad47b4e5aea11cf6a80c71da8cc';

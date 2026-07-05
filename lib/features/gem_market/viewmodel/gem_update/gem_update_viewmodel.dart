@@ -55,7 +55,6 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
       String? finalImageUrl = originalGem.imageUrl;
       String? finalCertUrl = originalGem.certificateUrl;
 
-      // 1. Process new image upload if the file object is present
       if (newImageFile != null) {
         finalImageUrl = await storageRepo.updateFile(
           bucket: 'listings',
@@ -65,7 +64,6 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
         );
       }
 
-      // 2. Process new certificate upload if the file object is present
       if (newCertificateFile != null) {
         finalCertUrl = await storageRepo.updateFile(
           bucket: 'documents',

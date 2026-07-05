@@ -18,9 +18,8 @@ class ProfileScreen extends ConsumerWidget {
     final sessionState = ref.watch(sessionProvider);
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgColor = isDark
-        ? AppColors.darkBackgroundAlt
-        : AppColors.lightBackgroundSoft;
+    final Color bgColor =
+        isDark ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundSoft;
     final Color textColor = isDark ? Colors.white : AppColors.textDarkAlt;
     final Color cardColor = isDark ? AppColors.textDarkAlt : Colors.white;
 
@@ -62,35 +61,33 @@ class ProfileScreen extends ConsumerWidget {
             _buildSectionTitle("Account Details"),
             _buildMenuCard(cardColor, [
               InkWell(
-  onTap: () async {
-    // 1. Get the current authenticated user directly from Supabase
-    final currentUser = Supabase.instance.client.auth.currentUser;
+                onTap: () async {
+                  final currentUser = Supabase.instance.client.auth.currentUser;
 
-    // 2. Navigate to your edit screen safely
-    final dataChanged = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditProfileScreen(
-          currentUsername: profile?.username ?? currentUser?.email?.split('@')[0] ?? "Gem Owner",
-          currentDescription: profile?.description ?? "",
-          currentAvatarUrl: profile?.avatarUrl,
-        ),
-      ),
-    );
-    
-    // 3. Refresh user profile data from Supabase if changes were successfully made
-    if (dataChanged == true) {
-      // Call your profile loading/fetching method here (e.g., fetchUserProfile();)
-    }
-  },
-  child: _buildMenuTile(
-    Icons.person,
-    Colors.blue.shade50,
-    Colors.blue,
-    "Edit Personal Profile",
-    textColor,
-  ),
-),
+                  final dataChanged = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditProfileScreen(
+                        currentUsername: profile?.username ??
+                            currentUser?.email?.split('@')[0] ??
+                            "Gem Owner",
+                        currentDescription: profile?.description ?? "",
+                        currentAvatarUrl: profile?.avatarUrl,
+                      ),
+                    ),
+                  );
+
+                  if (dataChanged == true) {
+                  }
+                },
+                child: _buildMenuTile(
+                  Icons.person,
+                  Colors.blue.shade50,
+                  Colors.blue,
+                  "Edit Personal Profile",
+                  textColor,
+                ),
+              ),
               _buildMenuTile(
                 Icons.cloud_sync,
                 Colors.indigo.shade50,
@@ -110,15 +107,8 @@ class ProfileScreen extends ConsumerWidget {
               ),
             ]),
             const SizedBox(height: 18),
-            _buildSectionTitle("Notification Settings & Jobs"),
+            _buildSectionTitle("Jobs"),
             _buildMenuCard(cardColor, [
-              _buildMenuTile(
-                Icons.notifications_active,
-                Colors.green.shade50,
-                Colors.green,
-                "Marketplace Alerts",
-                textColor,
-              ),
               _buildMenuTile(
                 Icons.work_outline,
                 Colors.purple.shade50,
@@ -126,7 +116,7 @@ class ProfileScreen extends ConsumerWidget {
                 "My Jobs posts",
                 textColor,
                 onTap: () {
-                  context.push('/my-jobs'); 
+                  context.push('/my-jobs');
                 },
               ),
               _buildMenuTile(
@@ -147,6 +137,7 @@ class ProfileScreen extends ConsumerWidget {
                 Colors.black87,
                 "Help Center",
                 textColor,
+                onTap: () => context.push('/help-center'),
               ),
               _buildMenuTile(
                 Icons.shield_outlined,
@@ -154,6 +145,7 @@ class ProfileScreen extends ConsumerWidget {
                 Colors.black87,
                 "Terms & Privacy",
                 textColor,
+                onTap: () => context.push('/terms-privacy'),
               ),
             ]),
             const SizedBox(height: 24),
@@ -181,7 +173,6 @@ class ProfileScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 1. Profile Picture
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -198,7 +189,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 15),
 
-          // 2. Username
           Text(
             profile?.username ??
                 supabaseUser?.email?.split('@')[0] ??
@@ -212,7 +202,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // 3. Description
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Text(
@@ -227,7 +216,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
 
-          // 4. Member Since
           Text(
             "Member since ${_formatDate(profile?.createdAt)}",
             textAlign: TextAlign.center,
@@ -407,8 +395,7 @@ class ProfileScreen extends ConsumerWidget {
           fontSize: 15,
         ),
       ),
-      trailing:
-          trailing ??
+      trailing: trailing ??
           Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
     );
   }
@@ -441,10 +428,9 @@ class ProfileScreen extends ConsumerWidget {
   void _showLogoutConfirmation(BuildContext context, WidgetRef ref) async {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-   
     final confirmLogout = await showDialog<bool>(
       context: context,
-      barrierDismissible: false, 
+      barrierDismissible: false,
       barrierColor: Colors.black.withOpacity(isDark ? 0.6 : 0.4),
       builder: (BuildContext context) {
         return const CustomConfirmDialog(
@@ -452,15 +438,13 @@ class ProfileScreen extends ConsumerWidget {
           content: "Are you sure you want to sign out of your account?",
           confirmLabel: "Sign Out",
           confirmColor: AppColors.dangerRed,
-          icon: Icons.logout_rounded, 
+          icon: Icons.logout_rounded,
         );
       },
     );
 
-    
     if (confirmLogout != true || !context.mounted) return;
 
-    
     try {
       await ref.read(authViewModelProvider.notifier).logout();
 

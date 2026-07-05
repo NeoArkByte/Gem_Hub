@@ -9,7 +9,27 @@ class GemRepository {
   Future<List<Gem>> getAllGems() async {
     try {
       final response = await _dio.get('gems/');
-      final List data = response.data;
+      final List data = response.data['results'];
+      return data.map((json) => Gem.fromMap(json)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<Gem>> getAllApprovedGems() async {
+    try {
+      final response = await _dio.get('gems/?status=approved');
+      final List data = response.data['results'];
+      return data.map((json) => Gem.fromMap(json)).toList();
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<Gem>> getAllPendingGems() async {
+    try {
+      final response = await _dio.get('gems/?status=pending');
+      final List data = response.data['results'];
       return data.map((json) => Gem.fromMap(json)).toList();
     } on DioException catch (e) {
       throw _handleError(e);
@@ -18,8 +38,8 @@ class GemRepository {
 
   Future<List<Gem>> getAllGemsByUserId(String userId) async {
     try {
-      final response = await _dio.get('gems/by_owner/$userId/');
-      final List data = response.data;
+      final response = await _dio.get('gems/?owner_id=$userId');
+      final List data = response.data['results'];
       return data.map((json) => Gem.fromMap(json)).toList();
     } on DioException catch (e) {
       throw _handleError(e);

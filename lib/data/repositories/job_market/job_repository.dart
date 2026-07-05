@@ -14,7 +14,7 @@ class JobRepository {
       );
 
       if (response.statusCode == 200) {
-        return _parseJobList(response.data);
+        return _parseJobList(response.data['results']);
       }
 
       throw Exception('Failed to load pending jobs');
@@ -24,7 +24,6 @@ class JobRepository {
     }
   }
 
-  
   Future<List<Job>> getApprovedJobs({
     String keyword = "",
     String category = "",
@@ -59,7 +58,7 @@ class JobRepository {
           await _dio.get('jobs/', queryParameters: queryParams);
 
       if (response.statusCode == 200) {
-        return _parseJobList(response.data);
+        return _parseJobList(response.data['results']);
       }
 
       throw Exception('Failed to load approved jobs');
@@ -69,25 +68,23 @@ class JobRepository {
     }
   }
 
-  Future<List<Job>> getMyJobs(String employerId) async {
-    try {
-      final response = await _dio.get(
-        'jobs/', 
-        queryParameters: {
-          'employerId': employerId, 
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return _parseJobList(response.data);
-      }
-
-      throw Exception('Failed to load my jobs');
-    } on DioException catch (e) {
-      print(_handleError(e));
-      return [];
-    }
+Future<List<Job>> getMyJobs(String employerId) async {
+  try {
+    final response = await _dio.get('jobs/');
+    
+    final List<dynamic> data = response.data['results']; 
+    
+    final List<Job> allJobs = data.map((json) => Job.fromMap(json)).toList();
+    
+    final List<Job> myOnlyJobs = allJobs.where((job) => job.employerId == employerId).toList();
+    
+    return myOnlyJobs;
+    
+  } catch (e) {
+    print("Error fetching jobs: $e");
+    return [];
   }
+}
 
   Future<bool> insertJob(Job job) async {
     try {
@@ -169,5 +166,20 @@ class JobRepository {
       return 'Error ${e.response?.statusCode}: ${e.response?.data}';
     }
     return 'Connection failed: ${e.message}';
+  }
+
+  Future<List<Job>> getAllJobs() async {
+    try {
+      final response = await _dio.get('jobs/');
+
+      if (response.statusCode == 200) {
+        return _parseJobList(response.data['results']);
+      }
+
+      throw Exception('Failed to load all jobs');
+    } on DioException catch (e) {
+      print(_handleError(e));
+      return [];
+    }
   }
 }
