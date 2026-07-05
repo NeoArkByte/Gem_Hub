@@ -50,7 +50,6 @@ class InventoryNotifier extends _$InventoryNotifier {
     state = await AsyncValue.guard(() async {
       final db = await _dbHelper.database;
       
-      // 1. Update the record in SQLite
       await db.update(
         'gemstones',
         updatedGem.toMap(),
@@ -58,7 +57,6 @@ class InventoryNotifier extends _$InventoryNotifier {
         whereArgs: [updatedGem.id],
       );
 
-      // 2. Return the fresh list to update the UI state
       return _refreshList();
     });
   }

@@ -6,7 +6,7 @@ import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/recent_job_card.dart';
 import 'package:gemhub/features/jobs/view/widgets/featured_job_card.dart';
 
-/// ✅ Category → Icon Mapper
+
 IconData getCategoryIcon(String category) {
   switch (category.toLowerCase()) {
     case 'gem cutter':
@@ -61,7 +61,7 @@ class FeaturedJobsList extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
             children: featuredJobs.map((job) {
-              /// ✅ Salary Logic
+            
               String displaySalary = 'Negotiable';
               if (job.minSalary != null && job.maxSalary != null) {
                 displaySalary =
@@ -74,7 +74,7 @@ class FeaturedJobsList extends ConsumerWidget {
                     'LKR ${job.maxSalary!.toStringAsFixed(0)}';
               }
 
-              /// ✅ Safe Tags Handling
+        
               final tagsList = (job.tags ?? '')
                   .split(',')
                   .where((t) => t.trim().isNotEmpty)
@@ -96,7 +96,7 @@ class FeaturedJobsList extends ConsumerWidget {
                     salary: displaySalary,
                     timePosted: 'New',
                     isPremium: true,
-                    iconData: getCategoryIcon(category), // ✅ Dynamic Icon
+                    iconData: getCategoryIcon(category), 
                   ),
                 ),
               );
@@ -145,7 +145,7 @@ class RecentJobsList extends ConsumerWidget {
             itemBuilder: (context, index) {
               final job = jobs[index];
 
-              /// ✅ Salary Logic
+          
               String displaySalary = 'Negotiable';
               if (job.minSalary != null && job.maxSalary != null) {
                 displaySalary =
@@ -158,7 +158,7 @@ class RecentJobsList extends ConsumerWidget {
                     'LKR ${job.maxSalary!.toStringAsFixed(0)}';
               }
 
-              /// ✅ Safe Tags Handling
+            
               final tagsList = (job.tags ?? '')
                   .split(',')
                   .where((t) => t.trim().isNotEmpty)
@@ -180,7 +180,7 @@ class RecentJobsList extends ConsumerWidget {
                         job.companyInfo ?? 'Unknown Company',
                     salary: displaySalary,
                     tags: tagsList,
-                    iconData: getCategoryIcon(category), // ✅ Dynamic Icon
+                    iconData: getCategoryIcon(category), 
                   ),
                 ),
               );

@@ -176,7 +176,7 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
-            // 💡 වෙනස 1: මෙතන await කරලා invalidate කරන කෑල්ල දැම්මා
+           
             onPressed: () async {
               await context.push('/post-job');
               ref.invalidate(myJobsViewModelProvider);
@@ -264,7 +264,6 @@ class _MyJobsScreenState extends ConsumerState<MyJobsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
-                // 💡 වෙනස 2: මෙතනත් await කරලා invalidate කරන කෑල්ල දැම්මා
                 onPressed: () async {
                   await context.push('/post-job', extra: job);
                   ref.invalidate(myJobsViewModelProvider);

@@ -21,7 +21,6 @@ class RouterNotifier extends ChangeNotifier {
 String? redirect(BuildContext context, GoRouterState state) {
   final sessionAsync = _ref.read(sessionProvider);
 
-  // 🚫 If still loading session, wait
   if (sessionAsync.isLoading) {
     return null;
   }
@@ -34,17 +33,17 @@ String? redirect(BuildContext context, GoRouterState state) {
   final bool isGuestPage =
       path == '/login' || path == '/signup';
 
-  // 🔐 Not logged in
+
   if (!isAuth) {
     return isGuestPage ? null : '/login';
   }
 
-  // 🚫 Wait until profile loads
+
   if (userRole == null) {
     return null;
   }
 
-  // ✅ ADMIN
+
   if (userRole == UserRole.ADMIN) {
     if (!path.startsWith('/admin')) {
       return '/admin';
@@ -52,7 +51,7 @@ String? redirect(BuildContext context, GoRouterState state) {
     return null;
   }
 
-  // ✅ USER
+
   if (userRole == UserRole.USER) {
     if (path.startsWith('/admin') ||
         isGuestPage ||

@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:gemhub/data/repositories/profile/profile_repository_provider.dart';
 import 'package:gemhub/features/gem_market/view/screens/certificate_view_screen.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
+import 'package:go_router/go_router.dart';
 
-// Helper for price formatting in GemTitleSection
+
 String _formatPrice(double? v) {
   if (v == null) return '0.00';
-  return v
-      .toStringAsFixed(2)
-      .replaceAllMapped(
+  return v.toStringAsFixed(2).replaceAllMapped(
         RegExp(r'(\d{1,3})(?=(\d{3})+(?=\.))'),
         (m) => '${m[1]},',
       );
 }
 
-// 1. GemOwnerActionTab
-class GemOwnerActionTab extends StatelessWidget {
+
+class GemOwnerActionTab extends ConsumerWidget {
   final Gem gem;
   const GemOwnerActionTab({super.key, required this.gem});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -59,7 +60,24 @@ class GemOwnerActionTab extends StatelessWidget {
             ],
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () async {
+              
+              final profileUser = await ref
+                  .read(profileRepositoryProvider)
+                  .getProfileById(gem.owner);
+
+             
+              if (profileUser != null && context.mounted) {
+                context.pushNamed(
+                  'buyer_profile', 
+                  extra: profileUser,
+                );
+              } else if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Failed to load user profile')),
+                );
+              }
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: isDark ? Colors.white : AppColors.darkBackground,
               foregroundColor: isDark ? AppColors.darkBackground : Colors.white,
@@ -80,7 +98,7 @@ class GemOwnerActionTab extends StatelessWidget {
   }
 }
 
-// 2. GemTitleSection
+
 class GemTitleSection extends StatelessWidget {
   final Gem gem;
 
@@ -145,7 +163,6 @@ class GemTitleSection extends StatelessWidget {
   }
 }
 
-// 3. GemSellerSection
 class GemSellerSection extends StatelessWidget {
   final Gem gem;
   const GemSellerSection({super.key, required this.gem});
@@ -232,7 +249,7 @@ class GemSellerSection extends StatelessWidget {
   }
 }
 
-// 4. GemSpecificationsSection
+
 class GemSpecificationsSection extends StatelessWidget {
   final Gem gem;
 
@@ -344,7 +361,8 @@ class GemSpecificationsSection extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 9,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.greyTextLight : AppColors.greyText,
+                    color:
+                        isDark ? AppColors.greyTextLight : AppColors.greyText,
                     letterSpacing: 0.6,
                   ),
                 ),
@@ -378,7 +396,7 @@ class GemSpecificationsSection extends StatelessWidget {
   }
 }
 
-// 5. GemDescriptionSection
+
 class GemDescriptionSection extends StatelessWidget {
   final Gem gem;
 
@@ -419,7 +437,6 @@ class GemDescriptionSection extends StatelessWidget {
   }
 }
 
-// 6. GemLocationSection
 class GemLocationSection extends StatelessWidget {
   final Gem gem;
   const GemLocationSection({super.key, required this.gem});
@@ -451,9 +468,8 @@ class GemLocationSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.blueSky,
                 border: Border.all(
-                  color: isDark
-                      ? AppColors.darkSurfaceAlt
-                      : AppColors.lightBorder,
+                  color:
+                      isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gemhub/data/models/auth/profile_model.dart';
+import 'package:gemhub/features/profile/view/buyer_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -134,7 +136,6 @@ GoRouter router(Ref ref) {
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
             routes: [
-              // Added sub-route under /profile
               GoRoute(
                 path: 'backup',
                 name: 'backup',
@@ -199,6 +200,20 @@ GoRouter router(Ref ref) {
           final data = state.extra as Map<String, dynamic>;
           final job = data['job'] as Job?;
           return PostJobScreen(jobToEdit: job, isAdmin: true);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/buyer',
+        name: 'buyer_profile',
+        builder: (context, state) {
+          final profileData = state.extra as ProfileUser?;
+          if (profileData != null) {
+            return BuyerProfileScreen(profile: profileData);
+          }
+          return const Scaffold(
+            body: Center(child: Text("Profile context missing")),
+          );
         },
       ),
     ],

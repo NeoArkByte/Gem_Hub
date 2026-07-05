@@ -134,7 +134,6 @@ class HomeScreen extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // Updated AI Insights Button
               GestureDetector(
                 onTap: () {
                   Navigator.push(
