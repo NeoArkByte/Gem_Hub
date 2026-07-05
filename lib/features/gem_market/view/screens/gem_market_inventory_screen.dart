@@ -570,7 +570,6 @@ class _GemMarketInventoryScreenState
                             onTap: () async {
                               if (gem.gemId == null) return;
 
-                              // 1. Show Confirmation Dialog
                               final confirmDelete = await showDialog<bool>(
                                 context: context,
                                 builder: (BuildContext context) {
@@ -590,7 +589,6 @@ class _GemMarketInventoryScreenState
                                 return;
                               }
 
-                              // 2. Perform the viewmodel logic sequence
                               final success = await ref
                                   .read(
                                     gemMarketInventoryViewModelProvider
@@ -600,7 +598,6 @@ class _GemMarketInventoryScreenState
 
                               if (!context.mounted) return;
 
-                              // 3. User Success Feedbacks Trigger
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   backgroundColor: success

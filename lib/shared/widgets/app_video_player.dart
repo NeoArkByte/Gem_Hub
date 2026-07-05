@@ -5,13 +5,13 @@ import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:video_player/video_player.dart';
 
 class AppVideoPlayer extends StatefulWidget {
-  /// The video source path. Can be a local absolute file path or a remote network URL.
+  
   final String videoPath;
 
-  /// Whether the video should start playing automatically when loaded.
+  
   final bool autoPlay;
 
-  /// Whether the video should loop continuously when it reaches the end.
+  
   final bool looping;
 
   const AppVideoPlayer({
@@ -37,8 +37,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
     _initializePlayer();
   }
 
-  /// Handles auto-detection of the path type and configures the native video engines.
-  /// Note: ChewieController (which needs Theme/context) is built in build(), not here.
+  
   Future<void> _initializePlayer() async {
     try {
       final String path = widget.videoPath.trim();
@@ -46,11 +45,11 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
           path.startsWith('http://') || path.startsWith('https://');
 
       if (isNetworkUrl) {
-        // 1A. Initialize from a remote network stream
+        
         _videoPlayerController =
             VideoPlayerController.networkUrl(Uri.parse(path));
       } else {
-        // 1B. Initialize from a local file, checking existence first
+        
         final file = File(path);
         if (!await file.exists()) {
           if (!mounted) return;
@@ -64,14 +63,11 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
         _videoPlayerController = VideoPlayerController.file(file);
       }
 
-      // 2. Initialize the lower-level video controller
       await _videoPlayerController!.initialize();
 
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        // ChewieController is intentionally created in build() where
-        // Theme.of(context) is safe to call.
       });
     } catch (e) {
       if (!mounted) return;
@@ -82,8 +78,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
     }
   }
 
-  /// Builds the ChewieController once the video is ready.
-  /// Called from build() so Theme.of(context) is always safe.
+
   ChewieController _buildChewieController(BuildContext context) {
     return ChewieController(
       videoPlayerController: _videoPlayerController!,
@@ -91,7 +86,6 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       looping: widget.looping,
       aspectRatio: _videoPlayerController!.value.aspectRatio,
 
-      // FIX: Theme.of(context) is safe here — we're inside build()
       // Using AppColors for consistent branding
       materialProgressColors: ChewieProgressColors(
         playedColor: AppColors.primaryGreen,
@@ -109,7 +103,6 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
         ),
       ),
 
-      // FIX: style moved from Padding to Text; Padding has no style param
       errorBuilder: (context, errorMessage) {
         return ColoredBox(
           color: AppColors.darkBackground,
@@ -117,7 +110,6 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
             child: Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                // FIX: style is on Text, not Padding
                 errorMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -134,7 +126,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
 
   @override
   void dispose() {
-    // Completely dismantle controllers to prevent audio leaks or background processing
+    
     _videoPlayerController?.dispose();
     _chewieController?.dispose();
     super.dispose();
@@ -169,8 +161,6 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       );
     }
 
-    // FIX: ChewieController created here in build() — Theme.of(context) is safe.
-    // Only create once; reuse on subsequent rebuilds.
     _chewieController ??= _buildChewieController(context);
 
     return AspectRatio(

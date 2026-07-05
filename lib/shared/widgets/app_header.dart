@@ -41,7 +41,6 @@ class AppHeader extends ConsumerWidget {
 
           return Row(
             children: [
-              // 1. Profile Avatar with the blue ring border
               Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
@@ -59,7 +58,6 @@ class AppHeader extends ConsumerWidget {
               ),
               const SizedBox(width: 12),
 
-              // 2. Dynamic Greeting and User Name
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

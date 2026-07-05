@@ -55,7 +55,6 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Gem Varieties Table
     await db.execute('''
       CREATE TABLE gem_varieties (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +63,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // 2. Main Inventory Table
     await db.execute('''
       CREATE TABLE gemstones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +120,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // 3. Seed Varieties
     for (var type in GemType.values) {
       await db.insert('gem_varieties', {
         'name': type.name,

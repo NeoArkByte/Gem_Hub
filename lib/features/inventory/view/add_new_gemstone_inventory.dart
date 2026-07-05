@@ -385,7 +385,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     }
   }
 
-  // ── AI Prediction bottom sheet ─────────────────────────────────────────────
   void _showPredictionBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -399,7 +398,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
-  // ── After Buying Details step — ask if user wants AI predictions ───────────
   void _showAiPromptDialog() {
     showDialog(
       context: context,
@@ -694,7 +692,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     setState(() {
       final String path = image.path;
 
-      // 🔥 FIX: prevent duplicates (this was causing your 17 images)
       if (!list.contains(path)) {
         list.add(path);
       }
@@ -1460,7 +1457,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               : _category.displayName;
         }
 
-        // 🔥 FIX: avoid global form validation explosion
         if (_buyingWeightCtrl.text.trim().isEmpty) return false;
         if (double.tryParse(_buyingWeightCtrl.text) == null) return false;
 
@@ -1510,7 +1506,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               : _buyingWeightCtrl.text;
         }
 
-        // 🔥 FIX: avoid global form validate
         if (_finalWeightCtrl.text.trim().isEmpty) return false;
 
         return true;
@@ -1555,7 +1550,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               widget.gemstoneToEdit != null ? 'Edit Gemstone' : 'Add Gemstone'),
           centerTitle: true,
           actions: [
-            // AI prediction icon — always visible, reopens the sheet
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Tooltip(
@@ -1616,7 +1610,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                         _publishInventoryItem();
                       }
                     } else {
-                      // 🔥 THIS IS MISSING IN YOUR CODE
                       ScaffoldMessenger.of(context)
                         ..clearSnackBars()
                         ..showSnackBar(
@@ -1677,10 +1670,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Private bottom-sheet widget for AI Prediction
-// Receives data from the parent state; contains no business logic.
-// ─────────────────────────────────────────────────────────────────────────────
 class _PredictionSheet extends StatelessWidget {
   const _PredictionSheet({
     required this.prediction,

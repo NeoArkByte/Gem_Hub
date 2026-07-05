@@ -72,17 +72,10 @@ Future<List<Job>> getMyJobs(String employerId) async {
   try {
     final response = await _dio.get('jobs/');
     
-    // 💡 1. ෂුවර් නැත්නම් console එකේ බලන්න දත්ත එන්නේ කොහොමද කියලා
-    // print(response.data);
-
-    // 💡 2. මෙන්න වෙනස් වෙන්න ඕන තැන! (response.data['results'] කියලා දාන්න)
-    // Django වලින් එන්නේ 'results' කියන key එක ඇතුලේ නම් මේක හරියටම වැඩ.
     final List<dynamic> data = response.data['results']; 
     
-    // ආපු JSON Data ටික List<Job> එකකට හරවගන්නවා
     final List<Job> allJobs = data.map((json) => Job.fromMap(json)).toList();
     
-    // Employer ID එක ගැලපෙන ඒවා විතරක් පෙරලා ගන්නවා
     final List<Job> myOnlyJobs = allJobs.where((job) => job.employerId == employerId).toList();
     
     return myOnlyJobs;
