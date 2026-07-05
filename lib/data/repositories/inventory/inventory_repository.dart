@@ -14,9 +14,12 @@ class InventoryRepository {
   }
 
   Future<int> insertGemstone(GemstoneModel gem) async {
-    final db = await _databaseHelper.database;
-    return db.insert('gemstones', gem.toMap());
-  }
+  final db = await _databaseHelper.database;
+
+  final id = await db.insert('gemstones', gem.toMap());
+
+  return id;
+}
 
   Future<int> deleteGemstone(int id) async {
     final db = await _databaseHelper.database;
@@ -24,14 +27,21 @@ class InventoryRepository {
   }
 
   Future<int> updateGemstone(GemstoneModel gem) async {
-    final db = await _databaseHelper.database;
-    return db.update(
-      'gemstones',
-      gem.toMap(),
-      where: 'id = ?',
-      whereArgs: [gem.id],
-    );
+  final db = await _databaseHelper.database;
+
+  final result = await db.update(
+    'gemstones',
+    gem.toMap(),
+    where: 'id = ?',
+    whereArgs: [gem.id],
+  );
+
+  if (result == 0) {
+    throw Exception('Update failed: record not found for id ${gem.id}');
   }
+
+  return result;
+}
 
   Future<List<String>> getGemVarieties() async {
     return await _databaseHelper.getGemVarieties();
