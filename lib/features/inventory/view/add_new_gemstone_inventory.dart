@@ -30,7 +30,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
 
-  // STEP 1 - Basic Info
+
   GemCategory _category = GemCategory.sapphire;
   final TextEditingController _customCategoryCtrl = TextEditingController();
   String _origin = 'Sri Lanka';
@@ -43,7 +43,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   ];
   GemVisibility _visibility = GemVisibility.private;
 
-  // STEP 2 - Buying Details
+  
   final TextEditingController _buyingWeightCtrl = TextEditingController();
   final TextEditingController _buyingPriceCtrl =
       TextEditingController(text: '0');
@@ -54,14 +54,13 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   final TextEditingController _varietyCtrl = TextEditingController();
   final TextEditingController _buyingColorCtrl = TextEditingController();
 
-  // STEP 3 - First Look
+
   List<String> _firstLookPhotos = [];
   String? _firstLookVideo;
 
-  // STEP 4 - Value Additions
+
   List<ValueAdditionModel> _valueAdditions = [];
 
-  // STEP 5 - Final Stage
   final TextEditingController _finalWeightCtrl = TextEditingController();
   GemShape _shape = GemShape.faceted;
   final TextEditingController _customShapeCtrl = TextEditingController();
@@ -72,15 +71,15 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   final TextEditingController _widthCtrl = TextEditingController();
   final TextEditingController _depthCtrl = TextEditingController();
 
-  // STEP 6 - Final Media
+
   List<String> _finalPhotos = [];
   String? _finalVideo;
 
-  // STEP 7 - Certification
+
   bool _isCertified = false;
   List<CertificateModel> _certificates = [];
 
-  // STEP 8 - Finance & Sales
+
   final TextEditingController _salesTargetPriceCtrl =
       TextEditingController(text: '0');
   bool _isReadyToSale = false;
@@ -91,8 +90,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   bool _isLoadingPrediction = false;
   Timer? _predictionDebounce;
 
-  // Whether the user has changed clarity from its default (we don't want
-  // the default 'VVS1' to narrow the initial DB query to zero rows).
+ 
   bool _clarityUserSet = false;
 
   String? _firstLookMediaError;
@@ -117,10 +115,9 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     _finalWeightCtrl.addListener(_refreshPredictionFromInputs);
     if (widget.gemstoneToEdit != null) {
       _loadExistingGemstone(widget.gemstoneToEdit!);
-      // When editing, treat clarity as user-set so it's included.
       _clarityUserSet = true;
     }
-    // Defer until the frame is fully built so Riverpod ref is ready.
+ 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _loadPredictionIfEligible();
     });
@@ -333,13 +330,10 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       });
     }
 
-    // Only pass purchasePrice when user has actually entered a non-zero value.
+
     final enteredPrice = double.tryParse(_buyingPriceCtrl.text);
     final purchasePrice =
         (enteredPrice != null && enteredPrice > 0) ? enteredPrice : null;
-
-    // Only pass clarity when the user has explicitly changed it from the
-    // default; the default 'VVS1' would filter out most historical records.
     final clarityArg = _clarityUserSet ? _clarity.displayName : null;
 
     try {
@@ -364,7 +358,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         });
       }
     } catch (e) {
-      // Even on error, show the card with a no-data state rather than hiding it.
+      
       if (mounted) {
         setState(() {
           _prediction = PredictionModel.empty(gemType: selectedGemType);
@@ -466,7 +460,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     final recordCount = _prediction?.matchingRecordCount ?? 0;
     final hasData = recordCount > 0;
 
-    // Show nothing when not loading and no prediction has been triggered yet
+    
     if (_prediction == null && !_isLoadingPrediction) {
       return const SizedBox.shrink();
     }
@@ -488,7 +482,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Header row ──────────────────────────────────────────────
+              
               Row(
                 children: [
                   Container(
@@ -508,7 +502,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              // ── Loading state ────────────────────────────────────────────
+           
               if (_isLoadingPrediction) ...[
                 const SizedBox(height: 4),
                 const LinearProgressIndicator(minHeight: 2),
@@ -519,7 +513,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                 ),
                 const SizedBox(height: 8),
               ] else if (!hasData) ...
-                // ── No-data state ─────────────────────────────────────────
+                
                 [
                 Container(
                   width: double.infinity,
@@ -545,7 +539,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   ),
                 ),
               ] else ...
-                // ── Data state ────────────────────────────────────────────
                 [
                 Text(
                   'Based on $recordCount similar inventory records',

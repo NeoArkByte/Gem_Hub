@@ -30,9 +30,9 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
     String? sellerPhone,
     String? variety,
     String? color,
-    File? newImageFile, // Explicitly pass the file if a new photo was picked
+    File? newImageFile, 
     File?
-    newCertificateFile, // Explicitly pass the file if a new doc was picked
+    newCertificateFile, 
   }) async {
     final sessionAsync = ref.read(sessionProvider);
     final currentUser = sessionAsync.value;
@@ -51,7 +51,7 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
     try {
       final storageRepo = ref.read(storageRepositoryProvider);
 
-      // Default both back to whatever the original gem already holds
+      
       String? finalImageUrl = originalGem.imageUrl;
       String? finalCertUrl = originalGem.certificateUrl;
 
@@ -85,7 +85,6 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
         variety: variety,
         color: color,
         imageUrl: finalImageUrl,
-        // Fall back safely to original certificate data instead of an empty string
         certificateUrl: finalCertUrl ?? originalGem.certificateUrl ?? '',
         status: GemStatus.PENDING,
       );

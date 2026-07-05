@@ -49,7 +49,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // validation
     final error = vm.validateLogin(email, password);
 
     if (error != null) {
@@ -62,7 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-    // trigger login with try-catch
+   
     try {
       await vm.login(email, password);
     } catch (e) {
@@ -192,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // EMAIL
                 TextField(
                   controller: _emailCtrl,
-                  enabled: !isLoading, // Disable fields while logging in
+                  enabled: !isLoading, 
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
@@ -208,7 +207,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // PASSWORD
                 TextField(
                   controller: _passwordCtrl,
-                  enabled: !isLoading, // Disable fields while logging in
+                  enabled: !isLoading, 
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -311,7 +310,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const SizedBox(height: 16),
 
-                // SIGNUP LINK
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

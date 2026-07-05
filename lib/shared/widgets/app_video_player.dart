@@ -86,7 +86,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       looping: widget.looping,
       aspectRatio: _videoPlayerController!.value.aspectRatio,
 
-      // Using AppColors for consistent branding
+      
       materialProgressColors: ChewieProgressColors(
         playedColor: AppColors.primaryGreen,
         handleColor: AppColors.accentGreen,

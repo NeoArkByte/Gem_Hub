@@ -27,7 +27,7 @@ class _GemMarketInventoryScreenState
     super.dispose();
   }
 
-  // ─── MAIN BUILD ────────────────────────────────────────────────────────────
+
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +148,7 @@ class _GemMarketInventoryScreenState
     );
   }
 
-  // ─── PREMIUM CARD DESIGN ───────────────────────────────────────────────────
+
 
   Widget _buildSummaryCard({
     required bool isDark,
@@ -377,7 +377,6 @@ class _GemMarketInventoryScreenState
     );
   }
 
-  // ─── SEARCH & CARDS UI ─────────────────────────────────────────────────────
 
   Widget _buildSearchBar(bool isDark) {
     return Padding(

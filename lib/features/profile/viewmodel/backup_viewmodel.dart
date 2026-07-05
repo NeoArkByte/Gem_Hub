@@ -147,9 +147,11 @@ class BackupViewModel extends _$BackupViewModel {
 
       final success = await repository.restoreDatabaseFromZip(targetFile);
       if (success) {
+        // 1. Safely pull the root build context via your exported GoRouter key
         final BuildContext? rootContext = rootNavigatorKey.currentContext;
 
         if (rootContext != null && rootContext.mounted) {
+          // 2. Fetch the root container and invalidate stale providers
           final container = ProviderScope.containerOf(rootContext);
 
           // 🌟 Clear out your core data providers here so they pull fresh from the new DB
@@ -162,6 +164,7 @@ class BackupViewModel extends _$BackupViewModel {
             successMessage: "Database successfully restored!",
           );
 
+          // 3. Kick the user back to the home route to force clean UI screen bindings
           rootContext.go('/home');
         } else {
           // Fallback state update if context isn't available/mounted
@@ -201,6 +204,7 @@ class BackupViewModel extends _$BackupViewModel {
         throw Exception("Source backup snapshot file not found.");
       }
 
+      // 1. Establish file-system options using the raw path reference instead of bytes.
       final String suggestedName = snapshot.name.endsWith('.zip')
           ? snapshot.name
           : '${snapshot.name}.zip';
@@ -212,6 +216,7 @@ class BackupViewModel extends _$BackupViewModel {
             suggestedName, // Injects standard default fallback naming layout
       );
 
+      // 2. Open the native platform's 'Save As' system interface
       final String? finalExportedPath =
           await FlutterFileDialog.saveFile(params: params);
 
