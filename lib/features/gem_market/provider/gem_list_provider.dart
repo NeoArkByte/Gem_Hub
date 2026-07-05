@@ -18,24 +18,19 @@ Future<List<Gem>> gemList(Ref ref) async {
 
 @riverpod
 Future<List<Gem>> approvedGems(Ref ref) async {
-  final allGems = await ref.watch(gemListProvider.future);
-
-  return allGems.where((gem) => gem.status == GemStatus.APPROVED).toList();
+  return await ref.read(gemRepositoryProvider).getAllApprovedGems();
 }
 
 @riverpod
 Future<List<Gem>> latestApprovedGems(Ref ref) async {
   final approvedGems = await ref.watch(approvedGemsProvider.future);
-
   return approvedGems.reversed.take(5).toList();
 }
 
 @riverpod
 Future<List<Gem>> pendingGems(Ref ref) async {
-  final allGems = await ref.watch(gemListProvider.future);
-
-  return allGems.where((gem) => gem.status == GemStatus.PENDING).toList();
-}
+  return await ref.read(gemRepositoryProvider).getAllPendingGems();
+} 
 
 @riverpod
 Future<List<Gem>> userSpecificGems(Ref ref) async {

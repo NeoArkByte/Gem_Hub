@@ -40,7 +40,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'gemcost_inventory_v12_secure.db');
     final password = await _getEncryptionKey();
 
-    print("🔐 Encryption Key (Base64): $password");
+    print("Encryption Key (Base64): $password");
 
     return await openDatabase(
       path,
@@ -55,7 +55,6 @@ class DatabaseHelper {
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    // 1. Gem Varieties Table
     await db.execute('''
       CREATE TABLE gem_varieties (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +63,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // 2. Main Inventory Table
     await db.execute('''
       CREATE TABLE gemstones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +120,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // 3. Seed Varieties
     for (var type in GemType.values) {
       await db.insert('gem_varieties', {
         'name': type.name,
@@ -206,7 +203,6 @@ class DatabaseHelper {
   }
 
 
-  // --- SECURITY UTILITY ---
   Future<void> hexDumpHeader() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'gemcost_inventory_v12_secure.db');
@@ -215,7 +211,7 @@ class DatabaseHelper {
     if (await file.exists()) {
       final bytes = await file.openRead(0, 16).first;
       final hexString = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
-      print("🛡️ FILE HEADER (HEX): $hexString");
+      print(" FILE HEADER (HEX): $hexString");
     }
   }
 }

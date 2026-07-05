@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart'; // marketplaceViewModelProvider තියෙන තැන
-import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart'; // PostJobLocationPicker එක තියෙන තැන
-// marketplaceViewModelProvider තියෙන තැන
+import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart'; 
+import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart'; 
+
 
 class MarketplaceSearchBar extends StatelessWidget {
   final TextEditingController controller;
@@ -149,7 +149,6 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            //// HEADER
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -191,7 +190,6 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
             ),
             const SizedBox(height: 20),
 
-            /// CATEGORY
             Text(
               'Job Category',
               style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -225,10 +223,10 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
               ),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Location',
-              style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
-            ),
+            // Text(
+            //   'Location',
+            //   style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+            // ),
             const SizedBox(height: 8),
 
             PostJobLocationPicker(
@@ -252,7 +250,7 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
 
             const SizedBox(height: 24),
 
-            /// SALARY
+            
             Text(
               'Monthly Salary (LKR)',
               style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
@@ -311,7 +309,7 @@ class _JobFilterBottomSheetState extends ConsumerState<JobFilterBottomSheet> {
                         maxSalary: _salaryRange.end,
                       );
 
-                  Navigator.pop(context); // Bottom Sheet එක වහනවා
+                  Navigator.pop(context); 
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryGreen,

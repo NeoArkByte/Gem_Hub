@@ -44,22 +44,22 @@ class JobDetailsScreen extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1F2937) : Colors.grey[100],
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: Icon(Icons.ios_share, size: 20, color: textColor),
-                onPressed: () {},
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-        ],
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.all(8.0),
+        //     child: Container(
+        //       decoration: BoxDecoration(
+        //         color: isDark ? const Color(0xFF1F2937) : Colors.grey[100],
+        //         shape: BoxShape.circle,
+        //       ),
+        //       child: IconButton(
+        //         icon: Icon(Icons.ios_share, size: 20, color: textColor),
+        //         onPressed: () {},
+        //       ),
+        //     ),
+        //   ),
+        //   const SizedBox(width: 8),
+        // ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -456,7 +456,6 @@ class JobDetailsScreen extends ConsumerWidget {
     final String? phoneNumber = job.phoneNumber;
     final String? whatsappNumber = job.whatsappNumber;
 
-    // ✅ If no contact details, hide bottom bar
     if ((phoneNumber == null || phoneNumber.isEmpty) &&
         (whatsappNumber == null || whatsappNumber.isEmpty)) {
       return const SizedBox.shrink();
@@ -477,7 +476,6 @@ class JobDetailsScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            /// ✅ CALL BUTTON
             if (phoneNumber != null && phoneNumber.isNotEmpty)
               Expanded(
                 child: SizedBox(
@@ -526,7 +524,7 @@ class JobDetailsScreen extends ConsumerWidget {
                 whatsappNumber.isNotEmpty)
               const SizedBox(width: 16),
 
-            /// ✅ WHATSAPP BUTTON
+            
             if (whatsappNumber != null && whatsappNumber.isNotEmpty)
               Expanded(
                 child: SizedBox(

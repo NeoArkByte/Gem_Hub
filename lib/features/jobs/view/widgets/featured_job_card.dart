@@ -7,7 +7,7 @@ class FeaturedJobCard extends StatelessWidget {
   final String timePosted;
   final bool isPremium;
 
-  /// ✅ NEW: Dynamic category icon
+
   final IconData iconData;
 
   const FeaturedJobCard({
@@ -49,7 +49,7 @@ class FeaturedJobCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
 
-              /// ✅ Dynamic Category Icon
+        
               Container(
                 width: 48,
                 height: 48,
@@ -58,7 +58,7 @@ class FeaturedJobCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  iconData, // ✅ dynamic icon here
+                  iconData, 
                   color: const Color(0xFF10C971),
                   size: 26,
                 ),

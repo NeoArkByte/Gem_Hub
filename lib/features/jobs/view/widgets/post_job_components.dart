@@ -353,7 +353,7 @@ class _PostJobLocationPickerState extends State<PostJobLocationPicker> {
           'Location',
           style: TextStyle(
             fontSize: 15,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.bold,
             color: isDark ? Colors.grey[300] : const Color(0xFF1F2937),
           ),
         ),

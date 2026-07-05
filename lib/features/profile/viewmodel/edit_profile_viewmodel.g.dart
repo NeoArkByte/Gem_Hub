@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'gem_add_viewmodel.dart';
+part of 'edit_profile_viewmodel.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,28 +9,28 @@ part of 'gem_add_viewmodel.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(GemAddViewModel)
-final gemAddViewModelProvider = GemAddViewModelProvider._();
+@ProviderFor(EditProfileViewModel)
+final editProfileViewModelProvider = EditProfileViewModelProvider._();
 
-final class GemAddViewModelProvider
-    extends $NotifierProvider<GemAddViewModel, bool> {
-  GemAddViewModelProvider._()
+final class EditProfileViewModelProvider
+    extends $NotifierProvider<EditProfileViewModel, bool> {
+  EditProfileViewModelProvider._()
       : super(
           from: null,
           argument: null,
           retry: null,
-          name: r'gemAddViewModelProvider',
+          name: r'editProfileViewModelProvider',
           isAutoDispose: true,
           dependencies: null,
           $allTransitiveDependencies: null,
         );
 
   @override
-  String debugGetCreateSourceHash() => _$gemAddViewModelHash();
+  String debugGetCreateSourceHash() => _$editProfileViewModelHash();
 
   @$internal
   @override
-  GemAddViewModel create() => GemAddViewModel();
+  EditProfileViewModel create() => EditProfileViewModel();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(bool value) {
@@ -41,9 +41,10 @@ final class GemAddViewModelProvider
   }
 }
 
-String _$gemAddViewModelHash() => r'30f3a5dea5c9dfec72bfe760c1021d4263b3ed34';
+String _$editProfileViewModelHash() =>
+    r'7c9a6480e87bb3a9384cea92a36497e95c278fb7';
 
-abstract class _$GemAddViewModel extends $Notifier<bool> {
+abstract class _$EditProfileViewModel extends $Notifier<bool> {
   bool build();
   @$mustCallSuper
   @override

@@ -15,6 +15,10 @@ class AuthViewModel extends _$AuthViewModel {
     state = await AsyncValue.guard(() async {
       await ref.read(authRepositoryProvider).signInWithGoogleNative();
     });
+    
+    if (state.hasError) {
+      throw state.error!;
+    }
   }
 
   Future<void> login(String email, String password) async {
@@ -22,6 +26,11 @@ class AuthViewModel extends _$AuthViewModel {
     state = await AsyncValue.guard(() => 
       ref.read(authRepositoryProvider).login(email, password)
     );
+    
+
+    if (state.hasError) {
+      throw state.error!;
+    }
   }
 
   Future<void> signUp(String email, String password) async {
@@ -29,6 +38,11 @@ class AuthViewModel extends _$AuthViewModel {
     state = await AsyncValue.guard(() => 
       ref.read(authRepositoryProvider).signUp(email, password)
     );
+    
+    
+    if (state.hasError) {
+      throw state.error!;
+    }
   }
 
   Future<void> signInWithOAuth(OAuthProvider provider) async {

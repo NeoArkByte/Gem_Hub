@@ -44,7 +44,6 @@ class BackupRepository {
 
       final mediaDir = await getMediaVaultDirectory();
 
-      // 1. Gather all local file references to pack
       final List<File> filesToZip = [];
 
       if (await sourceFile.exists()) {
@@ -64,7 +63,6 @@ class BackupRepository {
 
       if (filesToZip.isEmpty) return null;
 
-      // 2. Compute timestamp for unique file mapping
       final String timestamp = DateTime.now().toIso8601String()
           .split('.')
           .first
@@ -75,10 +73,8 @@ class BackupRepository {
       final zipPath = p.join(targetFolder.path, 'gemhub_backup_$timestamp.zip');
       final zipFile = File(zipPath);
 
-      // 3. Dynamically discover the common sandboxed root path
       final String commonRootPath = _calculateCommonAncestor(sourceFile.path, mediaDir.path);
 
-      // 4. Compress via multi-threaded native Android/iOS background workers
       await ZipFile.createFromFiles(
         sourceDir: Directory(commonRootPath),
         files: filesToZip,

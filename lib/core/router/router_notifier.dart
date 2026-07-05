@@ -18,44 +18,51 @@ class RouterNotifier extends ChangeNotifier {
     _ref.listen(sessionProvider, (_, __) => notifyListeners());
   }
 
-  String? redirect(BuildContext context, GoRouterState state) {
-    final sessionAsync = _ref.read(sessionProvider);
+String? redirect(BuildContext context, GoRouterState state) {
+  final sessionAsync = _ref.read(sessionProvider);
 
-    if (sessionAsync.isLoading && !sessionAsync.hasValue) return null;
-
-    final user = sessionAsync.value;
-    final bool isAuth = user?.supabaseUser != null;
-    final userRole = user?.profile?.role;
-    final String path = state.uri.path;
-    final bool isGuestPage = path == '/login' || path == '/signup';
-
-
-    // Unauthenticated User Logic
-    if (!isAuth) {
-      return isGuestPage ? null : '/login';
-    }
-
-    // Authenticated User Logic
-    if (isAuth) {
-      if (userRole == null) return null;
-
-      // --- ADMIN AREA ---
-      if (userRole == UserRole.ADMIN) {
-        if (!path.startsWith('/admin')) {
-          return '/admin';
-        }
-        return null;
-      }
-
-      // --- USER AREA ---
-      if (userRole == UserRole.USER) {
-        if (path.startsWith('/admin') || isGuestPage || path == '/') {
-          return '/home';
-        }
-        return null; 
-      }
-    }
-
+  if (sessionAsync.isLoading) {
     return null;
   }
+
+  final user = sessionAsync.value;
+
+  final bool isAuth = user?.supabaseUser != null;
+  final userRole = user?.profile?.role;
+  final String path = state.uri.path;
+  final bool isGuestPage =
+      path == '/login' || path == '/signup';
+
+
+  if (!isAuth) {
+    return isGuestPage ? null : '/login';
+  }
+
+
+  if (userRole == null) {
+    return null;
+  }
+
+
+  if (userRole == UserRole.ADMIN) {
+    if (!path.startsWith('/admin')) {
+      return '/admin';
+    }
+    return null;
+  }
+
+
+  if (userRole == UserRole.USER) {
+    if (path.startsWith('/admin') ||
+        isGuestPage ||
+        path == '/') {
+      return '/home';
+    }
+    return null;
+  }
+
+  return null;
+}
+
+
 }

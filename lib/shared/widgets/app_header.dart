@@ -6,7 +6,6 @@ import 'package:gemhub/core/constants/app_colors.dart';
 class AppHeader extends ConsumerWidget {
   const AppHeader({super.key});
 
-  // Dynamic greeting based on the time of day
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'GOOD MORNING';
@@ -18,48 +17,45 @@ class AppHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    // Watch sessionProvider for real-time Supabase user data
     final sessionAsync = ref.watch(sessionProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: sessionAsync.when(
-        loading: () => const _HeaderSkeleton(), // Minimal loading state
+        loading: () => const _HeaderSkeleton(), 
         error: (err, stack) => const SizedBox.shrink(),
         data: (authData) {
           final profile = authData?.profile;
           final supabaseUser = authData?.supabaseUser;
 
-          // Resolve username: Profile > Supabase Email Prefix > Guest
+          
           final String userName = profile?.username ?? 
                                   supabaseUser?.email?.split('@')[0] ?? 
                                   'Guest';
 
-          // Resolve avatar: Profile URL > DiceBear/Pravatar fallback
+          
           final String avatarUrl = profile?.avatarUrl ?? 
                                   'https://i.pravatar.cc/150?u=${supabaseUser?.id ?? "guest"}';
 
           return Row(
             children: [
-              // 1. Profile Avatar with the blue ring border
               Container(
                 padding: const EdgeInsets.all(2),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppColors.blueLight, // Light blue ring
+                    color: AppColors.blueLight, 
                     width: 2,
                   ),
                 ),
                 child: CircleAvatar(
                   radius: 20,
-                  backgroundColor: AppColors.peach, // Peachy background
+                  backgroundColor: AppColors.peach, 
                   backgroundImage: NetworkImage(avatarUrl),
                 ),
               ),
               const SizedBox(width: 12),
 
-              // 2. Dynamic Greeting and User Name
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +92,6 @@ class AppHeader extends ConsumerWidget {
     );
   }
 
-  // Helper for standard action buttons
   Widget _actionButton(IconData icon, VoidCallback onTap, bool isDark) {
     return IconButton(
       onPressed: onTap,
@@ -110,7 +105,7 @@ class AppHeader extends ConsumerWidget {
     );
   }
 
-  // Helper for the notification button with the red badge
+ 
   Widget _notificationButton(VoidCallback onTap, bool isDark) {
     return GestureDetector(
       onTap: onTap,
@@ -152,7 +147,7 @@ class AppHeader extends ConsumerWidget {
   }
 }
 
-// Simple placeholder for when the user session is loading
+
 class _HeaderSkeleton extends StatelessWidget {
   const _HeaderSkeleton();
   @override

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gemhub/data/models/auth/profile_model.dart';
+import 'package:gemhub/features/profile/view/buyer_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -26,6 +28,8 @@ import 'package:gemhub/features/profile/view/backup_screen.dart';
 import 'package:gemhub/features/inventory/view/gem_details_inventory_screen.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/features/jobs/view/screens/my_job_screen.dart';
+import 'package:gemhub/features/other/view/help_center_screen.dart';
+import 'package:gemhub/features/other/view/terms_privacy_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -132,13 +136,22 @@ GoRouter router(Ref ref) {
             name: 'profile',
             builder: (context, state) => const ProfileScreen(),
             routes: [
-              // Added sub-route under /profile
               GoRoute(
                 path: 'backup',
                 name: 'backup',
                 builder: (context, state) => const BackupScreen(),
               ),
             ],
+          ),
+          GoRoute(
+            path: '/help-center',
+            name: 'help_center',
+            builder: (context, state) => const HelpCenterScreen(),
+          ),
+          GoRoute(
+            path: '/terms-privacy',
+            name: 'terms_privacy',
+            builder: (context, state) => const TermsPrivacyScreen(),
           ),
         ],
       ),
@@ -179,6 +192,28 @@ GoRouter router(Ref ref) {
         builder: (context, state) {
           final jobToEdit = state.extra as Job?;
           return PostJobScreen(jobToEdit: jobToEdit);
+        },
+      ),
+      GoRoute(
+        path: '/admin-edit-job',
+        builder: (context, state) {
+          final data = state.extra as Map<String, dynamic>;
+          final job = data['job'] as Job?;
+          return PostJobScreen(jobToEdit: job, isAdmin: true);
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: rootNavigatorKey,
+        path: '/buyer',
+        name: 'buyer_profile',
+        builder: (context, state) {
+          final profileData = state.extra as ProfileUser?;
+          if (profileData != null) {
+            return BuyerProfileScreen(profile: profileData);
+          }
+          return const Scaffold(
+            body: Center(child: Text("Profile context missing")),
+          );
         },
       ),
     ],
