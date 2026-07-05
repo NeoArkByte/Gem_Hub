@@ -66,9 +66,6 @@ class StorageRepository {
     final path = '$userId/$fileName';
 
     await _client.storage.from(bucket).upload(path, file);
-
-    if (bucket == 'documents') return path;
-
     return _client.storage.from(bucket).getPublicUrl(path);
   }
 }

@@ -3,6 +3,7 @@ import 'package:gemhub/core/enums/user_role.dart';
 class ProfileUser {
   final String id;
   final String profileId;
+  final String? email; // ✉️ Added field
   final String? username;
   final String? phone;
   final String? avatarUrl;
@@ -14,6 +15,7 @@ class ProfileUser {
   ProfileUser({
     required this.id,
     required this.profileId,
+    this.email,
     this.username,
     this.phone,
     this.avatarUrl,
@@ -23,18 +25,18 @@ class ProfileUser {
     this.updatedAt,
   });
 
-  
   factory ProfileUser.fromMap(Map<String, dynamic> map) {
     return ProfileUser(
       id: map['id'] as String? ?? '', 
       profileId: map['profile_id'] as String? ?? '',
-      username: map['username'],
-      phone: map['phone'],
-      avatarUrl: map['avatar_url'],
-      description: map['description'],
+      email: map['email'] as String?, // Map from JSON dictionary
+      username: map['username'] as String?,
+      phone: map['phone'] as String?,
+      avatarUrl: map['avatar_url'] as String?,
+      description: map['description'] as String?,
       role: UserRole.fromString(map['role'] ?? 'USER'),
-      createdAt: map['created_at'],
-      updatedAt: map['updated_at'],
+      createdAt: map['created_at'] as String?,
+      updatedAt: map['updated_at'] as String?,
     );
   }
 
@@ -42,6 +44,7 @@ class ProfileUser {
     return {
       'id': id,
       'profile_id': profileId,
+      'email': email, // Output to database payload
       'username': username,
       'phone': phone,
       'avatar_url': avatarUrl,
@@ -50,5 +53,32 @@ class ProfileUser {
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
+  }
+
+  /// CopyWith method to facilitate easy mutating operations within ViewModels
+  ProfileUser copyWith({
+    String? id,
+    String? profileId,
+    String? email,
+    String? username,
+    String? phone,
+    String? avatarUrl,
+    String? description,
+    UserRole? role,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return ProfileUser(
+      id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      phone: phone ?? this.phone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      description: description ?? this.description,
+      role: role ?? this.role,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
