@@ -37,13 +37,11 @@ class AnalyticsState {
   }
 }
 
-// 1. Defined the missing Service Provider
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   final repository = AnalyticsRepository();
   return AnalyticsService(repository);
 });
 
-// 2. Updated to use ref.watch instead of ref.read
 final analyticsViewModelProvider =
     StateNotifierProvider<AnalyticsViewModel, AnalyticsState>((ref) {
   final service = ref.watch(analyticsServiceProvider);
@@ -54,7 +52,6 @@ class AnalyticsViewModel extends StateNotifier<AnalyticsState> {
   final AnalyticsService _service;
 
   AnalyticsViewModel(this._service) : super(AnalyticsState()) {
-    // 3. Fire and forget the initial data load safely
     // ignore: discarded_futures
     loadAnalytics();
   }

@@ -18,7 +18,7 @@ class CvApplicationRepository {
         
         'cv': await MultipartFile.fromFile(
           cvFilePath,
-          filename: cvFilePath.split('/').last, // ෆයිල් එකේ නම වෙන් කරගන්නවා
+          filename: cvFilePath.split('/').last,
         ),
       });
 

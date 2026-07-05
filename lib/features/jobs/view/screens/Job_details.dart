@@ -456,7 +456,6 @@ class JobDetailsScreen extends ConsumerWidget {
     final String? phoneNumber = job.phoneNumber;
     final String? whatsappNumber = job.whatsappNumber;
 
-    // ✅ If no contact details, hide bottom bar
     if ((phoneNumber == null || phoneNumber.isEmpty) &&
         (whatsappNumber == null || whatsappNumber.isEmpty)) {
       return const SizedBox.shrink();
@@ -477,7 +476,6 @@ class JobDetailsScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            /// ✅ CALL BUTTON
             if (phoneNumber != null && phoneNumber.isNotEmpty)
               Expanded(
                 child: SizedBox(

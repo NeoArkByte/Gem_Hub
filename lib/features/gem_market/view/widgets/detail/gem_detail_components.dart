@@ -14,7 +14,6 @@ String _formatPrice(double? v) {
       );
 }
 
-// 1. GemOwnerActionTab
 class GemOwnerActionTab extends StatelessWidget {
   final Gem gem;
   const GemOwnerActionTab({super.key, required this.gem});
@@ -80,7 +79,6 @@ class GemOwnerActionTab extends StatelessWidget {
   }
 }
 
-// 2. GemTitleSection
 class GemTitleSection extends StatelessWidget {
   final Gem gem;
 
@@ -145,7 +143,6 @@ class GemTitleSection extends StatelessWidget {
   }
 }
 
-// 3. GemSellerSection
 class GemSellerSection extends StatelessWidget {
   final Gem gem;
   const GemSellerSection({super.key, required this.gem});
@@ -232,7 +229,6 @@ class GemSellerSection extends StatelessWidget {
   }
 }
 
-// 4. GemSpecificationsSection
 class GemSpecificationsSection extends StatelessWidget {
   final Gem gem;
 
@@ -378,7 +374,6 @@ class GemSpecificationsSection extends StatelessWidget {
   }
 }
 
-// 5. GemDescriptionSection
 class GemDescriptionSection extends StatelessWidget {
   final Gem gem;
 
@@ -419,7 +414,6 @@ class GemDescriptionSection extends StatelessWidget {
   }
 }
 
-// 6. GemLocationSection
 class GemLocationSection extends StatelessWidget {
   final Gem gem;
   const GemLocationSection({super.key, required this.gem});

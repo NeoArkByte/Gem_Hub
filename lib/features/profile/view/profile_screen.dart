@@ -62,10 +62,8 @@ class ProfileScreen extends ConsumerWidget {
             _buildMenuCard(cardColor, [
               InkWell(
                 onTap: () async {
-                  // 1. Get the current authenticated user directly from Supabase
                   final currentUser = Supabase.instance.client.auth.currentUser;
 
-                  // 2. Navigate to your edit screen safely
                   final dataChanged = await Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -79,9 +77,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   );
 
-                  // 3. Refresh user profile data from Supabase if changes were successfully made
                   if (dataChanged == true) {
-                    // Call your profile loading/fetching method here (e.g., fetchUserProfile();)
                   }
                 },
                 child: _buildMenuTile(
@@ -177,7 +173,6 @@ class ProfileScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 1. Profile Picture
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -194,7 +189,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 15),
 
-          // 2. Username
           Text(
             profile?.username ??
                 supabaseUser?.email?.split('@')[0] ??
@@ -208,7 +202,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
 
-          // 3. Description
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
             child: Text(
@@ -223,7 +216,6 @@ class ProfileScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
 
-          // 4. Member Since
           Text(
             "Member since ${_formatDate(profile?.createdAt)}",
             textAlign: TextAlign.center,

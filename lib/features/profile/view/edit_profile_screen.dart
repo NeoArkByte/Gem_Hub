@@ -43,7 +43,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.dispose();
   }
 
-  // 📸 Step A: Let user select a local gallery photo
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
@@ -52,7 +52,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // ⚡ Step B: Process uploads & updates on Supabase
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -67,7 +66,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       String? finalAvatarUrl = widget.currentAvatarUrl;
 
-      // 1. Handle Image Upload if image changed locally
       if (_localImagePath != null) {
         final file = File(_localImagePath!);
         // Create a unique file path filename variant to avoid aggressive image caching
@@ -85,7 +83,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         finalAvatarUrl = _supabase.storage.from('avatars').getPublicUrl(pathName);
       }
 
-      // 2. Perform Single Row Record Database Update on the table
       await _supabase.from('profiles').update({
         'username': _usernameCtrl.text.trim(),
         'description': _descriptionCtrl.text.trim(),
