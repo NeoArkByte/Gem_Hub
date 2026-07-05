@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:gemhub/features/auth/provider/session_provider.dart';
-import 'package:gemhub/features/auth/view/login_screen.dart';
-import 'post_new_job.dart';
 import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/marketplace_components.dart';
 import 'package:gemhub/features/jobs/view/widgets/marketplace_lists.dart';
@@ -34,42 +32,35 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
     final isLoggedIn = sessionAsync.value?.supabaseUser != null;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? const Color(0xFF111827)
-          : const Color(0xFFF5F7FA),
+      backgroundColor:
+          isDark ? const Color(0xFF111827) : const Color(0xFFF5F7FA),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
-          MarketplaceSearchBar(
-            controller: _searchController,
-            onSearchChanged: (value) {
-              ref
-                  .read(marketplaceViewModelProvider.notifier)
-                  .updateSearchQuery(value); 
-            },
-          ),
-
-          MarketplaceCategories(
-            onCategorySelected: (category) {
-              ref
-                  .read(marketplaceViewModelProvider.notifier)
-                  .updateCategory(category);
-            },
-          ),
-
+            const SizedBox(height: 18),
+            MarketplaceSearchBar(
+              controller: _searchController,
+              onSearchChanged: (value) {
+                ref
+                    .read(marketplaceViewModelProvider.notifier)
+                    .updateSearchQuery(value);
+              },
+            ),
+            MarketplaceCategories(
+              onCategorySelected: (category) {
+                ref
+                    .read(marketplaceViewModelProvider.notifier)
+                    .updateCategory(category);
+              },
+            ),
             const SectionHeader(
               title: 'Newly Listed Jobs',
-              actionText: 'See All',
+              //actionText: 'See All',
             ),
-
             const FeaturedJobsList(),
-
-            const SectionHeader(title: 'Explore All Jobs', icon: Icons.sort),
-
+            const SectionHeader(title: 'Explore All Jobs'),
             const RecentJobsList(),
-
             const SizedBox(height: 80),
           ],
         ),

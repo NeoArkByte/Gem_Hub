@@ -15,15 +15,15 @@ final authViewModelProvider = AuthViewModelProvider._();
 final class AuthViewModelProvider
     extends $AsyncNotifierProvider<AuthViewModel, void> {
   AuthViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'authViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'authViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$authViewModelHash();
@@ -33,7 +33,7 @@ final class AuthViewModelProvider
   AuthViewModel create() => AuthViewModel();
 }
 
-String _$authViewModelHash() => r'2db004810726ea516d79e46c8579e87923dc2cc1';
+String _$authViewModelHash() => r'57d6ea6c0f7ed69a8e0675ddf9c15f39e001e8bb';
 
 abstract class _$AuthViewModel extends $AsyncNotifier<void> {
   FutureOr<void> build();
@@ -41,14 +41,11 @@ abstract class _$AuthViewModel extends $AsyncNotifier<void> {
   @override
   void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
-              Object?,
-              Object?
-            >;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<void>, void>,
+        AsyncValue<void>,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }

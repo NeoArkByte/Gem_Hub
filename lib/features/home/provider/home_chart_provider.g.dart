@@ -12,24 +12,19 @@ part of 'home_chart_provider.dart';
 @ProviderFor(chartTrendData)
 final chartTrendDataProvider = ChartTrendDataProvider._();
 
-final class ChartTrendDataProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<ChartTrendData>,
-          ChartTrendData,
-          FutureOr<ChartTrendData>
-        >
+final class ChartTrendDataProvider extends $FunctionalProvider<
+        AsyncValue<ChartTrendData>, ChartTrendData, FutureOr<ChartTrendData>>
     with $FutureModifier<ChartTrendData>, $FutureProvider<ChartTrendData> {
   ChartTrendDataProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'chartTrendDataProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'chartTrendDataProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$chartTrendDataHash();
@@ -37,8 +32,8 @@ final class ChartTrendDataProvider
   @$internal
   @override
   $FutureProviderElement<ChartTrendData> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<ChartTrendData> create(Ref ref) {
@@ -46,31 +41,28 @@ final class ChartTrendDataProvider
   }
 }
 
-String _$chartTrendDataHash() => r'18c956cef4d6803f1e09122aabf0e2f0dd414686';
+String _$chartTrendDataHash() => r'32298ddc4c915bb9392aac7adeb15e938e36cd6b';
 
 @ProviderFor(heatmapData)
 final heatmapDataProvider = HeatmapDataProvider._();
 
-final class HeatmapDataProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<HeatmapCellData>>,
-          List<HeatmapCellData>,
-          FutureOr<List<HeatmapCellData>>
-        >
+final class HeatmapDataProvider extends $FunctionalProvider<
+        AsyncValue<List<HeatmapCellData>>,
+        List<HeatmapCellData>,
+        FutureOr<List<HeatmapCellData>>>
     with
         $FutureModifier<List<HeatmapCellData>>,
         $FutureProvider<List<HeatmapCellData>> {
   HeatmapDataProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'heatmapDataProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'heatmapDataProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$heatmapDataHash();
@@ -78,8 +70,8 @@ final class HeatmapDataProvider
   @$internal
   @override
   $FutureProviderElement<List<HeatmapCellData>> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<HeatmapCellData>> create(Ref ref) {

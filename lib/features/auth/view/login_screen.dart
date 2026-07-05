@@ -23,31 +23,82 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.initState();
   }
 
+  String _getFriendlyErrorMessage(String error) {
+    final errorStr = error.toLowerCase();
+
+    if (errorStr.contains('invalid login credentials') || 
+        errorStr.contains('invalid password') || 
+        errorStr.contains('not found')) {
+      return 'Invalid email or password. Please check and try again.';
+    } else if (errorStr.contains('network') || 
+               errorStr.contains('socket') || 
+               errorStr.contains('connection')) {
+      return 'Network error. Please check your internet connection.';
+    } else if (errorStr.contains('email not confirmed')) {
+      return 'Please verify your email address before logging in.';
+    } else if (errorStr.contains('too many requests')) {
+      return 'Too many attempts. Please try again later.';
+    }
+    
+    return 'An unexpected error occurred. Please try again.';
+  }
+
   void _login() async {
     final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
 
     final vm = ref.read(authViewModelProvider.notifier);
 
-    // validation
     final error = vm.validateLogin(email, password);
 
     if (error != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
-    // trigger login
-    await vm.login(email, password);
+   
+    try {
+      await vm.login(email, password);
+    } catch (e) {
+      if (mounted) {
+        final friendlyMessage = _getFriendlyErrorMessage(e.toString());
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    friendlyMessage,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(20),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _signInWithGoogle() async {
     final vm = ref.read(authViewModelProvider.notifier);
 
     try {
-      
       await vm.signInWithGoogleNative();
       
       if (mounted) {
@@ -58,12 +109,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
       }
-    } catch (error) {
+    } catch (e) {
       if (mounted) {
+        final friendlyMessage = _getFriendlyErrorMessage(e.toString());
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Google sign-in failed: ${error.toString()}'),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    friendlyMessage,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(20),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -121,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // EMAIL
                 TextField(
                   controller: _emailCtrl,
-                  enabled: !isLoading, // Disable fields while logging in
+                  enabled: !isLoading, 
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Email',
@@ -137,7 +207,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // PASSWORD
                 TextField(
                   controller: _passwordCtrl,
-                  enabled: !isLoading, // Disable fields while logging in
+                  enabled: !isLoading, 
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -240,7 +310,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const SizedBox(height: 16),
 
-                // SIGNUP LINK
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

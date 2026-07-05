@@ -1,88 +1,215 @@
+//lib\data\models\inventory\gemstone_model.dart
+
+import 'dart:convert';
+import 'package:gemhub/data/models/inventory/value_addition_model.dart';
+import 'package:gemhub/data/models/inventory/certificate_model.dart';
+
 class GemstoneModel {
   final int? id;
-  final String date;
-  final String variety;
-  final String color;
-  final bool isRough;
-  final bool isCut;
-  final bool isSold;
+
+  // Step 1 - Basic Info
+  final String category;
+  final String origin;
+  final String visibility;
+
+  // Step 2 - Buying Details
+  final String recordDate;
+  final String buyingDate;
+  final String buyerName;
+  final String buyerContact;
   final double buyingWeight;
   final double buyingPrice;
-  final double treatmentCost;
-  final double recutCost;
-  final double otherProcessingCost;
-  final String otherProcessingDesc;
+
+  final String variety;
+  final String buyingColor;
+  final String finalColor;
+  final bool isRough;
+  final bool isCut;
+
+  // Step 3 & 6 - Media
+  final List<String> firstLookPhotos;
+  final String? firstLookVideo;
+  final List<String> finalPhotos;
+  final String? finalVideo;
+
+  // Step 4 - Value Additions
+  final List<ValueAdditionModel> valueAdditions;
+
+  // Step 5 - Final Stage
+  final double currentWeight;
   final double finalWeight;
-  final double transportCost;
+  final String shape;
+  final String clarity;
+  final String status;
+  final double length;
+  final double width;
+  final double depth;
+
+  // Step 7 - Certificates
+  final bool isCertified;
+  final List<CertificateModel> certificates;
+
+  // Step 8 - Finance & Sales
+  final bool isReadyToSale;
+  final bool isSold;
+  final double salesTargetPrice;
+  final double actualSoldPrice;
   final double otherCost;
   final String otherCostReason;
-  final double targetPrice;
-  final double sellingPrice;
-  final String? firstImagePath;
-  final String? finalImagePath;
+
+  // Legacy direct fields to maintain DB backwards compatibility
+  final double treatmentCost;
+  final double cuttingCost;
+  final double recutCost;
+  final double heatCost;
+  final double transportCost;
+  final double certificateFees;
+  final double otherProcessingCost;
+  final String otherProcessingDesc;
 
   GemstoneModel({
     this.id,
-    required this.date,
-    required this.variety,
-    required this.color,
-    required this.isRough,
-    required this.isCut,
-    this.isSold = false,
-    required this.buyingWeight,
-    required this.buyingPrice,
-    this.treatmentCost = 0.0,
-    this.recutCost = 0.0,
-    this.otherProcessingCost = 0.0,
-    this.otherProcessingDesc = '',
+    this.category = 'Other',
+    this.origin = 'Sri Lanka',
+    this.visibility = 'Private',
+    required this.recordDate,
+    required this.buyingDate,
+    this.buyerName = '',
+    this.buyerContact = '',
+    this.buyingWeight = 0.0,
+    this.buyingPrice = 0.0,
+    this.variety = '',
+    this.buyingColor = '',
+    this.finalColor = '',
+    this.isRough = true,
+    this.isCut = false,
+    this.firstLookPhotos = const [],
+    this.firstLookVideo,
+    this.finalPhotos = const [],
+    this.finalVideo,
+    this.valueAdditions = const [],
+    this.currentWeight = 0.0,
     this.finalWeight = 0.0,
-    this.transportCost = 0.0,
+    this.shape = '',
+    this.clarity = '',
+    this.status = '',
+    this.length = 0.0,
+    this.width = 0.0,
+    this.depth = 0.0,
+    this.isCertified = false,
+    this.certificates = const [],
+    this.isReadyToSale = false,
+    this.isSold = false,
+    this.salesTargetPrice = 0.0,
+    this.actualSoldPrice = 0.0,
     this.otherCost = 0.0,
     this.otherCostReason = '',
-    this.targetPrice = 0.0,
-    this.sellingPrice = 0.0,
-    this.firstImagePath,
-    this.finalImagePath,
+    this.treatmentCost = 0.0,
+    this.cuttingCost = 0.0,
+    this.recutCost = 0.0,
+    this.heatCost = 0.0,
+    this.transportCost = 0.0,
+    this.certificateFees = 0.0,
+    this.otherProcessingCost = 0.0,
+    this.otherProcessingDesc = '',
   });
 
+  double get totalValueAdditionCosts =>
+      valueAdditions.fold(0.0, (sum, addition) => sum + addition.cost);
 
+  double get totalCertificateFees =>
+      certificates.fold(0.0, (sum, cert) => sum + cert.certificateFees) +
+      certificateFees;
 
-  double get targetPriceDiff => targetPrice - sellingPrice;
-  double get totalFinalExpenses =>
+  double get totalFinalCost =>
       buyingPrice +
+      totalValueAdditionCosts +
+      totalCertificateFees +
+      otherCost +
       treatmentCost +
+      cuttingCost +
       recutCost +
-      otherProcessingCost +
+      heatCost +
       transportCost +
-      otherCost;
+      otherProcessingCost;
 
-  // Profit only exists if sold and selling price is entered
-  double get profit =>
-      isSold && sellingPrice > 0 ? (sellingPrice - totalFinalExpenses) : 0.0;
+  double get targetProfit =>
+      salesTargetPrice > 0 ? (salesTargetPrice - totalFinalCost) : 0.0;
 
-  // Margin only exists if sold
-  double get profitPercentage => (isSold && totalFinalExpenses > 0)
-      ? (profit / totalFinalExpenses) * 100
+  double get targetMargin => (salesTargetPrice > 0 && totalFinalCost > 0)
+      ? (targetProfit / totalFinalCost) * 100
       : 0.0;
-  // copyWith is essential for Riverpod state updates
+
+  double get actualProfit =>
+      isSold && actualSoldPrice > 0 ? (actualSoldPrice - totalFinalCost) : 0.0;
+
+  double get actualMargin => (isSold && totalFinalCost > 0)
+      ? (actualProfit / totalFinalCost) * 100
+      : 0.0;
+
+  // Compatibility getters mapping old names to new fields
+  String get date => buyingDate.isNotEmpty ? buyingDate : recordDate;
+  String get color => finalColor.isNotEmpty ? finalColor : buyingColor;
+  double get sellingPrice => actualSoldPrice;
+  double get targetPrice => salesTargetPrice;
+  double get profit => actualProfit;
+  double get profitPercentage => actualMargin;
+  double get totalFinalExpenses => totalFinalCost;
+  String? get firstImagePath =>
+      firstLookPhotos.isNotEmpty ? firstLookPhotos.first : null;
+  String? get finalImagePath =>
+      finalPhotos.isNotEmpty ? finalPhotos.first : null;
+  String? get firstVideoPath => firstLookVideo;
+  String? get finalVideoPath => finalVideo;
+
   GemstoneModel copyWith({
     int? id,
-    String? date,
-    String? variety,
-    String? color,
-    bool? isRough,
-    bool? isCut,
-    bool? isSold,
+    String? category,
+    String? origin,
+    String? visibility,
+    String? recordDate,
+    String? buyingDate,
+    String? buyerName,
+    String? buyerContact,
     double? buyingWeight,
     double? buyingPrice,
-    double? treatmentCost,
-    double? recutCost,
-    double? otherProcessingCost,
-    String? otherProcessingDesc,
+    String? variety,
+    String? buyingColor,
+    String? finalColor,
+    bool? isRough,
+    bool? isCut,
+    List<String>? firstLookPhotos,
+    String? firstLookVideo,
+    List<String>? finalPhotos,
+    String? finalVideo,
+    List<ValueAdditionModel>? valueAdditions,
+    double? currentWeight,
     double? finalWeight,
-    double? transportCost,
+    String? shape,
+    String? clarity,
+    String? status,
+    double? length,
+    double? width,
+    double? depth,
+    bool? isCertified,
+    List<CertificateModel>? certificates,
+    bool? isReadyToSale,
+    bool? isSold,
+    double? salesTargetPrice,
+    double? actualSoldPrice,
     double? otherCost,
     String? otherCostReason,
+    double? treatmentCost,
+    double? cuttingCost,
+    double? recutCost,
+    double? heatCost,
+    double? transportCost,
+    double? certificateFees,
+    double? otherProcessingCost,
+    String? otherProcessingDesc,
+    // legacy parameters
+    String? date,
+    String? color,
     double? targetPrice,
     double? sellingPrice,
     String? firstImagePath,
@@ -90,35 +217,92 @@ class GemstoneModel {
   }) {
     return GemstoneModel(
       id: id ?? this.id,
-      date: date ?? this.date,
-      variety: variety ?? this.variety,
-      color: color ?? this.color,
-      isRough: isRough ?? this.isRough,
-      isCut: isCut ?? this.isCut,
-      isSold: isSold ?? this.isSold,
+      category: category ?? this.category,
+      origin: origin ?? this.origin,
+      visibility: visibility ?? this.visibility,
+      recordDate: recordDate ?? this.recordDate,
+      buyingDate: buyingDate ?? date ?? this.buyingDate,
+      buyerName: buyerName ?? this.buyerName,
+      buyerContact: buyerContact ?? this.buyerContact,
       buyingWeight: buyingWeight ?? this.buyingWeight,
       buyingPrice: buyingPrice ?? this.buyingPrice,
-      treatmentCost: treatmentCost ?? this.treatmentCost,
-      recutCost: recutCost ?? this.recutCost,
-      otherProcessingCost: otherProcessingCost ?? this.otherProcessingCost,
-      otherProcessingDesc: otherProcessingDesc ?? this.otherProcessingDesc,
+      variety: variety ?? this.variety,
+      buyingColor: buyingColor ?? color ?? this.buyingColor,
+      finalColor: finalColor ?? this.finalColor,
+      isRough: isRough ?? this.isRough,
+      isCut: isCut ?? this.isCut,
+      firstLookPhotos: firstLookPhotos ??
+          (firstImagePath != null ? [firstImagePath] : this.firstLookPhotos),
+      firstLookVideo: firstLookVideo ?? this.firstLookVideo,
+      finalPhotos: finalPhotos ??
+          (finalImagePath != null ? [finalImagePath] : this.finalPhotos),
+      finalVideo: finalVideo ?? this.finalVideo,
+      valueAdditions: valueAdditions ?? this.valueAdditions,
+      currentWeight: currentWeight ?? this.currentWeight,
       finalWeight: finalWeight ?? this.finalWeight,
-      transportCost: transportCost ?? this.transportCost,
+      shape: shape ?? this.shape,
+      clarity: clarity ?? this.clarity,
+      status: status ?? this.status,
+      length: length ?? this.length,
+      width: width ?? this.width,
+      depth: depth ?? this.depth,
+      isCertified: isCertified ?? this.isCertified,
+      certificates: certificates ?? this.certificates,
+      isReadyToSale: isReadyToSale ?? this.isReadyToSale,
+      isSold: isSold ?? this.isSold,
+      salesTargetPrice:
+          salesTargetPrice ?? targetPrice ?? this.salesTargetPrice,
+      actualSoldPrice: actualSoldPrice ?? sellingPrice ?? this.actualSoldPrice,
       otherCost: otherCost ?? this.otherCost,
       otherCostReason: otherCostReason ?? this.otherCostReason,
-      targetPrice: targetPrice ?? this.targetPrice,
-      sellingPrice: sellingPrice ?? this.sellingPrice,
-      firstImagePath: firstImagePath ?? this.firstImagePath,
-      finalImagePath: finalImagePath ?? this.finalImagePath,
+      treatmentCost: treatmentCost ?? this.treatmentCost,
+      cuttingCost: cuttingCost ?? this.cuttingCost,
+      recutCost: recutCost ?? this.recutCost,
+      heatCost: heatCost ?? this.heatCost,
+      transportCost: transportCost ?? this.transportCost,
+      certificateFees: certificateFees ?? this.certificateFees,
+      otherProcessingCost: otherProcessingCost ?? this.otherProcessingCost,
+      otherProcessingDesc: otherProcessingDesc ?? this.otherProcessingDesc,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'date': date,
+      'category': category,
+      'origin': origin,
+      'visibility': visibility,
+      'recordDate': recordDate,
+      'buyingDate': buyingDate,
+      'buyerName': buyerName,
+      'buyerContact': buyerContact,
       'variety': variety,
-      'color': color,
+      'buyingColor': buyingColor,
+      'finalColor': finalColor,
+      'firstLookPhotos': json.encode(firstLookPhotos),
+      'firstLookVideo': firstLookVideo,
+      'finalPhotos': json.encode(finalPhotos),
+      'finalVideo': finalVideo,
+      'valueAdditions': json.encode(valueAdditions.map((x) => x.toMap()).toList()),
+      'currentWeight': currentWeight,
+      'shape': shape,
+      'clarity': clarity,
+      'status': status,
+      'length': length,
+      'width': width,
+      'depth': depth,
+      'isCertified': isCertified ? 1 : 0,
+      'certificates': json.encode(certificates.map((x) => x.toMap()).toList()),
+      'isReadyToSale': isReadyToSale ? 1 : 0,
+      'salesTargetPrice': salesTargetPrice,
+      'actualSoldPrice': actualSoldPrice,
+      'cuttingCost': cuttingCost,
+      'heatCost': heatCost,
+      'certificateFees': certificateFees,
+      
+      // Legacy backwards mapping matching snake_case schema
+      'date': buyingDate,
+      'color': finalColor.isNotEmpty ? finalColor : buyingColor,
       'is_rough': isRough ? 1 : 0,
       'is_cut': isCut ? 1 : 0,
       'is_sold': isSold ? 1 : 0,
@@ -132,38 +316,110 @@ class GemstoneModel {
       'transport_cost': transportCost,
       'other_cost': otherCost,
       'other_cost_reason': otherCostReason,
-      'target_price': targetPrice,
-      'selling_price': sellingPrice,
-      'first_image_path': firstImagePath,
-      'final_image_path': finalImagePath,
+      'target_price': salesTargetPrice,
+      'selling_price': actualSoldPrice,
+      'first_image_path': firstLookPhotos.isNotEmpty ? firstLookPhotos.first : null,
+      'final_image_path': finalPhotos.isNotEmpty ? finalPhotos.first : null,
+      'first_video_path': firstLookVideo,
+      'final_video_path': finalVideo,
     };
   }
 
   factory GemstoneModel.fromMap(Map<String, dynamic> map) {
+    // Helper function for JSON lists
+    List<String> parseStringList(dynamic value) {
+      if (value == null) return [];
+      if (value is String) {
+        try {
+          return List<String>.from(json.decode(value));
+        } catch (_) {
+          return [];
+        }
+      }
+      return [];
+    }
+
     return GemstoneModel(
       id: map['id'],
-      date: map['date'] ?? '',
+      category: map['category'] ?? 'Other',
+      origin: map['origin'] ?? 'Sri Lanka',
+      visibility: map['visibility'] ?? 'Private',
+      recordDate: map['recordDate'] ?? map['date'] ?? '',
+      buyingDate: map['buyingDate'] ?? map['date'] ?? '',
+      buyerName: map['buyerName'] ?? '',
+      buyerContact: map['buyerContact'] ?? '',
+      buyingWeight:
+          (map['buyingWeight'] ?? map['buying_weight'] as num?)?.toDouble() ??
+              0.0,
+      buyingPrice:
+          (map['buyingPrice'] ?? map['buying_price'] as num?)?.toDouble() ??
+              0.0,
       variety: map['variety'] ?? '',
-      color: map['color'] ?? '',
-      isRough: map['is_rough'] == 1,
-      isCut: map['is_cut'] == 1,
-      isSold: map['is_sold'] == 1,
-      // Using .toDouble() + ?? 0.0 to prevent type mismatch errors from SQLite
-      buyingWeight: (map['buying_weight'] as num?)?.toDouble() ?? 0.0,
-      buyingPrice: (map['buying_price'] as num?)?.toDouble() ?? 0.0,
-      treatmentCost: (map['treatment_cost'] as num?)?.toDouble() ?? 0.0,
-      recutCost: (map['recut_cost'] as num?)?.toDouble() ?? 0.0,
+      buyingColor: map['buyingColor'] ?? map['color'] ?? '',
+      finalColor: map['finalColor'] ?? map['color'] ?? '',
+      isRough: (map['isRough'] == 1) || (map['is_rough'] == 1),
+      isCut: (map['isCut'] == 1) || (map['is_cut'] == 1),
+      firstLookPhotos: map['firstLookPhotos'] != null
+          ? parseStringList(map['firstLookPhotos'])
+          : (map['first_image_path'] != null ? [map['first_image_path']] : []),
+      firstLookVideo: map['firstLookVideo'] ?? map['first_video_path'],
+      finalPhotos: map['finalPhotos'] != null
+          ? parseStringList(map['finalPhotos'])
+          : (map['final_image_path'] != null ? [map['final_image_path']] : []),
+      finalVideo: map['finalVideo'] ?? map['final_video_path'],
+      valueAdditions: map['valueAdditions'] != null
+          ? List<ValueAdditionModel>.from(
+              (json.decode(map['valueAdditions']) as List)
+                  .map((x) => ValueAdditionModel.fromMap(x)),
+            )
+          : [],
+      currentWeight: (map['currentWeight'] as num?)?.toDouble() ??
+          (map['buying_weight'] as num?)?.toDouble() ??
+          0.0,
+      finalWeight:
+          (map['finalWeight'] ?? map['final_weight'] as num?)?.toDouble() ??
+              0.0,
+      shape: map['shape'] ?? '',
+      clarity: map['clarity'] ?? '',
+      status: map['status'] ?? '',
+      length: (map['length'] as num?)?.toDouble() ?? 0.0,
+      width: (map['width'] as num?)?.toDouble() ?? 0.0,
+      depth: (map['depth'] as num?)?.toDouble() ?? 0.0,
+      isCertified: map['isCertified'] == 1,
+      certificates: map['certificates'] != null
+          ? List<CertificateModel>.from(
+              (json.decode(map['certificates']) as List)
+                  .map((x) => CertificateModel.fromMap(x)),
+            )
+          : [],
+      isReadyToSale: map['isReadyToSale'] == 1,
+      isSold: (map['isSold'] == 1) || (map['is_sold'] == 1),
+      salesTargetPrice: (map['salesTargetPrice'] ?? map['target_price'] as num?)
+              ?.toDouble() ??
+          0.0,
+      actualSoldPrice: (map['actualSoldPrice'] ?? map['selling_price'] as num?)
+              ?.toDouble() ??
+          0.0,
+      otherCost:
+          (map['otherCost'] ?? map['other_cost'] as num?)?.toDouble() ?? 0.0,
+      otherCostReason: map['otherCostReason'] ?? map['other_cost_reason'] ?? '',
+      treatmentCost:
+          (map['treatmentCost'] ?? map['treatment_cost'] as num?)?.toDouble() ??
+              0.0,
+      cuttingCost: (map['cuttingCost'] as num?)?.toDouble() ?? 0.0,
+      recutCost:
+          (map['recutCost'] ?? map['recut_cost'] as num?)?.toDouble() ?? 0.0,
+      heatCost: (map['heatCost'] as num?)?.toDouble() ?? 0.0,
+      transportCost:
+          (map['transportCost'] ?? map['transport_cost'] as num?)?.toDouble() ??
+              0.0,
+      certificateFees: (map['certificateFees'] as num?)?.toDouble() ?? 0.0,
       otherProcessingCost:
-          (map['other_processing_cost'] as num?)?.toDouble() ?? 0.0,
-      otherProcessingDesc: map['other_processing_desc'] ?? '',
-      finalWeight: (map['final_weight'] as num?)?.toDouble() ?? 0.0,
-      transportCost: (map['transport_cost'] as num?)?.toDouble() ?? 0.0,
-      otherCost: (map['other_cost'] as num?)?.toDouble() ?? 0.0,
-      otherCostReason: map['other_cost_reason'] ?? '',
-      targetPrice: (map['target_price'] as num?)?.toDouble() ?? 0.0,
-      sellingPrice: (map['selling_price'] as num?)?.toDouble() ?? 0.0,
-      firstImagePath: map['first_image_path'],
-      finalImagePath: map['final_image_path'],
+          (map['otherProcessingCost'] ?? map['other_processing_cost'] as num?)
+                  ?.toDouble() ??
+              0.0,
+      otherProcessingDesc:
+          map['otherProcessingDesc'] ?? map['other_processing_desc'] ?? '',
     );
   }
 }

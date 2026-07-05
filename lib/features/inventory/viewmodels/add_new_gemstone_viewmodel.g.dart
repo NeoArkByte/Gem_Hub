@@ -13,17 +13,17 @@ part of 'add_new_gemstone_viewmodel.dart';
 final addNewGemstoneViewModelProvider = AddNewGemstoneViewModelProvider._();
 
 final class AddNewGemstoneViewModelProvider
-    extends $AsyncNotifierProvider<AddNewGemstoneViewModel, void> {
+    extends $NotifierProvider<AddNewGemstoneViewModel, MediaProcessingState> {
   AddNewGemstoneViewModelProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'addNewGemstoneViewModelProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'addNewGemstoneViewModelProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$addNewGemstoneViewModelHash();
@@ -31,25 +31,31 @@ final class AddNewGemstoneViewModelProvider
   @$internal
   @override
   AddNewGemstoneViewModel create() => AddNewGemstoneViewModel();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(MediaProcessingState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<MediaProcessingState>(value),
+    );
+  }
 }
 
 String _$addNewGemstoneViewModelHash() =>
-    r'77bc96a491ab93e34aa62992480992c3ec7740d1';
+    r'ea65c229ff8d5c5f678baee595ba06df795d1992';
 
-abstract class _$AddNewGemstoneViewModel extends $AsyncNotifier<void> {
-  FutureOr<void> build();
+abstract class _$AddNewGemstoneViewModel
+    extends $Notifier<MediaProcessingState> {
+  MediaProcessingState build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<void>, void>;
-    final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<AsyncValue<void>, void>,
-              AsyncValue<void>,
-              Object?,
-              Object?
-            >;
+    final ref = this.ref as $Ref<MediaProcessingState, MediaProcessingState>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<MediaProcessingState, MediaProcessingState>,
+        MediaProcessingState,
+        Object?,
+        Object?>;
     element.handleCreate(ref, build);
   }
 }

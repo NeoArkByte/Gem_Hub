@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemhub/features/analytics/views/analytics_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:gemhub/features/home/provider/home_chart_provider.dart';
 import 'package:gemhub/features/home/provider/portfolio_provider.dart';
@@ -18,19 +19,17 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  
     final profileState = ref.watch(profileViewModelProvider);
     final portfolioAsync = ref.watch(
       portfolioDataProvider,
-    ); 
+    );
     final chartRange = ref.watch(chartRangeProvider);
     final chartTrendAsync = ref.watch(chartTrendDataProvider);
     final heatmapAsync = ref.watch(heatmapDataProvider);
 
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgColor = isDark
-        ? AppColors.darkBackgroundAlt
-        : AppColors.lightBackgroundSoft;
+    final Color bgColor =
+        isDark ? AppColors.darkBackgroundAlt : AppColors.lightBackgroundSoft;
     final Color textColor = isDark ? Colors.white : AppColors.textDarkAlt;
 
     return profileState.when(
@@ -40,11 +39,9 @@ class HomeScreen extends ConsumerWidget {
       error: (err, stack) =>
           Scaffold(body: Center(child: Text("Connection Error: $err"))),
       data: (authenticatedUser) {
-        
         if (authenticatedUser == null) {
           return const Scaffold(body: Center(child: Text("Please Log In")));
         }
-
 
         return Scaffold(
           backgroundColor: bgColor,
@@ -53,9 +50,7 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
                   const AppHeader(),
-
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
@@ -63,7 +58,6 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     child: Column(
                       children: [
-                        
                         portfolioAsync.when(
                           data: (portfolio) => _buildGoldenPortfolioCard(
                             totalInventoryValue:
@@ -104,8 +98,8 @@ class HomeScreen extends ConsumerWidget {
   }
 
   Widget _buildGoldenPortfolioCard({
-    required double totalInventoryValue, 
-    required double realizedProfit, 
+    required double totalInventoryValue,
+    required double realizedProfit,
     required BuildContext context,
   }) {
     return Container(
@@ -140,29 +134,40 @@ class HomeScreen extends ConsumerWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance_wallet,
-                      color: Colors.white,
-                      size: 14,
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AnalyticsScreen(),
                     ),
-                    SizedBox(width: 4),
-                    Text(
-                      "Stock",
-                      style: TextStyle(
+                  );
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(
+                        Icons.insights, // Changed icon
                         color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        size: 14,
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 4),
+                      Text(
+                        "AI Insights", // Changed text
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -257,7 +262,8 @@ class HomeScreen extends ConsumerWidget {
               DropdownButtonHideUnderline(
                 child: DropdownButton<ChartRange>(
                   value: chartRange,
-                  icon: Icon(Icons.keyboard_arrow_down, color: Colors.blue.shade700),
+                  icon: Icon(Icons.keyboard_arrow_down,
+                      color: Colors.blue.shade700),
                   isDense: true,
                   style: TextStyle(
                     color: Colors.blue.shade700,
@@ -376,7 +382,7 @@ class HomeScreen extends ConsumerWidget {
                 itemCount: 35,
                 itemBuilder: (context, index) {
                   final cell = cells[index];
-                  
+
                   // Profit/loss gradient logic
                   Color tileColor;
                   if (cell.value > 0) {
@@ -389,7 +395,8 @@ class HomeScreen extends ConsumerWidget {
                     tileColor = Colors.red.shade400;
                   } else {
                     // Neutral / No value
-                    tileColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+                    tileColor =
+                        isDark ? Colors.grey.shade800 : Colors.grey.shade200;
                   }
 
                   // Fade out cells not in current month
@@ -581,9 +588,8 @@ class TrendChartPainter extends CustomPainter {
     const double padding = 16;
     final chartWidth = size.width - padding * 2;
     final chartHeight = size.height - padding * 2;
-    final maxValue = values
-        .reduce((a, b) => a > b ? a : b)
-        .clamp(1.0, double.infinity);
+    final maxValue =
+        values.reduce((a, b) => a > b ? a : b).clamp(1.0, double.infinity);
 
     for (var row = 0; row < 3; row++) {
       final dy = padding + chartHeight / 3 * row;

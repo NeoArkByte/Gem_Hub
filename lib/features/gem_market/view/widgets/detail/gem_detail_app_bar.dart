@@ -48,7 +48,7 @@ class GemDetailAppBar extends StatelessWidget {
               itemBuilder: (_, i) => Image.network(
                 images[i],
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => Container(
+                errorBuilder: (context, error, stackTrace) => Container(
                   color: AppColors.accentGreenLight,
                   child: const Center(
                     child: Icon(

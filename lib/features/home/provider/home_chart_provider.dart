@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
@@ -51,7 +50,9 @@ extension ChartRangeLabel on ChartRange {
 
 String _monthAbbrevSafe(int month) {
   int m = month;
-  while (m <= 0) m += 12;
+  while (m <= 0) {
+    m += 12;
+  }
   const months = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -178,7 +179,7 @@ Future<ChartTrendData> chartTrendData(Ref ref) async {
       } else {
         var minYear = now.year;
         for (final g in gems) {
-          final d = _parseGemDate(g.date);
+          final d = _parseGemDate(g.recordDate);
           if (d != null && d.year < minYear) {
             minYear = d.year;
           }
@@ -231,7 +232,9 @@ Future<List<HeatmapCellData>> heatmapData(Ref ref) async {
 
 String _monthAbbreviation(int month) {
   int m = month;
-  while (m <= 0) m += 12;
+  while (m <= 0) {
+    m += 12;
+  }
   const months = [
     'Jan',
     'Feb',
@@ -259,9 +262,9 @@ DateTime? _parseGemDate(String date) {
 
 double _trendValue(GemstoneModel gem) {
   if (gem.isSold) {
-    return gem.profit;
+    return gem.actualProfit;
   }
-  return gem.targetPrice;
+  return gem.salesTargetPrice;
 }
 
 double _sumForRange(List<GemstoneModel> gems, DateTime start, DateTime end) {
@@ -269,7 +272,7 @@ double _sumForRange(List<GemstoneModel> gems, DateTime start, DateTime end) {
   final rangeEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
 
   return gems.fold(0.0, (sum, gem) {
-    final gemDate = _parseGemDate(gem.date);
+    final gemDate = _parseGemDate(gem.recordDate);
     if (gemDate == null) return sum;
     if (gemDate.isBefore(rangeStart) || gemDate.isAfter(rangeEnd)) return sum;
     return sum + _trendValue(gem);
@@ -282,10 +285,10 @@ double _profitForRange(List<GemstoneModel> gems, DateTime start, DateTime end) {
 
   return gems.fold(0.0, (sum, gem) {
     if (!gem.isSold) return sum;
-    final gemDate = _parseGemDate(gem.date);
+    final gemDate = _parseGemDate(gem.recordDate);
     if (gemDate == null) return sum;
     if (gemDate.isBefore(rangeStart) || gemDate.isAfter(rangeEnd)) return sum;
-    return sum + gem.profit;
+    return sum + gem.actualProfit;
   });
 }
 

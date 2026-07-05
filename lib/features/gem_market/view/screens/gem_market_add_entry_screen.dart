@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
@@ -34,9 +35,11 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
   final TextEditingController _colorController = TextEditingController();
   String? _selectedVariety;
   List<String> _varieties = [];
-  final TextEditingController _customVarietyController = TextEditingController();
+  final TextEditingController _customVarietyController =
+      TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _sellerPhoneController = TextEditingController();
+  final FocusNode _customVarietyFocusNode = FocusNode();
 
   bool _isPublishing = false;
 
@@ -48,14 +51,21 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
 
   Future<void> _loadVarieties() async {
     try {
-      final varieties = await ref
-          .read(gemAddViewModelProvider.notifier)
-          .getGemVarieties();
+      final varieties =
+          await ref.read(gemAddViewModelProvider.notifier).getGemVarieties();
       if (mounted) {
         setState(() {
           _varieties = List<String>.from(varieties);
           if (!_varieties.contains('Other')) {
             _varieties.add('Other');
+          }
+
+          // If _selectedVariety is already set and not in the list, it's a custom variety
+          if (_selectedVariety != null &&
+              _selectedVariety != 'Other' &&
+              !_varieties.contains(_selectedVariety)) {
+            _customVarietyController.text = _selectedVariety!;
+            _selectedVariety = 'Other';
           }
         });
       }
@@ -74,6 +84,7 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
     _customVarietyController.dispose();
     _locationController.dispose();
     _sellerPhoneController.dispose();
+    _customVarietyFocusNode.dispose();
     super.dispose();
   }
 
@@ -87,11 +98,19 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
       return;
     }
 
+    if (_locationController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select or specify a location.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isPublishing = true);
 
-    final success = await ref
-        .read(gemAddViewModelProvider.notifier)
-        .createGem(
+    final success = await ref.read(gemAddViewModelProvider.notifier).createGem(
           name: _nameController.text.trim(),
           imageFile: _gemImage!,
           certificateFile: _certificateFile,
@@ -111,25 +130,24 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
     setState(() => _isPublishing = false);
 
     if (success) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gem listed successfully and is pending approval.'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        context.pop();
-      }
+      ref.invalidate(gemListProvider);
+      ref.invalidate(userSpecificGemsProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gem listed successfully and is pending approval.'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      context.pop();
     } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to list gem. Please check your connection.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to list gem. Please check your connection.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -156,18 +174,14 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     bool isDark = Theme.of(context).brightness == Brightness.dark;
-    Color bgColor = isDark
-        ? AppColors.darkBackground
-        : AppColors.lightBackground;
+    Color bgColor =
+        isDark ? AppColors.darkBackground : AppColors.lightBackground;
     Color textColor = isDark ? Colors.white : AppColors.darkBackground;
-    Color dividerColor = isDark
-        ? AppColors.darkSurfaceAlt
-        : AppColors.lightBorder;
+    Color dividerColor =
+        isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -204,7 +218,10 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // --- Photos ---
-                    const GemFormSectionHeader(icon: Icons.camera_alt_outlined, title: 'PHOTOS'),
+                    const GemFormSectionHeader(
+                      icon: Icons.camera_alt_outlined,
+                      title: 'PHOTOS',
+                    ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
@@ -240,21 +257,65 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                       label: 'Gem Name',
                       hint: 'e.g. Royal Blue Sapphire',
                       controller: _nameController,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter a gem name';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Gem name must be at least 3 characters';
+                        }
+                        return null;
+                      },
                     ),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: GemFormDropdownField(
-                            label: 'Variety',
-                            hint: 'Select variety',
-                            value: _selectedVariety,
-                            items: _varieties,
-                            onChanged: (newValue) {
-                              setState(() {
-                                _selectedVariety = newValue;
-                              });
-                            },
-                            optional: true,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            child: _selectedVariety == 'Other'
+                                ? GemFormTextField(
+                                    key: const ValueKey('custom_variety'),
+                                    label: 'Variety',
+                                    hint: 'Enter variety',
+                                    controller: _customVarietyController,
+                                    focusNode: _customVarietyFocusNode,
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.close, size: 20),
+                                      onPressed: () {
+                                        setState(() {
+                                          _selectedVariety = null;
+                                          _customVarietyController.clear();
+                                        });
+                                      },
+                                    ),
+                                    validator: (value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Please enter custom variety';
+                                      }
+                                      if (value.trim().length < 2) {
+                                        return 'Variety name is too short';
+                                      }
+                                      return null;
+                                    },
+                                  )
+                                : GemFormDropdownField(
+                                    key: const ValueKey('dropdown_variety'),
+                                    label: 'Variety',
+                                    hint: 'Select variety',
+                                    value: _selectedVariety,
+                                    items: _varieties,
+                                    onChanged: (newValue) {
+                                      setState(() {
+                                        _selectedVariety = newValue;
+                                        if (newValue == 'Other') {
+                                          _customVarietyFocusNode
+                                              .requestFocus();
+                                        }
+                                      });
+                                    },
+                                  ),
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -263,17 +324,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                             label: 'Color',
                             hint: 'e.g. Blue',
                             controller: _colorController,
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a color';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
                     ),
-                    if (_selectedVariety == 'Other')
-                      GemFormTextField(
-                        label: 'Custom Variety',
-                        hint: 'Enter custom gem variety',
-                        controller: _customVarietyController,
-                      ),
                     Row(
                       children: [
                         Expanded(
@@ -285,7 +345,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                               decimal: true,
                             ),
                             suffixText: 'ct',
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter carat weight';
+                              }
+                              final carat = double.tryParse(value.trim());
+                              if (carat == null || carat <= 0) {
+                                return 'Enter a valid weight > 0';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -298,7 +367,16 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                               decimal: true,
                             ),
                             prefixIcon: Icons.payments_outlined,
-                            optional: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a price';
+                              }
+                              final price = double.tryParse(value.trim());
+                              if (price == null || price <= 0) {
+                                return 'Enter a valid price > 0';
+                              }
+                              return null;
+                            },
                           ),
                         ),
                       ],
@@ -327,6 +405,18 @@ class _AddGemScreenState extends ConsumerState<AddGemScreen> {
                       keyboardType: TextInputType.phone,
                       prefixIcon: Icons.phone_outlined,
                       optional: true,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return null;
+                        }
+                        final cleanVal =
+                            value.replaceAll(RegExp(r'[\s\-()]'), '');
+                        final slRegex = RegExp(r'^(?:\+94|94|0)?[1-9]\d{8}$');
+                        if (!slRegex.hasMatch(cleanVal)) {
+                          return 'Enter a valid Sri Lankan number';
+                        }
+                        return null;
+                      },
                     ),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 20),

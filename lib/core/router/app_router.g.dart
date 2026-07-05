@@ -16,15 +16,15 @@ final class RouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
   RouterProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'routerProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'routerProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$routerHash();
@@ -48,4 +48,4 @@ final class RouterProvider
   }
 }
 
-String _$routerHash() => r'6a9409c2df9d876db975117434986c16f4fed914';
+String _$routerHash() => r'20e17d0e3912f314989156104588d98960ff6113';

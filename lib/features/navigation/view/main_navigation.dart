@@ -17,11 +17,11 @@ class MainNavigation extends ConsumerWidget {
     final user = sessionAsync.value;
     final location = GoRouterState.of(context).uri.path;
 
-    // 1. Define the order exactly as they appear in your BottomNavBar
-    // final routes = ['/jobs', '/gems', '/inventory', '/profile'];
+    
+    
     final routes = ['/home', '/inventory', '/gems', '/jobs', '/profile'];
 
-    // 2. Determine index based on the current path
+   
     int currentIndex = 0;
     if (location.startsWith('/inventory')) {
       currentIndex = 1;
@@ -47,7 +47,7 @@ class MainNavigation extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // const AppHeader(), // Cleaner: Color is inherited from Scaffold
+            
             Expanded(child: child),
           ],
         ),

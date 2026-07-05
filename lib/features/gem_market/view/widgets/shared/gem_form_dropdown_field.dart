@@ -25,7 +25,8 @@ class GemFormDropdownField extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final Color fieldBg = isDark ? AppColors.darkSurface : Colors.white;
-    final Color labelColor = isDark ? Colors.grey[300]! : const Color(0xFF1F2937);
+    final Color labelColor =
+        isDark ? Colors.grey[300]! : const Color(0xFF1F2937);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +41,7 @@ class GemFormDropdownField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
           items: items.map((String variety) {
             return DropdownMenuItem<String>(
               value: variety,
@@ -69,7 +70,8 @@ class GemFormDropdownField extends StatelessWidget {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20),
               borderSide: BorderSide(
-                color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
+                color:
+                    isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
               ),
             ),
             focusedBorder: OutlineInputBorder(

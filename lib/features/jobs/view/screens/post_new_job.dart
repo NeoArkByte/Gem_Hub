@@ -6,9 +6,13 @@ import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/jobs/viewmodels/post_job_viewmodel.dart';
 import 'package:gemhub/features/jobs/view/widgets/post_job_components.dart';
+import 'package:gemhub/features/auth/viewmodels/admin_screen_viewmodel.dart';
 
 class PostJobScreen extends ConsumerStatefulWidget {
-  const PostJobScreen({super.key});
+  final Job? jobToEdit;
+  final bool isAdmin;
+
+  const PostJobScreen({super.key, this.jobToEdit, this.isAdmin = false});
 
   @override
   ConsumerState<PostJobScreen> createState() => _PostJobScreenState();
@@ -23,9 +27,11 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
   final TextEditingController _minSalaryCtrl = TextEditingController();
   final TextEditingController _maxSalaryCtrl = TextEditingController();
   final TextEditingController _customCategoryCtrl = TextEditingController();
+  final TextEditingController _phoneCtrl = TextEditingController();
+  final TextEditingController _whatsappCtrl = TextEditingController();
 
   String _selectedLocation = "";
-  final List<String> _skills = ['Faceting', 'Gemology'];
+  List<String> _skills = ['Faceting', 'Gemology'];
 
   String _selectedCategory = 'Gem Cutter';
   final List<String> _categories = [
@@ -41,6 +47,59 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     'Intern',
     'Other (Add Custom)',
   ];
+
+  bool get isEditMode => widget.jobToEdit != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (isEditMode) {
+      final job = widget.jobToEdit!;
+
+      if (job.companyInfo != null && job.companyInfo!.contains(' • ')) {
+        final parts = job.companyInfo!.split(' • ');
+        _companyNameCtrl.text = parts[0];
+        _selectedLocation = parts.length > 1 ? parts[1].trim() : "";
+      } else {
+        _companyNameCtrl.text = job.companyInfo ?? '';
+      }
+
+      _jobTitleCtrl.text = job.title ?? '';
+      _descriptionCtrl.text = job.description ?? '';
+
+      if (job.minSalary != null) {
+        _minSalaryCtrl.text = job.minSalary!.toInt().toString();
+      }
+      if (job.maxSalary != null) {
+        _maxSalaryCtrl.text = job.maxSalary!.toInt().toString();
+      }
+
+      try {
+        _phoneCtrl.text = (job as dynamic).phoneNumber ?? '';
+        _whatsappCtrl.text = (job as dynamic).whatsappNumber ?? '';
+      } catch (e) {
+        print("Error accessing phone/whatsapp: $e");
+      }
+
+      if (job.tags.isNotEmpty) {
+        List<String> allTags = job.tags.split(',');
+        if (allTags.isNotEmpty) {
+          String cat = allTags.first.trim();
+          if (_categories.contains(cat)) {
+            _selectedCategory = cat;
+          } else {
+            _selectedCategory = 'Other (Add Custom)';
+            _customCategoryCtrl.text = cat;
+          }
+          if (allTags.length > 1) {
+            _skills = allTags.sublist(1).map((e) => e.trim()).toList();
+          } else {
+            _skills = [];
+          }
+        }
+      }
+    }
+  }
 
   void _addSkill(String skill) {
     if (skill.isNotEmpty && !_skills.contains(skill)) {
@@ -60,17 +119,92 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     _minSalaryCtrl.dispose();
     _maxSalaryCtrl.dispose();
     _customCategoryCtrl.dispose();
+    _phoneCtrl.dispose();
+    _whatsappCtrl.dispose();
     super.dispose();
   }
 
   void _publishJob() async {
+    if (_companyNameCtrl.text.trim().isEmpty) {
+      _showError("Company name is required");
+      return;
+    }
+
+    if (_jobTitleCtrl.text.trim().isEmpty) {
+      _showError("Job title is required");
+      return;
+    }
+
+    if (_descriptionCtrl.text.trim().length < 20) {
+      _showError("Job description must be at least 20 characters");
+      return;
+    }
+
+    if (_selectedLocation.isEmpty) {
+      _showError("Please select job location");
+      return;
+    }
+
+    if (_skills.isEmpty) {
+      _showError("Please add at least one skill");
+      return;
+    }
+
+    if (_selectedCategory == 'Other (Add Custom)' &&
+        _customCategoryCtrl.text.trim().isEmpty) {
+      _showError("Please enter custom category");
+      return;
+    }
+
+    final minSalaryText = _minSalaryCtrl.text.trim();
+    final maxSalaryText = _maxSalaryCtrl.text.trim();
+
+    if (minSalaryText.isEmpty && maxSalaryText.isEmpty) {
+      _showError("Please enter salary");
+      return;
+    }
+
+    final parsedMinSalary = minSalaryText.isNotEmpty
+        ? double.tryParse(minSalaryText.replaceAll(',', ''))
+        : null;
+
+    final parsedMaxSalary = maxSalaryText.isNotEmpty
+        ? double.tryParse(maxSalaryText.replaceAll(',', ''))
+        : null;
+
+    if ((parsedMinSalary == null && minSalaryText.isNotEmpty) ||
+        (parsedMaxSalary == null && maxSalaryText.isNotEmpty)) {
+      _showError("Salary must be a valid number");
+      return;
+    }
+
+    if (parsedMinSalary != null &&
+        parsedMaxSalary != null &&
+        parsedMinSalary > parsedMaxSalary) {
+      _showError("Min salary cannot be greater than Max salary");
+      return;
+    }
+
+    String phone = _phoneCtrl.text.trim();
+
+    phone = phone.replaceAll(RegExp(r'\s+'), '');
+
+    if (phone.startsWith('0')) {
+      phone = '+94${phone.substring(1)}';
+    }
+
+    final sriLankaRegex = RegExp(r'^\+94\d{9}$');
+
+    if (!sriLankaRegex.hasMatch(phone)) {
+      _showError("Enter a valid Sri Lankan phone number");
+      return;
+    }
+
     final sessionState = ref.read(sessionProvider);
     final authData = sessionState.value;
 
     if (authData == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in!'), backgroundColor: Colors.red),
-      );
+      _showError("You must be logged in!");
       context.go('/login');
       return;
     }
@@ -78,72 +212,83 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
     final profile = authData.profile;
 
     if (profile == null || profile.id.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile not found in database. Please contact admin.'), backgroundColor: Colors.red),
-      );
+      _showError("Profile not found. Contact admin.");
       return;
     }
 
     final String currentEmployerId = profile.id;
 
-    String companyInfoFormatted = '${_companyNameCtrl.text} • $_selectedLocation';
-    final minSalary = _minSalaryCtrl.text.trim();
-    final maxSalary = _maxSalaryCtrl.text.trim();
-    final salarySource = minSalary.isNotEmpty ? minSalary : maxSalary;
-
-    String salary = '';
-    if (minSalary.isNotEmpty && maxSalary.isNotEmpty) {
-      salary = '$minSalary - $maxSalary';
-    } else if (minSalary.isNotEmpty) {
-      salary = minSalary;
-    } else if (maxSalary.isNotEmpty) {
-      salary = maxSalary;
-    }
-
-    final parsedSalary = salarySource.isNotEmpty
-        ? num.tryParse(salarySource.replaceAll(',', ''))
-        : null;
-
-    if (parsedSalary == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid numeric salary.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     String finalCategory = _selectedCategory == 'Other (Add Custom)'
         ? _customCategoryCtrl.text.trim()
         : _selectedCategory;
 
-    Job newJob = Job(
+    Job submitJob = Job(
+      jobId: isEditMode ? widget.jobToEdit!.jobId : null,
       employerId: currentEmployerId,
       title: _jobTitleCtrl.text.trim(),
-      companyInfo: companyInfoFormatted,
-      salary: parsedSalary.toDouble(),
+      companyInfo: '${_companyNameCtrl.text.trim()} • $_selectedLocation',
+      minSalary: parsedMinSalary,
+      maxSalary: parsedMaxSalary,
+      phoneNumber: phone,
+      whatsappNumber: _whatsappCtrl.text.trim(),
       tags: '$finalCategory,${_skills.join(',')}',
-      // logoColor: 0xFF10C971,
-      status: 'pending',
-      // description: _descriptionCtrl.text.trim(),
+      status:
+          widget.isAdmin ? (widget.jobToEdit?.status ?? 'approved') : 'pending',
+      description: _descriptionCtrl.text.trim(),
     );
 
-    final isSuccess = await ref.read(postJobViewModelProvider.notifier).publishJob(newJob);
+    bool isSuccess;
+
+    if (isEditMode) {
+      isSuccess = await ref
+          .read(postJobViewModelProvider.notifier)
+          .updateJob(submitJob);
+    } else {
+      isSuccess = await ref
+          .read(postJobViewModelProvider.notifier)
+          .publishJob(submitJob);
+    }
 
     if (isSuccess && mounted) {
+      ref.invalidate(adminScreenViewModelProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Job submitted successfully! Waiting for Admin approval. ⏳'),
-          backgroundColor: Color(0xFFFDB913), 
+        SnackBar(
+          content: Text(
+            isEditMode
+                ? 'Job updated successfully! Waiting for Admin approval. ⏳'
+                : 'Job submitted successfully! Waiting for Admin approval. ⏳',
+          ),
+          backgroundColor: const Color(0xFFFDB913),
         ),
       );
-      context.go('/jobs');
+      context.pop();
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to submit job.'), backgroundColor: Colors.red),
-      );
+      _showError(
+          isEditMode ? "Failed to update job." : "Failed to submit job.");
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).clearMaterialBanners();
+
+    ScaffoldMessenger.of(context).showMaterialBanner(
+      MaterialBanner(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.red,
+        actions: [
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+            },
+            child: const Text("DISMISS", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+    });
   }
 
   @override
@@ -173,7 +318,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Post a New Job',
+          isEditMode ? 'Edit Job Post' : 'Post a New Job',
           style: TextStyle(
             color: textColor,
             fontSize: 18,
@@ -229,7 +374,9 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        initialValue: _selectedCategory,
+                        initialValue: _categories.contains(_selectedCategory)
+                            ? _selectedCategory
+                            : 'Other (Add Custom)',
                         dropdownColor: fieldBg,
                         style: TextStyle(color: textColor, fontSize: 16),
                         decoration: InputDecoration(
@@ -299,6 +446,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                               hint: '60000',
                               prefixIcon: Icons.swipe_down_alt_rounded,
                               controller: _minSalaryCtrl,
+                              keyboardType: TextInputType.number,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -308,6 +456,7 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                               hint: '95000',
                               prefixIcon: Icons.swipe_up_alt_rounded,
                               controller: _maxSalaryCtrl,
+                              keyboardType: TextInputType.number,
                             ),
                           ),
                         ],
@@ -318,6 +467,19 @@ class _PostJobScreenState extends ConsumerState<PostJobScreen> {
                             _selectedLocation = place,
                       ),
                       const SizedBox(height: 40),
+                      PostJobTextField(
+                        label: 'Phone Number',
+                        hint: '0771234567',
+                        controller: _phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 16),
+                      PostJobTextField(
+                        label: 'WhatsApp Number',
+                        hint: '0771234567',
+                        controller: _whatsappCtrl,
+                        keyboardType: TextInputType.phone,
+                      ),
                     ],
                   ),
                 ),

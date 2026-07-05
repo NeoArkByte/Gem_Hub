@@ -3,9 +3,7 @@ import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-
-import 'package:gemhub/core/router/app_router.dart'; 
+import 'package:gemhub/core/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,10 +16,9 @@ void main() async {
   );
 
   // final dbHelper = DatabaseHelper();
-  
+
   // await dbHelper.database;
 
-  
   // await dbHelper.hexDumpHeader();
 
   runApp(const ProviderScope(child: MyApp()));
@@ -32,13 +29,11 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    
     final goRouter = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'GemCost Jobs',
+      title: 'GemHub',
       debugShowCheckedModeBanner: false,
-
       theme: ThemeData(
         brightness: Brightness.light,
         primaryColor: AppColors.primaryGreen,
@@ -50,8 +45,6 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-
-      
       routerConfig: goRouter,
     );
   }

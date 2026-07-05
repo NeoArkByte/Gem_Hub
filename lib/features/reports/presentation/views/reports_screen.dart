@@ -50,7 +50,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 return SingleChildScrollView(
                   child: Column(
                     children: [
-                      // 2. Pass the freshly calculated total here
                       _buildTotalHeader(totalPortfolio),
                       ListView.builder(
                         shrinkWrap: true,
@@ -124,7 +123,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       child: Row(
         children: [
-          // Date Filter
+          
           Expanded(
             flex: 2,
             child: InkWell(
@@ -167,7 +166,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Real Varieties Dropdown
+         
           Expanded(
             flex: 3,
             child: varietiesAsync.when(
@@ -204,7 +203,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           const SizedBox(width: 8),
 
-          // Status Dropdown
           Expanded(
             flex: 3,
             child: DropdownButtonFormField<String>(
@@ -251,7 +249,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       }
     }
 
-    // Ask user to select export location and filename
     String? outputFile = await FilePicker.platform.saveFile(
       dialogTitle: 'Save Report As',
       fileName: 'Gem_Hub_Inventory_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
@@ -264,7 +261,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       return;
     }
 
-    // create PDF
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -319,7 +315,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
     );
 
-    // Save the PDF file 
     try {
       final file = File(outputFile);
       await file.writeAsBytes(await pdf.save());
@@ -348,7 +343,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 }
 
 Widget _buildGemCard(GemstoneModel gem) {
-  // Calculate Total Cost
   final double totalCost =
       gem.buyingPrice +
       gem.treatmentCost +
@@ -373,7 +367,6 @@ Widget _buildGemCard(GemstoneModel gem) {
       padding: const EdgeInsets.all(12.0),
       child: Row(
         children: [
-          // Image Section with "SOLD" badge overlay
           Stack(
             children: [
               Container(
@@ -430,7 +423,6 @@ Widget _buildGemCard(GemstoneModel gem) {
           ),
           const SizedBox(width: 15),
 
-          // Info Section
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,7 +443,6 @@ Widget _buildGemCard(GemstoneModel gem) {
             ),
           ),
 
-          // Profit Section
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

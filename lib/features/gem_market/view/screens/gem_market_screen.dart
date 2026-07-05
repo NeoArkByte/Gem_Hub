@@ -4,13 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/core/enums/gem_type.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
-import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
 import 'package:gemhub/features/gem_market/viewmodel/gem_market/gem_marketplace_viewmodel.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 
-
-//  Main Screen 
+//  Main Screen
 class GemMarketPlaceScreen extends ConsumerStatefulWidget {
   const GemMarketPlaceScreen({super.key});
 
@@ -20,7 +18,7 @@ class GemMarketPlaceScreen extends ConsumerStatefulWidget {
 }
 
 class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
-  int _selectedCategory = 0;
+  GemType _selectedCategory = GemType.allGems;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -41,9 +39,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppColors.darkBackground
-          : AppColors.lightBackgroundAlt,
+      backgroundColor:
+          isDark ? AppColors.darkBackground : AppColors.lightBackgroundAlt,
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: const SizedBox(height: 12)),
@@ -54,11 +51,10 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
           _GemGrid(),
         ],
       ),
-      floatingActionButton: _MarketFab(),
     );
   }
 
-  //  Search Bar 
+  //  Search Bar
   Widget _SearchBar() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -74,9 +70,8 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                 color: isDark ? AppColors.darkSurface : Colors.white,
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: isDark
-                      ? AppColors.darkSurfaceAlt
-                      : AppColors.lightBorder,
+                  color:
+                      isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
                 ),
                 boxShadow: isDark
                     ? []
@@ -124,31 +119,33 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
             ),
           ),
           const SizedBox(width: 10),
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkSurface : Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark
-                    ? AppColors.darkSurfaceAlt
-                    : AppColors.lightBorder,
+          GestureDetector(
+            onTap: () => _showFilterBottomSheet(context),
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkSurface : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color:
+                      isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
+                ),
+                boxShadow: isDark
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
               ),
-              boxShadow: isDark
-                  ? []
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-            ),
-            child: const Icon(
-              Icons.tune_rounded,
-              color: AppColors.primaryGreen,
-              size: 20,
+              child: const Icon(
+                Icons.tune_rounded,
+                color: AppColors.primaryGreen,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -156,68 +153,88 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Latest Gems Section 
+  //  Latest Gems Section
   Widget _LatestGemsSection() {
-    final latestGemsAsync = ref.watch(latestApprovedGemsProvider);
+    final gemsAsync = ref.watch(gemMarketplaceViewModelProvider);
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return latestGemsAsync.when(
-      loading: () => const SizedBox(height: 180),
-      error: (err, stack) => const SizedBox.shrink(),
-      data: (gems) {
-        if (gems.isEmpty) return const SizedBox.shrink();
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-              child: Row(
-                children: [
-                  Text(
-                    'Latest Arrivals',
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : AppColors.darkBackground,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'NEW',
-                      style: TextStyle(
-                        color: AppColors.primaryGreen,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+          child: Row(
+            children: [
+              Text(
+                'Latest Arrivals',
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : AppColors.darkBackground,
+                  letterSpacing: -0.5,
+                ),
               ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'NEW',
+                  style: TextStyle(
+                    color: AppColors.primaryGreen,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        gemsAsync.when(
+          loading: () => const SizedBox(
+            height: 200,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primaryGreen),
             ),
-            SizedBox(
+          ),
+          error: (err, stack) => const SizedBox.shrink(),
+          data: (gems) {
+            final latestGems = gems.reversed.take(5).toList();
+
+            if (latestGems.isEmpty) {
+              return SizedBox(
+                height: 200,
+                child: Center(
+                  child: Text(
+                    'No latest arrivals matching filters',
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : AppColors.greyText,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return SizedBox(
               height: 200,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: gems.length,
+                itemCount: latestGems.length,
                 itemBuilder: (context, index) =>
-                    _LatestGemCard(gem: gems[index]),
+                    _LatestGemCard(gem: latestGems[index]),
               ),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -360,84 +377,59 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Categories 
+  //  Categories
   Widget _CategoryFilter() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(top: 16, bottom: 4),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(
-          children: List.generate(GemType.values.length, (i) {
-            final type = GemType.values[i];
-            final isSelected = _selectedCategory == i;
-            return Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => _selectedCategory = i);
-                  // ref
-                  //     .read(gemMarketplaceViewModelProvider.notifier)
-                  //     .updateType(type);
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 9,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primaryGreen
-                        : (isDark ? AppColors.darkSurface : Colors.white),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected
-                          ? AppColors.primaryGreen
-                          : (isDark
-                                ? AppColors.darkSurfaceAlt
-                                : AppColors.lightBorder),
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: AppColors.primaryGreen.withOpacity(0.25),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: isDark
-                                  ? Colors.transparent
-                                  : Colors.black.withOpacity(0.03),
-                              blurRadius: 6,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                  ),
-                  child: Text(
-                    type.displayName,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark ? Colors.grey[300] : AppColors.greyText),
-                    ),
-                  ),
-                ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: SizedBox(
+        height: 50,
+        child: ListView.separated(
+          padding: EdgeInsets.zero,
+          scrollDirection: Axis.horizontal,
+          itemCount: GemType.values.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemBuilder: (context, index) {
+            final type = GemType.values[index];
+            final selected = _selectedCategory == type;
+            return ChoiceChip(
+              label: Text(type.displayName),
+              selected: selected,
+              showCheckmark: false,
+              onSelected: (value) {
+                if (value) {
+                  setState(() => _selectedCategory = type);
+                  ref
+                      .read(gemMarketplaceViewModelProvider.notifier)
+                      .updateSelectedCategory(type);
+                }
+              },
+              selectedColor: AppColors.primaryGreen,
+              backgroundColor:
+                  isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              side: BorderSide(
+                color: selected
+                    ? Colors.transparent
+                    : (isDark
+                        ? AppColors.darkSurfaceAlt
+                        : AppColors.lightBorderAlt),
+              ),
+              labelStyle: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: selected
+                    ? Colors.white
+                    : (isDark ? AppColors.greyTextLight : AppColors.textDark),
               ),
             );
-          }),
+          },
         ),
       ),
     );
   }
 
-  //  Section Header 
+  //  Section Header
   Widget _SectionHeader() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -456,17 +448,16 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
           ),
           GestureDetector(
             onTap: () {
-              setState(() => _selectedCategory = 0);
-              // ref
-              //     .read(gemMarketplaceViewModelProvider.notifier)
-              //     .updateType(GemType.allGems);
+              setState(() => _selectedCategory = GemType.allGems);
+              ref
+                  .read(gemMarketplaceViewModelProvider.notifier)
+                  .updateSelectedCategory(GemType.allGems);
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.darkSurface
-                    : AppColors.accentGreenLight,
+                color:
+                    isDark ? AppColors.darkSurface : AppColors.accentGreenLight,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -484,7 +475,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  Gem Grid 
+  //  Gem Grid
   Widget _GemGrid() {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     final gemsState = ref.watch(gemMarketplaceViewModelProvider);
@@ -634,7 +625,7 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : AppColors.darkBackground,
+                      color: isDark ? Colors.white : AppColors.textDarkAlt,
                       letterSpacing: -0.4,
                     ),
                     maxLines: 1,
@@ -673,43 +664,43 @@ class _GemMarketPlaceScreenState extends ConsumerState<GemMarketPlaceScreen> {
     );
   }
 
-  //  FAB 
-  Widget _MarketFab() {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: AppColors.primaryGreen,
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(28),
-          onTap: () {
-            context.push('/gems/new');
-          },
-          child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
-        ),
-      ),
-    );
-  }
-
   String _fmt(double? price) {
     if (price == null) return '0';
-    return price
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    return price.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (m) => '${m[1]},',
         );
+  }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    final notifier = ref.read(gemMarketplaceViewModelProvider.notifier);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return _FilterBottomSheet(
+          initialMinWeight: notifier.minWeight,
+          initialMaxWeight: notifier.maxWeight,
+          initialColor: notifier.selectedColor,
+          initialMinPrice: notifier.minPrice,
+          initialMaxPrice: notifier.maxPrice,
+          onApply: (minW, maxW, color, minP, maxP) {
+            notifier.updateFilters(
+              minWeight: minW,
+              maxWeight: maxW,
+              selectedColor: color,
+              minPrice: minP,
+              maxPrice: maxP,
+            );
+          },
+          onReset: () {
+            notifier.resetFilters();
+          },
+        );
+      },
+    );
   }
 }
 
@@ -720,4 +711,394 @@ Widget _ImagePlaceholder() {
       child: Icon(Icons.diamond, color: AppColors.primaryGreen, size: 40),
     ),
   );
+}
+
+class _FilterBottomSheet extends StatefulWidget {
+  final double? initialMinWeight;
+  final double? initialMaxWeight;
+  final String? initialColor;
+  final double? initialMinPrice;
+  final double? initialMaxPrice;
+  final void Function(
+    double? minWeight,
+    double? maxWeight,
+    String? color,
+    double? minPrice,
+    double? maxPrice,
+  ) onApply;
+  final VoidCallback onReset;
+
+  const _FilterBottomSheet({
+    this.initialMinWeight,
+    this.initialMaxWeight,
+    this.initialColor,
+    this.initialMinPrice,
+    this.initialMaxPrice,
+    required this.onApply,
+    required this.onReset,
+  });
+
+  @override
+  State<_FilterBottomSheet> createState() => _FilterBottomSheetState();
+}
+
+class _FilterBottomSheetState extends State<_FilterBottomSheet> {
+  late final TextEditingController _minWeightController;
+  late final TextEditingController _maxWeightController;
+  late final TextEditingController _minPriceController;
+  late final TextEditingController _maxPriceController;
+  late final TextEditingController _customColorController;
+
+  String? _selectedColor;
+  final List<String> _popularColors = const [
+    'Blue',
+    'Red',
+    'Green',
+    'Yellow',
+    'White',
+    'Pink'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _minWeightController =
+        TextEditingController(text: widget.initialMinWeight?.toString() ?? '');
+    _maxWeightController =
+        TextEditingController(text: widget.initialMaxWeight?.toString() ?? '');
+    _minPriceController = TextEditingController(
+      text: widget.initialMinPrice != null
+          ? widget.initialMinPrice!.toStringAsFixed(0)
+          : '',
+    );
+    _maxPriceController = TextEditingController(
+      text: widget.initialMaxPrice != null
+          ? widget.initialMaxPrice!.toStringAsFixed(0)
+          : '',
+    );
+    _customColorController = TextEditingController();
+
+    if (widget.initialColor != null && widget.initialColor!.isNotEmpty) {
+      final matched = _popularColors.firstWhere(
+        (c) => c.toLowerCase() == widget.initialColor!.toLowerCase(),
+        orElse: () => '',
+      );
+      if (matched.isNotEmpty) {
+        _selectedColor = matched;
+      } else {
+        _selectedColor = 'Other';
+        _customColorController.text = widget.initialColor!;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _minWeightController.dispose();
+    _maxWeightController.dispose();
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
+    _customColorController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border.all(
+          color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
+          width: 1,
+        ),
+      ),
+      padding: EdgeInsets.only(
+        top: 8,
+        left: 20,
+        right: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[700] : Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Filter Listings',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: isDark ? Colors.white : AppColors.textDark,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    widget.onReset();
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    'Reset All',
+                    style: TextStyle(
+                      color: AppColors.dangerRed,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildSectionHeader('Weight (Carats)', isDark),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _minWeightController,
+                    hint: 'Min Carat',
+                    isDark: isDark,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    icon: Icons.scale_outlined,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _maxWeightController,
+                    hint: 'Max Carat',
+                    isDark: isDark,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    icon: Icons.scale_outlined,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _buildSectionHeader('Gemstone Color', isDark),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 40,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _popularColors.length + 1,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  if (index == _popularColors.length) {
+                    final selected = _selectedColor == 'Other' ||
+                        (_selectedColor != null &&
+                            !_popularColors.contains(_selectedColor));
+                    return ChoiceChip(
+                      label: const Text('Other'),
+                      selected: selected,
+                      showCheckmark: false,
+                      onSelected: (val) {
+                        setState(() {
+                          _selectedColor = val ? 'Other' : null;
+                        });
+                      },
+                      selectedColor: AppColors.primaryGreen,
+                      backgroundColor: isDark
+                          ? AppColors.darkSurface
+                          : AppColors.lightSurface,
+                      side: BorderSide(
+                        color: selected
+                            ? Colors.transparent
+                            : (isDark
+                                ? AppColors.darkSurfaceAlt
+                                : AppColors.lightBorder),
+                      ),
+                      labelStyle: TextStyle(
+                        color: selected
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : AppColors.textDark),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  }
+
+                  final colorName = _popularColors[index];
+                  final selected = _selectedColor == colorName;
+                  return ChoiceChip(
+                    label: Text(colorName),
+                    selected: selected,
+                    showCheckmark: false,
+                    onSelected: (val) {
+                      setState(() {
+                        _selectedColor = val ? colorName : null;
+                      });
+                    },
+                    selectedColor: AppColors.primaryGreen,
+                    backgroundColor:
+                        isDark ? AppColors.darkSurface : AppColors.lightSurface,
+                    side: BorderSide(
+                      color: selected
+                          ? Colors.transparent
+                          : (isDark
+                              ? AppColors.darkSurfaceAlt
+                              : AppColors.lightBorder),
+                    ),
+                    labelStyle: TextStyle(
+                      color: selected
+                          ? Colors.white
+                          : (isDark ? Colors.white70 : AppColors.textDark),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (_selectedColor == 'Other') ...[
+              const SizedBox(height: 12),
+              _buildTextField(
+                controller: _customColorController,
+                hint: 'Enter custom color (e.g. Padparadscha)',
+                isDark: isDark,
+                keyboardType: TextInputType.text,
+                icon: Icons.palette_outlined,
+              ),
+            ],
+            const SizedBox(height: 20),
+            _buildSectionHeader('Price Range (LKR)', isDark),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    controller: _minPriceController,
+                    hint: 'Min Price',
+                    isDark: isDark,
+                    keyboardType: TextInputType.number,
+                    icon: Icons.monetization_on_outlined,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    controller: _maxPriceController,
+                    hint: 'Max Price',
+                    isDark: isDark,
+                    keyboardType: TextInputType.number,
+                    icon: Icons.monetization_on_outlined,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryGreen,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  final minW = double.tryParse(_minWeightController.text);
+                  final maxW = double.tryParse(_maxWeightController.text);
+
+                  String? finalColor;
+                  if (_selectedColor == 'Other') {
+                    finalColor = _customColorController.text.trim();
+                  } else {
+                    finalColor = _selectedColor;
+                  }
+
+                  if (finalColor != null && finalColor.isEmpty) {
+                    finalColor = null;
+                  }
+
+                  final minP = double.tryParse(_minPriceController.text);
+                  final maxP = double.tryParse(_maxPriceController.text);
+
+                  widget.onApply(minW, maxW, finalColor, minP, maxP);
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  'Apply Filters',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, bool isDark) {
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w900,
+        color: isDark ? Colors.grey[300] : AppColors.textDarkAlt,
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required bool isDark,
+    required TextInputType keyboardType,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color:
+            isDark ? AppColors.darkBackground : AppColors.lightBackgroundGrey,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: TextStyle(
+          color: isDark ? Colors.white : AppColors.textDark,
+          fontSize: 14,
+        ),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: hint,
+          hintStyle: TextStyle(
+            color: isDark ? Colors.grey[500] : AppColors.greyText,
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            icon,
+            size: 18,
+            color: isDark ? Colors.grey[400] : AppColors.greyText,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    );
+  }
 }

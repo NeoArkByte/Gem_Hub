@@ -16,15 +16,15 @@ final class RouterLogicProvider
     extends $FunctionalProvider<RouterNotifier, RouterNotifier, RouterNotifier>
     with $Provider<RouterNotifier> {
   RouterLogicProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'routerLogicProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'routerLogicProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$routerLogicHash();

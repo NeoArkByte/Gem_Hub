@@ -12,26 +12,23 @@ part of 'session_provider.dart';
 @ProviderFor(session)
 final sessionProvider = SessionProvider._();
 
-final class SessionProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<AuthenticatedUser?>,
-          AuthenticatedUser?,
-          Stream<AuthenticatedUser?>
-        >
+final class SessionProvider extends $FunctionalProvider<
+        AsyncValue<AuthenticatedUser?>,
+        AuthenticatedUser?,
+        Stream<AuthenticatedUser?>>
     with
         $FutureModifier<AuthenticatedUser?>,
         $StreamProvider<AuthenticatedUser?> {
   SessionProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'sessionProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'sessionProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
 
   @override
   String debugGetCreateSourceHash() => _$sessionHash();
@@ -39,8 +36,8 @@ final class SessionProvider
   @$internal
   @override
   $StreamProviderElement<AuthenticatedUser?> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
 
   @override
   Stream<AuthenticatedUser?> create(Ref ref) {
@@ -48,4 +45,4 @@ final class SessionProvider
   }
 }
 
-String _$sessionHash() => r'c39af3ab6d70f75eaae994a033537908412b81d1';
+String _$sessionHash() => r'bb56eea8139158fa17ddc7039208da9be549a479';

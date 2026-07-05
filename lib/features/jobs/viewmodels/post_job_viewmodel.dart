@@ -1,5 +1,4 @@
 import 'package:gemhub/data/models/job_market/job_model.dart';
-import 'package:gemhub/data/repositories/job_market/job_repository.dart';
 import 'package:gemhub/features/jobs/viewmodels/marketplace_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/repositories/job_market/job_repository_provider.dart';
@@ -28,6 +27,19 @@ class PostJobViewModel extends _$PostJobViewModel {
       }
     } catch (e) {
       state = AsyncError(e.toString(), StackTrace.current);
+      return false;
+    }
+  }
+
+  Future<bool> updateJob(Job updatedJob) async {
+    state = const AsyncValue.loading();
+    try {
+      final repository = ref.read(jobRepositoryProvider);
+      final isSuccess = await repository.updateJob(updatedJob);
+      state = const AsyncValue.data(null);
+      return isSuccess;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
       return false;
     }
   }

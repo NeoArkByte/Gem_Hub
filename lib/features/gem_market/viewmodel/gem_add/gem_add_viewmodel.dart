@@ -6,7 +6,6 @@ import 'package:gemhub/data/models/gem_market/gem_model.dart';
 import 'package:gemhub/data/repositories/gem_market/gem_repository_provider.dart';
 import 'package:gemhub/data/repositories/storage/storage_repository_provider.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
-import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
 
 part 'gem_add_viewmodel.g.dart';
@@ -32,9 +31,6 @@ class GemAddViewModel extends _$GemAddViewModel {
     String? variety,
     String? color,
   }) async {
-    final storageRepo = ref.read(storageRepositoryProvider);
-    final gemRepo = ref.read(gemRepositoryProvider);
-
     final session = ref.read(sessionProvider).value;
     final ownerProfileId = session?.profile?.id;
     final supabaseUid = session?.supabaseUser?.id;
@@ -42,8 +38,13 @@ class GemAddViewModel extends _$GemAddViewModel {
     if (ownerProfileId == null || supabaseUid == null) return false;
 
     state = true;
+    final keepAliveLink = ref.keepAlive();
 
     try {
+      final storageRepo = ref.read(storageRepositoryProvider);
+      final gemRepo = ref.read(gemRepositoryProvider);
+
+      // Upload files
       final imageUrl = await storageRepo.uploadListing(imageFile, supabaseUid);
 
       String? certUrl;
@@ -66,21 +67,18 @@ class GemAddViewModel extends _$GemAddViewModel {
         color: color,
         imageUrl: imageUrl,
         certificateUrl: certUrl ?? '',
-        status: GemStatus.APPROVED,
+        status: GemStatus.PENDING,
       );
 
+      // Create record
       await gemRepo.createGem(gem);
 
-      if (ref.mounted) {
-        ref.invalidate(gemListProvider);
-        state = false;
-      }
-
+      state = false;
+      keepAliveLink.close();
       return true;
     } catch (e) {
-      if (ref.mounted) {
-        state = false;
-      }
+      state = false;
+      keepAliveLink.close();
       return false;
     }
   }
