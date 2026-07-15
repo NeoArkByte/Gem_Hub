@@ -41,22 +41,25 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           Expanded(
             child: gemsAsync.when(
               data: (gems) {
-              
                 final totalPortfolio = gems.fold<double>(
                   0,
                   (sum, gem) => sum + (gem.isSold ? 0.0 : gem.targetPrice),
+                );
+                final totalCost = gems.fold<double>(
+                  0,
+                  (sum, gem) => sum + gem.totalFinalCost,
                 );
 
                 return SingleChildScrollView(
                   child: Column(
                     children: [
-                      _buildTotalHeader(totalPortfolio),
+                      _buildTotalHeader(totalPortfolio, totalCost),
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: gems.length,
                         itemBuilder: (context, index) =>
-                            _buildGemCard(gems[index]),
+                            _GemReportCard(gem: gems[index]),
                       ),
                     ],
                   ),
@@ -71,7 +74,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     );
   }
 
-  Widget _buildTotalHeader(double total) {
+  Widget _buildTotalHeader(double totalValue, double totalCost) {
+    final valueFormatter = NumberFormat('#,###', 'en_IN');
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -87,19 +91,51 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          const Text(
-            "Total Portfolio Value",
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  "Portfolio Value",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "LKR ${valueFormatter.format(totalValue)}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            "LKR ${total.toStringAsFixed(2)}",
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
+          Container(
+            height: 35,
+            width: 1,
+            color: Colors.white24,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text(
+                  "Total Cost",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "LKR ${valueFormatter.format(totalCost)}",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -108,7 +144,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Widget _buildFilterSection() {
-   
     final varietiesAsync = ref.watch(gemstoneVarietiesProvider);
 
     return Container(
@@ -123,7 +158,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       child: Row(
         children: [
-          
           Expanded(
             flex: 2,
             child: InkWell(
@@ -165,8 +199,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
           ),
           const SizedBox(width: 8),
-
-         
           Expanded(
             flex: 3,
             child: varietiesAsync.when(
@@ -196,13 +228,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   );
                 },
               ),
-              
               loading: () => const LinearProgressIndicator(),
               error: (err, _) => const Text("Error"),
             ),
           ),
           const SizedBox(width: 8),
-
           Expanded(
             flex: 3,
             child: DropdownButtonFormField<String>(
@@ -236,13 +266,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   Future<void> _exportReport(List<GemstoneModel> gems) async {
-    
     if (Platform.isAndroid) {
       var status = await Permission.storage.status;
       if (!status.isGranted) {
         status = await Permission.storage.request();
       }
-      
+
       var manageStatus = await Permission.manageExternalStorage.status;
       if (!manageStatus.isGranted) {
         manageStatus = await Permission.manageExternalStorage.request();
@@ -251,13 +280,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
     String? outputFile = await FilePicker.platform.saveFile(
       dialogTitle: 'Save Report As',
-      fileName: 'Gem_Hub_Inventory_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      fileName:
+          'Gem_Hub_Inventory_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
       type: FileType.custom,
       allowedExtensions: ['pdf'],
     );
 
     if (outputFile == null) {
-      
       return;
     }
 
@@ -270,29 +299,43 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         build: (pw.Context context) {
           return [
             pw.Header(
-              level: 0,
-              child: pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text('Gem Hub Inventory Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
-                  pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now())),
-                ]
-              )
-            ),
+                level: 0,
+                child: pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pw.Text('Gem Hub Inventory Report',
+                          style: pw.TextStyle(
+                              fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(DateFormat('yyyy-MM-dd').format(DateTime.now())),
+                    ])),
             pw.SizedBox(height: 10),
-            pw.Text('User: Gem Hub Admin', style: const pw.TextStyle(fontSize: 14)), 
-            pw.Text('Status Filter: ${_currentFilter.status ?? 'All'}', style: const pw.TextStyle(fontSize: 14)),
-            pw.Text('Variety Filter: ${_currentFilter.variety ?? 'All'}', style: const pw.TextStyle(fontSize: 14)),
+            pw.Text('User: Gem Hub Admin',
+                style: const pw.TextStyle(fontSize: 14)),
+            pw.Text('Status Filter: ${_currentFilter.status ?? 'All'}',
+                style: const pw.TextStyle(fontSize: 14)),
+            pw.Text('Variety Filter: ${_currentFilter.variety ?? 'All'}',
+                style: const pw.TextStyle(fontSize: 14)),
             if (_currentFilter.dateRange != null)
-              pw.Text('Date Range: ${DateFormat('yyyy-MM-dd').format(_currentFilter.dateRange!.start)} to ${DateFormat('yyyy-MM-dd').format(_currentFilter.dateRange!.end)}', style: const pw.TextStyle(fontSize: 14)),
+              pw.Text(
+                  'Date Range: ${DateFormat('yyyy-MM-dd').format(_currentFilter.dateRange!.start)} to ${DateFormat('yyyy-MM-dd').format(_currentFilter.dateRange!.end)}',
+                  style: const pw.TextStyle(fontSize: 14)),
             pw.SizedBox(height: 20),
             pw.TableHelper.fromTextArray(
               context: context,
-              headers: ['Gem Name', 'Date', 'Status', 'Cost', 'Target/Sold Price', 'Profit'],
+              headers: [
+                'Gem Name',
+                'Date',
+                'Status',
+                'Cost',
+                'Target/Sold Price',
+                'Profit'
+              ],
               data: gems.map((gem) {
-                final double totalCost = gem.buyingPrice + gem.treatmentCost + gem.recutCost + gem.otherProcessingCost + gem.transportCost + gem.otherCost;
-                final double displayProfit = gem.isSold ? (gem.sellingPrice - totalCost) : (gem.targetPrice - totalCost);
-                
+                final double totalCost = gem.totalFinalCost;
+                final double displayProfit = gem.isSold
+                    ? (gem.sellingPrice - totalCost)
+                    : (gem.targetPrice - totalCost);
+
                 return [
                   '${gem.variety} (${gem.color})',
                   gem.date,
@@ -309,7 +352,9 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           return pw.Container(
             alignment: pw.Alignment.center,
             margin: const pw.EdgeInsets.only(top: 10),
-            child: pw.Text('© ${DateTime.now().year} Gem Hub Application. All rights reserved.', style: const pw.TextStyle(color: PdfColors.grey)),
+            child: pw.Text(
+                '© ${DateTime.now().year} Gem Hub Application. All rights reserved.',
+                style: const pw.TextStyle(color: PdfColors.grey)),
           );
         },
       ),
@@ -342,126 +387,265 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 }
 
-Widget _buildGemCard(GemstoneModel gem) {
-  final double totalCost =
-      gem.buyingPrice +
-      gem.treatmentCost +
-      gem.recutCost +
-      gem.otherProcessingCost +
-      gem.transportCost +
-      gem.otherCost;
+class _GemReportCard extends StatefulWidget {
+  final GemstoneModel gem;
 
+  const _GemReportCard({required this.gem});
 
-  final double displayProfit = gem.isSold
-      ? (gem.sellingPrice - totalCost)
-      : (gem.targetPrice - totalCost);
+  @override
+  State<_GemReportCard> createState() => _GemReportCardState();
+}
 
-  return Card(
-    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-    elevation: 0,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-      side: BorderSide(color: Colors.grey.shade200),
-    ),
-    child: Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: Row(
-        children: [
-          Stack(
-            children: [
-              Container(
-                width: 55,
-                height: 55,
-                decoration: BoxDecoration(
-                  color: Colors.blueGrey.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child:
-                      gem.finalImagePath != null &&
-                          gem.finalImagePath!.isNotEmpty
-                      ? Image.file(
-                          File(gem.finalImagePath!),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                              ),
-                        )
-                      : const Icon(Icons.diamond, color: Colors.blueGrey),
-                ),
-              ),
-              if (gem.isSold)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(4),
-                        bottomRight: Radius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      "SOLD",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 15),
+class _GemReportCardState extends State<_GemReportCard> {
+  bool _isExpanded = false;
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    final gem = widget.gem;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color detailBg =
+        isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50;
+
+    final double displayProfit = gem.isSold
+        ? (gem.sellingPrice - gem.totalFinalCost)
+        : (gem.targetPrice - gem.totalFinalCost);
+
+    List<Widget> costRows = [];
+
+    String formatCurrency(double amount) {
+      return NumberFormat.currency(
+        symbol: 'Rs. ',
+        decimalDigits: 0,
+        locale: 'en_IN',
+      ).format(amount);
+    }
+
+    void addRow(String label, double amount) {
+      if (amount > 0) {
+        costRows.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  gem.variety,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
+                  label,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
-                const SizedBox(height: 2),
                 Text(
-                  gem.date,
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                  formatCurrency(amount),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
                 ),
               ],
             ),
           ),
+        );
+      }
+    }
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+    addRow('Buying Price', gem.buyingPrice);
+
+    for (var va in gem.valueAdditions) {
+      String name = va.costType.displayName;
+      if (va.treatmentName.isNotEmpty) {
+        name += ' (${va.treatmentName})';
+      }
+      addRow(name, va.cost);
+    }
+
+    for (var cert in gem.certificates) {
+      addRow('Certificate (${cert.labName})', cert.certificateFees);
+    }
+
+    addRow('Treatment Cost', gem.treatmentCost);
+    addRow('Cutting Cost', gem.cuttingCost);
+    addRow('Recut Cost', gem.recutCost);
+    addRow('Heat Cost', gem.heatCost);
+    addRow('Transport Cost', gem.transportCost);
+    addRow('Certificate Fees', gem.certificateFees);
+    addRow('Other Processing Cost', gem.otherProcessingCost);
+    addRow('Other Cost', gem.otherCost);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _isExpanded = !_isExpanded;
+          });
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
             children: [
-              Text(
-                gem.isSold ? "Profit" : "Target Profit",
-                style: const TextStyle(fontSize: 10, color: Colors.grey),
+              Row(
+                children: [
+                  Stack(
+                    children: [
+                      Container(
+                        width: 55,
+                        height: 55,
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: gem.finalImagePath != null &&
+                                  gem.finalImagePath!.isNotEmpty
+                              ? Image.file(
+                                  File(gem.finalImagePath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                    Icons.broken_image,
+                                    color: Colors.grey,
+                                  ),
+                                )
+                              : gem.firstImagePath != null &&
+                                      gem.firstImagePath!.isNotEmpty
+                                  ? Image.file(
+                                      File(gem.firstImagePath!),
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey,
+                                      ),
+                                    )
+                                  : const Icon(Icons.diamond,
+                                      color: Colors.blueGrey),
+                        ),
+                      ),
+                      if (gem.isSold)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(4),
+                                bottomRight: Radius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              "SOLD",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          gem.variety,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          gem.date,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        gem.isSold ? "Profit" : "Target Profit",
+                        style:
+                            const TextStyle(fontSize: 10, color: Colors.grey),
+                      ),
+                      Text(
+                        "LKR ${NumberFormat('#,###').format(displayProfit)}",
+                        style: TextStyle(
+                          color: displayProfit >= 0 ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                ],
               ),
-              Text(
-                "LKR ${NumberFormat('#,###').format(displayProfit)}",
-                style: TextStyle(
-                  color: displayProfit >= 0 ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              if (_isExpanded) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: detailBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      ...costRows,
+                      const Divider(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total Cost',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            formatCurrency(gem.totalFinalCost),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryGreen,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

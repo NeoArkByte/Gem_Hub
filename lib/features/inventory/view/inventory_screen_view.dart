@@ -8,6 +8,7 @@ import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/core/enums/gem_type.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:gemhub/features/inventory/view/add_new_gemstone_inventory.dart';
+import 'package:gemhub/features/inventory/view/auction_section_widget.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -79,6 +80,24 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 subTextColor: secondaryText,
                                 isDark: isDark,
                               ),
+                              if (filteredGems
+                                  .where((gem) =>
+                                      gem.isReadyToSale &&
+                                      gem.sellingPrice <= 0)
+                                  .isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                AuctionSectionWidget(
+                                  auctionGems: filteredGems
+                                      .where((gem) =>
+                                          gem.isReadyToSale &&
+                                          gem.sellingPrice <= 0)
+                                      .toList(),
+                                  isDark: isDark,
+                                  primaryText: primaryText,
+                                  secondaryText: secondaryText,
+                                  surfaceBg: surfaceBg,
+                                ),
+                              ],
                               const SizedBox(height: 16),
                               _buildSearchBar(
                                   isDark, primaryText, surfaceBgAlt),
@@ -102,6 +121,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         SliverPadding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 88),
                           sliver: SliverGrid(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 12,
+                              childAspectRatio: 0.68,
+                            ),
                             delegate: SliverChildBuilderDelegate(
                               (context, index) => _buildGemCard(
                                 gem: displayGems[index],
@@ -111,13 +137,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 isDark: isDark,
                               ),
                               childCount: displayGems.length,
-                            ),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 10,
-                              crossAxisSpacing: 10,
-                              childAspectRatio: 0.53,
                             ),
                           ),
                         ),
@@ -445,41 +464,43 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
     return Opacity(
       opacity: isSold ? 0.85 : 1.0,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 1),
-        decoration: BoxDecoration(
-          color: cardBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSold
-                ? AppColors.dangerRed.withOpacity(isDark ? 0.1 : 0.05)
-                : textColor.withOpacity(0.05),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.2 : 0.03),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+      child: GestureDetector(
+        onTap: () => context.pushNamed('inventory_details', extra: gem),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBg,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark
+                  ? AppColors.darkSurfaceAlt
+                  : Colors.black.withOpacity(0.03),
+              width: 1,
             ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            onTap: () => context.pushNamed('inventory_details', extra: gem),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.04),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top: Image Section
+              Expanded(
+                flex: 4,
+                child: Stack(
                   children: [
-                    _buildCardImage(gem.firstImagePath ?? gem.finalImagePath,
-                        isDark, textColor),
-                    // Status badge moved to top-left
-                    Positioned(
-                      top: 12,
-                      left: 12,
-                      child: _buildStatusBadge(isSold ? "SOLD" : "AVAILABLE"),
+                    ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(28)),
+                      child: _buildCardImage(
+                          gem.firstImagePath ?? gem.finalImagePath,
+                          isDark,
+                          textColor),
                     ),
                     Positioned(
                       top: 12,
@@ -487,125 +508,90 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       child: _buildCardMenu(gem, cardBg, textColor),
                     ),
                     Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(6, 8, 6, 5),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.3),
-                              Colors.black.withOpacity(0.7),
-                            ],
+                      top: 12,
+                      left: 12,
+                      child: _buildStatusBadge(isSold ? "SOLD" : "AVAILABLE"),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Bottom: Organized Info Section
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Row: Variety + Weight Tag
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            gem.variety,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: textColor,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                gem.variety,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  fontFamily: 'Hanken Grotesk',
-                                ),
-                              ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.gold.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${gem.finalWeight} CT',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.gold,
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                "${gem.finalWeight} Cts",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Inter',
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Sub-descriptor: Color
+                    Text(
+                      gem.color,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: subTextColor,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Price Tag
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGreen.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Rs. ${(isSold ? gem.sellingPrice : gem.targetPrice).toStringAsFixed(0)}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primaryGreen,
                         ),
                       ),
                     ),
                   ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(6.0, 4.0, 6.0, 4.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  gem.color,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: subTextColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    fontFamily: 'Inter',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "Rs. ${(isSold ? gem.sellingPrice : gem.targetPrice).toStringAsFixed(0)}",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: isSold
-                                      ? AppColors.dangerRed
-                                      : AppColors.primaryGreen,
-                                  fontFamily: 'Hanken Grotesk',
-                                ),
-                              ),
-                              const SizedBox(height: 0),
-                              Text(
-                                isSold ? "Closing price" : "Target valuation",
-                                style: TextStyle(
-                                  fontSize: 8,
-                                  color: subTextColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -615,19 +601,16 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   // Media Render Image Frame
   Widget _buildCardImage(String? imagePath, bool isDark, Color textColor) {
     if (imagePath != null && imagePath.isNotEmpty) {
-      return SizedBox(
-        height: 110,
+      return Image.file(
+        File(imagePath),
         width: double.infinity,
-        child: Image.file(
-          File(imagePath),
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
+        height: double.infinity,
+        fit: BoxFit.cover,
       );
     }
     return Container(
-      height: 110,
       width: double.infinity,
+      height: double.infinity,
       color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
       child: Icon(Icons.diamond_outlined,
           size: 40, color: textColor.withOpacity(0.15)),
@@ -637,17 +620,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   // Corner Options Action Menu Dropdown Button
   Widget _buildCardMenu(GemstoneModel gem, Color cardBg, Color textColor) {
     return Container(
-      height: 32,
-      width: 32,
+      height: 34,
+      width: 34,
       decoration: BoxDecoration(
-        color: cardBg.withOpacity(0.85),
+        color: cardBg.withOpacity(0.9),
         shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: PopupMenuButton<String>(
         icon: Icon(Icons.more_vert_rounded, color: textColor, size: 18),
         padding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         color: cardBg,
+        elevation: 8,
         onSelected: (value) {
           if (value == 'edit') {
             Navigator.push(
@@ -666,10 +657,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             child: Row(
               children: [
                 Icon(Icons.edit_outlined,
-                    size: 16, color: AppColors.primaryGreen),
-                const SizedBox(width: 8),
+                    size: 18, color: AppColors.primaryGreen),
+                const SizedBox(width: 10),
                 const Text("Edit Details",
-                    style: TextStyle(fontSize: 13, fontFamily: 'Inter')),
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -678,12 +672,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             child: Row(
               children: [
                 const Icon(Icons.delete_outline_rounded,
-                    size: 16, color: AppColors.dangerRed),
-                const SizedBox(width: 8),
+                    size: 18, color: AppColors.dangerRed),
+                const SizedBox(width: 10),
                 const Text("Remove",
                     style: TextStyle(
                         color: AppColors.dangerRed,
-                        fontSize: 13,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                         fontFamily: 'Inter')),
               ],
             ),
@@ -697,30 +692,38 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   Widget _buildStatusBadge(String status) {
     final bool isSold = status == "SOLD";
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: isSold
-            ? AppColors.dangerRed.withOpacity(0.85)
-            : AppColors.primaryGreen.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(8),
+            ? AppColors.dangerRed.withOpacity(0.9)
+            : AppColors.primaryGreen.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: (isSold ? AppColors.dangerRed : AppColors.primaryGreen)
+                .withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 4,
-            height: 4,
+            width: 5,
+            height: 5,
             decoration: const BoxDecoration(
                 color: Colors.white, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 5),
           Text(
             status,
             style: const TextStyle(
                 color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
                 fontFamily: 'Inter'),
           ),
         ],

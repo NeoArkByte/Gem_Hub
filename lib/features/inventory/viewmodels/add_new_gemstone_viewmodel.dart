@@ -110,9 +110,10 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
         final id = await repository.insertGemstone(gemstoneToSave);
         gemstoneToSave = gemstoneToSave.copyWith(id: id);
       } else {
-        final updatedRows = await repository.updateGemstone(gemstoneToSave);
-
-        if (updatedRows == 0) {
+        try {
+          await repository.updateGemstone(gemstoneToSave);
+        } catch (_) {
+          // Record not found — fall back to insert
           final id = await repository.insertGemstone(gemstoneToSave);
           gemstoneToSave = gemstoneToSave.copyWith(id: id);
         }
