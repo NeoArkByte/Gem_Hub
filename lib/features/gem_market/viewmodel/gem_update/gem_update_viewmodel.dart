@@ -3,10 +3,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:gemhub/core/enums/gem_status.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
-import 'package:gemhub/data/repositories/gem_market/gem_repository_provider.dart';
-import 'package:gemhub/data/repositories/storage/storage_repository_provider.dart';
+import 'package:gemhub/data/repositories/gem_market/gem_repository.dart';
+import 'package:gemhub/data/services/storage_service.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
-import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 
 part 'gem_update_viewmodel.g.dart';
 
@@ -49,14 +49,14 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
     final keepAliveLink = ref.keepAlive();
 
     try {
-      final storageRepo = ref.read(storageRepositoryProvider);
+      final storageService = StorageService();
 
       
       String? finalImageUrl = originalGem.imageUrl;
       String? finalCertUrl = originalGem.certificateUrl;
 
       if (newImageFile != null) {
-        finalImageUrl = await storageRepo.updateFile(
+        finalImageUrl = await storageService.updateFile(
           bucket: 'listings',
           newFile: newImageFile,
           userId: supabaseUid,
@@ -65,7 +65,7 @@ class GemUpdateViewModel extends _$GemUpdateViewModel {
       }
 
       if (newCertificateFile != null) {
-        finalCertUrl = await storageRepo.updateFile(
+        finalCertUrl = await storageService.updateFile(
           bucket: 'documents',
           newFile: newCertificateFile,
           userId: supabaseUid,

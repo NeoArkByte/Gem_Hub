@@ -2,7 +2,7 @@
 
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/models/inventory/media_processing_state.dart';
-import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 import 'package:gemhub/data/services/media_vault_service.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,7 +22,7 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
     String? rawFinalVideo,
   }) async {
     final repository = ref.read(inventoryRepositoryProvider);
-    final vaultService = ref.read(mediaVaultProvider);
+    final vaultService = MediaVaultService();
 
     state = MediaProcessingState(isLoading: true, progress: 0);
 

@@ -1,11 +1,11 @@
 import 'package:gemhub/data/models/inventory/prediction_model.dart';
-import 'package:gemhub/data/repositories/inventory/prediction_repository.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 
 class PredictionService {
-  PredictionService([PredictionRepositoryProtocol? repository])
-      : _repository = repository ?? PredictionRepository();
+  PredictionService([InventoryRepository? repository])
+      : _repository = repository ?? InventoryRepository();
 
-  final PredictionRepositoryProtocol _repository;
+  final InventoryRepository _repository;
 
   Future<PredictionModel> predict({
     required String gemType,

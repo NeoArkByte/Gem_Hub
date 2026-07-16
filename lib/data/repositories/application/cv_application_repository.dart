@@ -1,4 +1,8 @@
 import 'package:dio/dio.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:gemhub/core/providers/dio/dio_provider.dart';
+
+part 'cv_application_repository.g.dart';
 
 class CvApplicationRepository {
   final Dio _dio;
@@ -39,4 +43,10 @@ class CvApplicationRepository {
       return false;
     }
   }
+}
+
+@riverpod
+CvApplicationRepository cvApplicationRepository(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return CvApplicationRepository(dio);
 }

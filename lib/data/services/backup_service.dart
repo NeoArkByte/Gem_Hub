@@ -3,13 +3,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:flutter_archive/flutter_archive.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 
-class BackupRepository {
+class BackupService {
   // Hive stores box files as '<boxName>.hive' in the app documents directory
   static const String _hiveBoxFile = 'gemstones.hive';
   static const String _hiveLockFile = 'gemstones.lock';
   static const String _vaultFolder = 'media_vault'; // Aligned with MediaVaultService
 
-  BackupRepository();
+  BackupService();
 
   /// Returns either the custom folder chosen by the user or falls back to the safe internal sandbox
   Future<Directory> getTargetBackupDirectory() async {
@@ -89,7 +89,7 @@ class BackupRepository {
       print("⚡ [Native Backup] Successfully created archive package: ${zipFile.path}");
       return zipFile;
     } catch (e) { 
-      print("❌ [BackupRepository] Error archiving database and media assets: $e");
+      print("❌ [BackupService] Error archiving database and media assets: $e");
       return null;
     }
   }
@@ -117,7 +117,7 @@ class BackupRepository {
       print("⚡ [Native Restore] Structural extraction finalized successfully over root sandbox!");
       return true;
     } catch (e) {
-      print("❌ [BackupRepository] Error extracting native archive bundle: $e");
+      print("❌ [BackupService] Error extracting native archive bundle: $e");
       return false;
     }
   }
@@ -151,7 +151,7 @@ class BackupRepository {
         sizeInBytes: stat.size,
       );
     } catch (e) {
-      print("❌ [BackupRepository] External medium import failed: $e");
+      print("❌ [BackupService] External medium import failed: $e");
       return null;
     }
   }

@@ -1,9 +1,9 @@
 // lib/data/services/analytics/analytics_service.dart
 import 'package:gemhub/data/models/analytics/analytics_data_model.dart';
-import 'package:gemhub/data/repositories/analytics/analytics_repository.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 
 class AnalyticsService {
-  final AnalyticsRepository _repository;
+  final InventoryRepository _repository;
 
   AnalyticsService(this._repository);
 

@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
-import 'package:gemhub/data/repositories/job_market/job_repository_provider.dart';
+import 'package:gemhub/data/repositories/job_market/job_repository.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 
 part 'my_jobs_viewmodel.g.dart';

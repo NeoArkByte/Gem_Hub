@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
-import 'package:gemhub/data/repositories/profile/profile_repository_provider.dart';
+import 'package:gemhub/data/repositories/profile/profile_repository.dart';
 import 'package:gemhub/features/gem_market/view/screens/certificate_view_screen.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';

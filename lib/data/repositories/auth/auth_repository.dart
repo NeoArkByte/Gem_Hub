@@ -2,6 +2,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:gemhub/data/models/auth/profile_model.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:gemhub/core/providers/supabase/supabase_provider.dart';
+
+part 'auth_repository.g.dart';
 
 class AuthRepository {
   final SupabaseClient _client;
@@ -103,4 +107,10 @@ class AuthRepository {
   User? get currentUser => _client.auth.currentUser;
   Session? get currentSession => _client.auth.currentSession;
   bool get isLoggedIn => _client.auth.currentSession != null;
+}
+
+@riverpod
+AuthRepository authRepository(Ref ref) {
+  final client = ref.read(supabaseProvider);
+  return AuthRepository(client);
 }

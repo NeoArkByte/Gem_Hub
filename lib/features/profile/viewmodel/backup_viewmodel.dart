@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
-import 'package:gemhub/data/repositories/backup/backup_repository_provider.dart';
+import 'package:gemhub/data/services/backup_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 import 'package:gemhub/data/models/backup/backup_state.dart';
@@ -28,7 +28,7 @@ class BackupViewModel extends _$BackupViewModel {
     );
 
     try {
-      final repository = ref.read(backupRepositoryProvider);
+      final repository = BackupService();
       final targetFolder = await repository.getTargetBackupDirectory();
       final locals = await repository.getLocalSnapshots();
 
@@ -57,7 +57,7 @@ class BackupViewModel extends _$BackupViewModel {
       errorMessage: null,
     );
     try {
-      final repository = ref.read(backupRepositoryProvider);
+      final repository = BackupService();
       final zipFile = await repository.generateBackupZip();
 
       if (zipFile == null) {
@@ -96,7 +96,7 @@ class BackupViewModel extends _$BackupViewModel {
         errorMessage: null,
       );
 
-      final repository = ref.read(backupRepositoryProvider);
+      final repository = BackupService();
       final selectedPath = result.files.single.path!;
 
       final BackupSnapshot? importedSnapshot =
@@ -136,7 +136,7 @@ class BackupViewModel extends _$BackupViewModel {
       errorMessage: null,
     );
     try {
-      final repository = ref.read(backupRepositoryProvider);
+      final repository = BackupService();
       final targetFile = File(snapshot.pathOrUrl);
 
       if (!await targetFile.exists()) {

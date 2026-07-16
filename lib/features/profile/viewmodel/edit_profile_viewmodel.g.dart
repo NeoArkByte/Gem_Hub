@@ -42,7 +42,7 @@ final class EditProfileViewModelProvider
 }
 
 String _$editProfileViewModelHash() =>
-    r'da9b89ca29a7863be55d1d32deddb4ca9ed13f84';
+    r'06c6ff53ef82a15c126ed4d6801190479e46f9e7';
 
 abstract class _$EditProfileViewModel extends $Notifier<bool> {
   bool build();

@@ -3,9 +3,6 @@ import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:v_video_compressor/v_video_compressor.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-part 'media_compression_service.g.dart';
 
 class MediaCompressionService {
   final VVideoCompressor _videoCompressor = VVideoCompressor();
@@ -76,10 +73,4 @@ class MediaCompressionService {
         }
         return null;
       });
-}
-
-// Keep it as a standard auto-dispose provider. No arrays to clear = no race conditions!
-@riverpod
-MediaCompressionService mediaCompression(Ref ref) {
-  return MediaCompressionService();
 }
