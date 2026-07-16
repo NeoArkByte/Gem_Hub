@@ -29,6 +29,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   int _currentStep = 0;
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
+  bool _isPickingFile = false;
 
 
   GemCategory _category = GemCategory.sapphire;
@@ -671,6 +672,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
   }
 
   Future<void> _pickImage(List<String> list, int maxPhotos) async {
+    if (_isPickingFile) return;
     if (list.length >= maxPhotos) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Maximum $maxPhotos photos allowed.')),
@@ -678,25 +680,52 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       return;
     }
 
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (image == null) return;
-
     setState(() {
-      final String path = image.path;
-
-      if (!list.contains(path)) {
-        list.add(path);
-      }
+      _isPickingFile = true;
     });
+
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          final String path = image.path;
+          if (!list.contains(path)) {
+            list.add(path);
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingFile = false;
+        });
+      }
+    }
   }
 
   Future<void> _pickVideo(Function(String?) onPicked) async {
-    final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
-    if (video != null) {
-      setState(() {
-        onPicked(video.path);
-      });
+    if (_isPickingFile) return;
+    setState(() {
+      _isPickingFile = true;
+    });
+
+    try {
+      final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+      if (video != null) {
+        setState(() {
+          onPicked(video.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking video: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingFile = false;
+        });
+      }
     }
   }
 
@@ -823,11 +852,25 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () async {
+                        if (_isPickingFile) return;
                         if (images.length >= 2) return;
-                        final img = await _picker.pickImage(
-                            source: ImageSource.gallery);
-                        if (img != null) {
-                          setStateDialog(() => images.add(img.path));
+                        setState(() {
+                          _isPickingFile = true;
+                        });
+                        try {
+                          final img = await _picker.pickImage(
+                              source: ImageSource.gallery);
+                          if (img != null) {
+                            setStateDialog(() => images.add(img.path));
+                          }
+                        } catch (e) {
+                          debugPrint("Error picking dialog image: $e");
+                        } finally {
+                          if (mounted) {
+                            setState(() {
+                              _isPickingFile = false;
+                            });
+                          }
                         }
                       },
                       child: Text('Add Image (${images.length}/2)'),

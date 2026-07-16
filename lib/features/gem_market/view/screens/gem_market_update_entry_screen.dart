@@ -43,6 +43,8 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
   final FocusNode _customVarietyFocusNode = FocusNode();
 
   bool _isSaving = false;
+  bool _isPickingImage = false;
+  bool _isPickingFile = false;
 
   @override
   void initState() {
@@ -166,25 +168,53 @@ class _UpdateGemScreenState extends ConsumerState<UpdateGemScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-    );
-    if (pickedFile != null) {
-      setState(() {
-        _gemImage = File(pickedFile.path);
-      });
+    if (_isPickingImage) return;
+    setState(() {
+      _isPickingImage = true;
+    });
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _gemImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking gemstone image: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
     }
   }
 
   Future<void> _pickCertificate() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-    if (result != null && result.files.single.path != null) {
-      setState(() {
-        _certificateFile = File(result.files.single.path!);
-      });
+    if (_isPickingFile) return;
+    setState(() {
+      _isPickingFile = true;
+    });
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _certificateFile = File(result.files.single.path!);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking certificate PDF: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingFile = false;
+        });
+      }
     }
   }
 

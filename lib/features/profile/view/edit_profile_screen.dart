@@ -25,6 +25,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late TextEditingController _descriptionCtrl;
   
   String? _localImagePath;
+  bool _isPickingImage = false;
 
   @override
   void initState() {
@@ -45,10 +46,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
-    if (image != null) {
-      setState(() => _localImagePath = image.path);
+    if (_isPickingImage) return;
+    setState(() {
+      _isPickingImage = true;
+    });
+    try {
+      final picker = ImagePicker();
+      final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
+      if (image != null) {
+        setState(() => _localImagePath = image.path);
+      }
+    } catch (e) {
+      debugPrint('Error picking profile image: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isPickingImage = false;
+        });
+      }
     }
   }
 
@@ -112,7 +127,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 
                 
                 GestureDetector(
-                  onTap: isSaving ? null : _pickImage,
+                  onTap: (isSaving || _isPickingImage) ? null : _pickImage,
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [

@@ -5,6 +5,7 @@ import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:gemhub/data/services/backup_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
+import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 import 'package:gemhub/data/models/backup/backup_state.dart';
@@ -154,8 +155,11 @@ class BackupViewModel extends _$BackupViewModel {
           // 2. Fetch the root container and invalidate stale providers
           final container = ProviderScope.containerOf(rootContext);
 
-          // 🌟 Clear out your core data providers here so they pull fresh from the new DB
+          // Invalidate the repository so it is recreated on next access
           container.invalidate(inventoryRepositoryProvider);
+          // Invalidate the viewmodel so all screens watching it re-fetch from
+          // the freshly restored Hive box
+          container.invalidate(inventoryViewModelProvider);
 
           // Update the state with success info
           state = state.copyWith(

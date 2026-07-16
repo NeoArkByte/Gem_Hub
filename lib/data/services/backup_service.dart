@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_archive/flutter_archive.dart';
+import 'package:gemhub/data/datasources/local/database_helper.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 
 class BackupService {
@@ -86,16 +88,25 @@ class BackupService {
         zipFile: zipFile,
       );
 
-      print("⚡ [Native Backup] Successfully created archive package: ${zipFile.path}");
+      debugPrint("⚡ [Native Backup] Successfully created archive package: ${zipFile.path}");
       return zipFile;
     } catch (e) { 
-      print("❌ [BackupService] Error archiving database and media assets: $e");
+      debugPrint("❌ [BackupService] Error archiving database and media assets: $e");
       return null;
     }
   }
 
-  /// Extracts chosen archives over the live Hive box path and restores the media folder
+  /// Extracts chosen archives over the live Hive box path and restores the media folder.
+  ///
+  /// Order of operations:
+  ///  1. Close + flush the live Hive box so the file lock is released.
+  ///  2. Delete the stale .hive / .lock files so extraction isn't blocked.
+  ///  3. Extract the zip (restoring gemstones.hive and media_vault contents).
+  ///  4. Re-open the box to validate the restored file is readable.
+  ///
+  /// Returns `true` only when all steps succeed.
   Future<bool> restoreDatabaseFromZip(File zipFile) async {
+    final db = DatabaseHelper();
     try {
       if (!await zipFile.exists()) return false;
 
@@ -103,21 +114,44 @@ class BackupService {
       final sourceDbPath = '${appDocsDir.path}/$_hiveBoxFile';
       final mediaDir = await getMediaVaultDirectory();
 
-      // Recalculate common target directory structure
+      // ── Step 1: Release the file lock so we can overwrite safely ─────────────
+      await db.closeBox();
+      debugPrint('⚡ [BackupService] Hive box closed — ready for restore.');
+
+      // ── Step 2: Delete stale Hive files so extraction isn't blocked ───────────
+      // flutter_archive does not support overwriting; we delete first.
+      final staleHive = File(sourceDbPath);
+      final staleLock = File('${appDocsDir.path}/$_hiveLockFile');
+      if (await staleHive.exists()) await staleHive.delete();
+      if (await staleLock.exists()) await staleLock.delete();
+      
+      if (await mediaDir.exists()) {
+        await mediaDir.delete(recursive: true);
+      }
+      debugPrint('⚡ [BackupService] Stale Hive files and media vault removed.');
+
+      // ── Step 3: Extract the archive ───────────────────────────────────────────
       final String commonRootPath =
           _calculateCommonAncestor(sourceDbPath, mediaDir.path);
       final destinationDir = Directory(commonRootPath);
 
-      // Native extraction handles creating folders and unpacking assets at hardware speeds
       await ZipFile.extractToDirectory(
         zipFile: zipFile,
         destinationDir: destinationDir,
       );
+      debugPrint('⚡ [BackupService] Archive extracted to $commonRootPath');
 
-      print("⚡ [Native Restore] Structural extraction finalized successfully over root sandbox!");
+      // ── Step 4: Re-open the box to confirm the restored file is valid ─────────
+      await db.reopenBox();
+      debugPrint('⚡ [BackupService] Hive box successfully re-opened after restore.');
+
       return true;
     } catch (e) {
-      print("❌ [BackupService] Error extracting native archive bundle: $e");
+      debugPrint('❌ [BackupService] Restore failed: $e');
+      // Attempt a best-effort reopen so the app does not end up with no database
+      try {
+        await db.reopenBox();
+      } catch (_) {}
       return false;
     }
   }
@@ -151,7 +185,7 @@ class BackupService {
         sizeInBytes: stat.size,
       );
     } catch (e) {
-      print("❌ [BackupService] External medium import failed: $e");
+      debugPrint("❌ [BackupService] External medium import failed: $e");
       return null;
     }
   }
@@ -183,7 +217,7 @@ class BackupService {
       snapshots.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return snapshots;
     } catch (e) {
-      print("❌ Error fetching local snapshots: $e");
+      debugPrint("❌ Error fetching local snapshots: $e");
       return [];
     }
   }

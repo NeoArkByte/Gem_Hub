@@ -34,6 +34,32 @@ class DatabaseHelper {
     await Hive.initFlutter();
   }
 
+  // ─── Backup / Restore helpers ─────────────────────────────────────────────
+
+  /// Flush pending writes, close the Hive box, and clear the cached reference
+  /// so the file is no longer locked. Call this BEFORE overwriting the .hive
+  /// file on disk (e.g. during a restore).
+  Future<void> closeBox() async {
+    if (_gemstonesBox != null && _gemstonesBox!.isOpen) {
+      await _gemstonesBox!.flush();
+      await _gemstonesBox!.close();
+    }
+    _gemstonesBox = null;
+  }
+
+  /// Re-open the Hive box after a restore so subsequent reads use the freshly
+  /// extracted file. Throws if the file cannot be opened (e.g. wrong key /
+  /// corrupt archive), which lets the caller surface the error.
+  Future<void> reopenBox() async {
+    // Ensure any stale reference is cleared first
+    if (_gemstonesBox != null && _gemstonesBox!.isOpen) {
+      await _gemstonesBox!.close();
+    }
+    _gemstonesBox = null;
+    // This will re-read the key from secure storage and open the box
+    await _box;
+  }
+
   // ─── Internal: get or open the gemstones box (encrypted) ─────────────────
   Future<Box<Map>> get _box async {
     if (_gemstonesBox != null && _gemstonesBox!.isOpen) return _gemstonesBox!;
