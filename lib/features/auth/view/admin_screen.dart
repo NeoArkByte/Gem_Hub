@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/features/auth/viewmodels/admin_screen_viewmodel.dart';
 import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:gemhub/data/models/auth/admin_screen_state.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
 import 'package:gemhub/core/enums/gem_status.dart';
 import 'package:gemhub/core/constants/app_colors.dart';

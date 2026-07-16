@@ -2,11 +2,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class StorageRepository {
+class StorageService {
   final SupabaseClient _client;
 
-  StorageRepository(this._client);
-
+  StorageService([SupabaseClient? client]) : _client = client ?? Supabase.instance.client;
 
   Future<String> uploadListing(File file, String userId) =>
       _upload(bucket: 'listings', file: file, userId: userId);
@@ -20,7 +19,6 @@ class StorageRepository {
   Future<String> getTemporaryUrl(String path) async {
     return await _client.storage.from('documents').createSignedUrl(path, 3600);
   }
-
 
   Future<String> updateFile({
     required String bucket,
@@ -37,7 +35,6 @@ class StorageRepository {
     return newResult;
   }
 
-
   Future<void> deleteFile({required String bucket, required String urlOrPath}) async {
     try {
       String path = urlOrPath;
@@ -51,10 +48,9 @@ class StorageRepository {
       }
       await _client.storage.from(bucket).remove([path]);
     } catch (e) {
-      debugPrint('StorageRepository: Delete failed (ignoring): $e');
+      debugPrint('StorageService: Delete failed (ignoring): $e');
     }
   }
-
 
   Future<String> _upload({
     required String bucket,

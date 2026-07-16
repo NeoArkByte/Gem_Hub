@@ -1,5 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:gemhub/core/providers/dio/dio_provider.dart';
+
+part 'gem_repository.g.dart';
 
 class GemRepository {
   final Dio _dio;
@@ -101,4 +105,10 @@ class GemRepository {
     }
     return 'Connection failed: ${e.message}';
   }
+}
+
+@riverpod
+GemRepository gemRepository(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return GemRepository(dio);
 }

@@ -1,0 +1,35 @@
+1. Live Business Prediction
+
+Summary:
+
+This feature analyzes previous gem inventory records stored in the local SQLite database.
+When the user enters details for a new gem, the system predicts:
+Expected selling price
+Expected profit
+Expected expenses
+Expected selling time
+Predictions are calculated using historical averages and trends from similar gem records.
+The prediction updates automatically as the user changes the gem details.
+A confidence level (Low, Medium, High) is shown based on the amount of historical data available.
+
+Benefit:
+
+Helps users estimate the potential outcome of a purchase before adding it to the inventory, supporting better business decisions.
+2. Business Analytics Dashboard
+
+Summary:
+
+This feature converts historical inventory data into meaningful business insights.
+It displays:
+Total profit and expenses
+Monthly revenue and profit trends
+Top-performing gem types
+Average selling time
+Charts and business statistics
+The system also generates simple insights, such as the most profitable gem type or the best-performing month.
+
+Benefit:
+
+Helps users understand their business performance, identify trends, and make informed decisions based on historical data.
+
+Overall: Both features work completely offline using SQLite and provide intelligent, data-driven insights without requiring cloud services or external AI models.

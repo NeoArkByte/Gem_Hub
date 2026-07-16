@@ -1,44 +1,12 @@
-// lib/features/analytics/viewmodels/analytics_viewmodel.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:gemhub/data/models/analytics/analytics_data_model.dart';
-import 'package:gemhub/data/repositories/analytics/analytics_repository.dart';
-import 'package:gemhub/data/services/analytics/analytics_service.dart';
-
-class AnalyticsState {
-  final bool isLoading;
-  final BusinessSummary? summary;
-  final List<MonthlyPerformance> monthlyData;
-  final List<GemTypePerformance> gemData;
-  final List<String> businessInsights;
-
-  AnalyticsState({
-    this.isLoading = true,
-    this.summary,
-    this.monthlyData = const [],
-    this.gemData = const [],
-    this.businessInsights = const [],
-  });
-
-  AnalyticsState copyWith({
-    bool? isLoading,
-    BusinessSummary? summary,
-    List<MonthlyPerformance>? monthlyData,
-    List<GemTypePerformance>? gemData,
-    List<String>? businessInsights,
-  }) {
-    return AnalyticsState(
-      isLoading: isLoading ?? this.isLoading,
-      summary: summary ?? this.summary,
-      monthlyData: monthlyData ?? this.monthlyData,
-      gemData: gemData ?? this.gemData,
-      businessInsights: businessInsights ?? this.businessInsights,
-    );
-  }
-}
+import 'package:gemhub/data/models/analytics/analytics_state.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
+import 'package:gemhub/data/services/analytics_service.dart';
 
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
-  final repository = AnalyticsRepository();
+  final repository = InventoryRepository();
   return AnalyticsService(repository);
 });
 

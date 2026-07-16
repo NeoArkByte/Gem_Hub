@@ -14,9 +14,8 @@ dependencies:
   
   # Database & State Caching
   flutter_secure_storage: ^10.3.1
-  sqflite_sqlcipher: ^3.0.1 
+  hive_flutter: ^1.1.0
   shared_preferences: ^2.2.3
-  path: ^1.8.3
   
   # Backend Integration (Supabase & OAuth)
   supabase_flutter: ^2.12.4
@@ -63,7 +62,6 @@ dependencies:
   video_player: ^2.11.1
   chewie: ^1.13.1
   fl_chart: ^1.2.0
-  sqflite: ^2.4.2+1
 
 dev_dependencies:
   flutter_test:
@@ -84,4 +82,4 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/icons/gem_hub_icon.jpeg"
-  remove_alpha_ios: trueflutter pub clean && flutter pub get
+  remove_alpha_ios: true

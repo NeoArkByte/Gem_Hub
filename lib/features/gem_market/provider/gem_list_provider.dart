@@ -1,6 +1,6 @@
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:gemhub/data/repositories/gem_market/gem_repository_provider.dart';
+import 'package:gemhub/data/repositories/gem_market/gem_repository.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
 import 'package:gemhub/core/enums/gem_status.dart';
 

@@ -2,18 +2,12 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
 import 'package:gemhub/core/enums/gem_status.dart';
-import 'package:gemhub/data/repositories/job_market/job_repository_provider.dart';
-import 'package:gemhub/data/repositories/gem_market/gem_repository_provider.dart';
+import 'package:gemhub/data/repositories/job_market/job_repository.dart';
+import 'package:gemhub/data/repositories/gem_market/gem_repository.dart';
 import 'package:gemhub/features/gem_market/provider/gem_list_provider.dart';
+import 'package:gemhub/data/models/auth/admin_screen_state.dart';
 
 part 'admin_screen_viewmodel.g.dart';
-
-class AdminScreenState {
-  final List<Job> jobs;
-  final List<Gem> gems;
-
-  AdminScreenState({required this.jobs, required this.gems});
-}
 
 @riverpod
 class AdminScreenViewModel extends _$AdminScreenViewModel {

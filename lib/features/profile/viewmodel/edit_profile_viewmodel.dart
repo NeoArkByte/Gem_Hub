@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/auth/profile_model.dart';
-import 'package:gemhub/data/repositories/profile/profile_repository_provider.dart';
-import 'package:gemhub/data/repositories/storage/storage_repository_provider.dart';
+import 'package:gemhub/data/repositories/profile/profile_repository.dart';
+import 'package:gemhub/data/services/storage_service.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 
 part 'edit_profile_viewmodel.g.dart';
@@ -31,7 +31,7 @@ class EditProfileViewModel extends _$EditProfileViewModel {
     final keepAliveLink = ref.keepAlive();
 
     try {
-      final storageRepo = ref.read(storageRepositoryProvider);
+      final storageService = StorageService();
 
       
       String? finalAvatarUrl = originalProfile.avatarUrl;
@@ -39,7 +39,7 @@ class EditProfileViewModel extends _$EditProfileViewModel {
       print('Original Profile: ${originalProfile.toMap()}');
 
       if (newAvatarFile != null) {
-        finalAvatarUrl = await storageRepo.updateFile(
+        finalAvatarUrl = await storageService.updateFile(
           bucket: 'listings',
           newFile: newAvatarFile,
           userId: supabaseUid,

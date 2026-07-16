@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
-import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
 import 'package:gemhub/data/services/media_vault_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:path/path.dart' as p;
@@ -22,7 +21,7 @@ class InventoryViewModel extends _$InventoryViewModel {
   }
 
   Future<void> deleteGemstone(int id) async {
-    final vaultService = ref.read(mediaVaultProvider);
+    final vaultService = MediaVaultService();
     final currentList = state.value ?? [];
     final gemToDelete = currentList.firstWhere((gem) => gem.id == id);
 
