@@ -17,11 +17,8 @@ class MainNavigation extends ConsumerWidget {
     final user = sessionAsync.value;
     final location = GoRouterState.of(context).uri.path;
 
-    
-    
     final routes = ['/home', '/inventory', '/gems', '/jobs', '/profile'];
 
-   
     int currentIndex = 0;
     if (location.startsWith('/inventory')) {
       currentIndex = 1;
@@ -47,7 +44,6 @@ class MainNavigation extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
-            
             Expanded(child: child),
           ],
         ),

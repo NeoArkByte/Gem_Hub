@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gemhub/data/models/auth/profile_model.dart';
-import 'package:gemhub/features/profile/view/buyer_profile_screen.dart';
+import 'package:gemhub/features/profile/view/screens/buyer_profile_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/gem_market/gem_model.dart';
 import 'package:gemhub/core/router/router_notifier.dart';
 
-import 'package:gemhub/features/navigation/view/main_navigation.dart';
+import 'package:gemhub/features/navigation/view/screens/main_navigation.dart';
 import 'package:gemhub/features/jobs/view/screens/job_market.dart';
 import 'package:gemhub/features/jobs/view/screens/post_new_job.dart';
 import 'package:gemhub/features/jobs/view/screens/job_details.dart';
@@ -17,19 +17,19 @@ import 'package:gemhub/features/gem_market/view/screens/gem_market_inventory_scr
 import 'package:gemhub/features/gem_market/view/screens/gem_listing_screen.dart';
 import 'package:gemhub/features/gem_market/view/screens/gem_market_add_entry_screen.dart';
 import 'package:gemhub/features/gem_market/view/screens/gem_market_update_entry_screen.dart';
-import 'package:gemhub/features/auth/view/admin_screen.dart';
-import 'package:gemhub/features/auth/view/login_screen.dart';
-import 'package:gemhub/features/auth/view/sign_up_screen.dart';
-import 'package:gemhub/features/inventory/view/inventory_screen_view.dart';
-import 'package:gemhub/features/home/view/home_screen.dart';
-import 'package:gemhub/features/profile/view/profile_screen.dart';
+import 'package:gemhub/features/auth/view/screens/admin_screen.dart';
+import 'package:gemhub/features/auth/view/screens/login_screen.dart';
+import 'package:gemhub/features/auth/view/screens/sign_up_screen.dart';
+import 'package:gemhub/features/inventory/view/screens/inventory_screen.dart';
+import 'package:gemhub/features/home/view/screens/home_screen.dart';
+import 'package:gemhub/features/profile/view/screens/profile_screen.dart';
 // Import your new feature view here
-import 'package:gemhub/features/profile/view/backup_screen.dart';
-import 'package:gemhub/features/inventory/view/gem_details_inventory_screen.dart';
+import 'package:gemhub/features/backup/view/screens/backup_screen.dart';
+import 'package:gemhub/features/inventory/view/screens/inventory_detail_screen.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/features/jobs/view/screens/my_job_screen.dart';
-import 'package:gemhub/features/other/view/help_center_screen.dart';
-import 'package:gemhub/features/other/view/terms_privacy_screen.dart';
+import 'package:gemhub/features/other/view/screens/help_center_screen.dart';
+import 'package:gemhub/features/other/view/screens/terms_privacy_screen.dart';
 
 part 'app_router.g.dart';
 
@@ -126,7 +126,7 @@ GoRouter router(Ref ref) {
                 name: 'inventory_details',
                 builder: (context, state) {
                   final gem = state.extra as GemstoneModel;
-                  return GemDetailsScreen(gemstone: gem);
+                  return InventoryDetailScreen(gemstone: gem);
                 },
               ),
             ],

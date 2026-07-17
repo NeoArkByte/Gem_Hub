@@ -7,8 +7,9 @@ import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/core/enums/gem_type.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
-import 'package:gemhub/features/inventory/view/add_new_gemstone_inventory.dart';
-import 'package:gemhub/features/inventory/view/auction_section_widget.dart';
+import 'package:gemhub/features/inventory/view/screens/inventory_add_entry_screen.dart';
+import 'package:gemhub/features/inventory/view/screens/inventory_update_entry_screen.dart';
+import 'package:gemhub/features/inventory/view/widgets/auction_section_widget.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -155,7 +156,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const AddNewGemstoneScreen(),
+                builder: (context) => const InventoryAddEntryScreen(),
               ),
             ),
             child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
@@ -644,8 +645,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      AddNewGemstoneScreen(gemstoneToEdit: gem)),
+                builder: (context) =>
+                    InventoryUpdateEntryScreen(gemstoneToEdit: gem),
+              ),
             );
           } else if (value == 'delete') {
             _confirmDelete(context, gem, ref);

@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/data/models/auth/auth_state.dart';
 import 'package:gemhub/features/auth/provider/session_provider.dart';
 import 'package:gemhub/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
-import 'package:gemhub/features/profile/view/edit_profile_screen.dart';
+import 'package:gemhub/features/profile/view/screens/edit_profile_screen.dart';
 import 'package:gemhub/shared/widgets/custom_confirm_dialog.dart';
 import 'package:gemhub/shared/widgets/custom_toast.dart'; // Imported CustomToast
 import 'package:go_router/go_router.dart';
@@ -53,10 +52,6 @@ class ProfileScreen extends ConsumerWidget {
           children: [
             _buildHeader(authData, textColor, isDark),
             const SizedBox(height: 28),
-            _buildItemsStat(ref, textColor, cardColor, isDark),
-            const SizedBox(height: 28),
-            
-            _buildSectionTitle("ACCOUNT DETAILS"),
             _buildMenuCard(cardColor, isDark, [
               _buildMenuTile(
                 icon: Icons.person_outline_rounded,
@@ -202,72 +197,6 @@ class ProfileScreen extends ConsumerWidget {
             "Member since ${_formatDate(profile?.createdAt)}",
             textAlign: TextAlign.center,
             style: const TextStyle(color: AppColors.greyTextLight, fontSize: 11, fontStyle: FontStyle.italic),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItemsStat(WidgetRef ref, Color textColor, Color cardColor, bool isDark) {
-    final inventoryAsync = ref.watch(inventoryViewModelProvider);
-
-    return inventoryAsync.when(
-      data: (gems) {
-        final availableItems = gems.where((g) => g.isSold == false).length;
-        final salesCount = gems.where((g) => g.isSold == true).length;
-
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder,
-              width: 1.0,
-            ),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              children: [
-                _statItem(availableItems.toString(), "ITEMS AVAILABLE", textColor),
-                VerticalDivider(color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder, thickness: 1, width: 1),
-                _statItem(salesCount.toString(), "TOTAL SALES", textColor),
-              ],
-            ),
-          ),
-        );
-      },
-      loading: () => Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          child: const CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.primaryGreen),
-        ),
-      ),
-      error: (_, __) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: isDark ? AppColors.darkSurfaceAlt : AppColors.lightBorder),
-        ),
-        child: Row(children: [_statItem("0", "ITEMS AVAILABLE", textColor), _statItem("0", "TOTAL SALES", textColor)]),
-      ),
-    );
-  }
-
-  Widget _statItem(String value, String label, Color textColor) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            value,
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textColor),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: AppColors.greyTextLight, letterSpacing: 0.6, fontSize: 10, fontWeight: FontWeight.bold),
           ),
         ],
       ),

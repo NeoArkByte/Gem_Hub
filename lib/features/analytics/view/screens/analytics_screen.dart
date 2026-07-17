@@ -1,4 +1,4 @@
-// lib/features/analytics/views/analytics_screen.dart
+// lib/features/analytics/view/screens/analytics_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -60,8 +60,7 @@ class AnalyticsScreen extends ConsumerWidget {
                     leading: const Icon(Icons.auto_awesome, color: Colors.blue),
                     title: Text(insight),
                   ),
-                ))
-            ,
+                )),
       ],
     );
   }

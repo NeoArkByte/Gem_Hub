@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:gemhub/data/models/inventory/gem_filter.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
-import 'package:gemhub/features/reports/presentation/view_models/report_view_model.dart';
+import 'package:gemhub/features/reports/viewmodel/report_view_model.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -599,8 +599,8 @@ class _GemReportCardState extends State<_GemReportCard> {
                   const SizedBox(width: 8),
                   Icon(
                     _isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
                     color: Colors.grey,
                     size: 20,
                   ),

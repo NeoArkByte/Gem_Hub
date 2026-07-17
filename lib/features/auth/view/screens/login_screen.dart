@@ -61,7 +61,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-   
     try {
       await vm.login(email, password);
     } catch (e) {

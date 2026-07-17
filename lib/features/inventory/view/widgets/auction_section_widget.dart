@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
-import 'package:gemhub/features/inventory/view/auction_utils.dart';
+import 'package:gemhub/features/inventory/utils/auction_utils.dart';
 import 'package:go_router/go_router.dart';
 
 class AuctionSectionWidget extends StatelessWidget {
@@ -235,28 +235,28 @@ class AuctionSectionWidget extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
-                                Text(
-                                  "Rs. ${auctionPrice.toStringAsFixed(0)}",
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.primaryGreen,
-                                    height: 1.1,
+                                  Text(
+                                    "Rs. ${auctionPrice.toStringAsFixed(0)}",
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.primaryGreen,
+                                      height: 1.1,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  pctChange >= 0
-                                      ? "+${pctChange.toStringAsFixed(0)}%"
-                                      : "${pctChange.toStringAsFixed(0)}%",
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                    color: pctChange >= 0
-                                        ? AppColors.primaryGreen
-                                        : AppColors.dangerRed,
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    pctChange >= 0
+                                        ? "+${pctChange.toStringAsFixed(0)}%"
+                                        : "${pctChange.toStringAsFixed(0)}%",
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      color: pctChange >= 0
+                                          ? AppColors.primaryGreen
+                                          : AppColors.dangerRed,
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ],

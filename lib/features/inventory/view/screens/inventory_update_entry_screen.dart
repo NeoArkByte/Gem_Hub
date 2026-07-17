@@ -1,5 +1,3 @@
-//lib\features\inventory\view\add_new_gemstone_inventory.dart
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
@@ -15,26 +13,28 @@ import 'package:gemhub/core/enums/inventory_enums.dart';
 import 'package:gemhub/features/inventory/viewmodels/add_new_gemstone_viewmodel.dart';
 import 'package:gemhub/features/inventory/viewmodels/prediction_viewmodel.dart';
 import 'package:gemhub/data/models/inventory/prediction_model.dart';
+import 'package:gemhub/features/inventory/view/widgets/prediction_sheet.dart';
+import 'package:gemhub/features/inventory/view/widgets/shared/inventory_form_text_field.dart';
+import 'package:gemhub/features/inventory/view/widgets/shared/inventory_form_dropdown_field.dart';
 
-class AddNewGemstoneScreen extends ConsumerStatefulWidget {
-  final GemstoneModel? gemstoneToEdit;
-  const AddNewGemstoneScreen({super.key, this.gemstoneToEdit});
+class InventoryUpdateEntryScreen extends ConsumerStatefulWidget {
+  final GemstoneModel gemstoneToEdit;
+  const InventoryUpdateEntryScreen({super.key, required this.gemstoneToEdit});
 
   @override
-  ConsumerState<AddNewGemstoneScreen> createState() =>
-      _AddNewGemstoneScreenState();
+  ConsumerState<InventoryUpdateEntryScreen> createState() =>
+      _InventoryUpdateEntryScreenState();
 }
 
-class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
+class _InventoryUpdateEntryScreenState extends ConsumerState<InventoryUpdateEntryScreen> {
   int _currentStep = 0;
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   bool _isPickingFile = false;
 
-
-  GemCategory _category = GemCategory.sapphire;
+  late GemCategory _category;
   final TextEditingController _customCategoryCtrl = TextEditingController();
-  String _origin = 'Sri Lanka';
+  late String _origin;
   final List<String> _origins = [
     'Sri Lanka',
     'Madagascar',
@@ -42,60 +42,48 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     'Tanzania',
     'Other'
   ];
-  GemVisibility _visibility = GemVisibility.private;
+  late GemVisibility _visibility;
 
-  
   final TextEditingController _buyingWeightCtrl = TextEditingController();
-  final TextEditingController _buyingPriceCtrl =
-      TextEditingController(text: '0');
-  DateTime _recordDate = DateTime.now();
-  DateTime _buyingDate = DateTime.now();
+  final TextEditingController _buyingPriceCtrl = TextEditingController();
+  late DateTime _recordDate;
+  late DateTime _buyingDate;
   final TextEditingController _buyerNameCtrl = TextEditingController();
   final TextEditingController _buyerContactCtrl = TextEditingController();
   final TextEditingController _varietyCtrl = TextEditingController();
   final TextEditingController _buyingColorCtrl = TextEditingController();
 
-
   List<String> _firstLookPhotos = [];
   String? _firstLookVideo;
-
 
   List<ValueAdditionModel> _valueAdditions = [];
 
   final TextEditingController _finalWeightCtrl = TextEditingController();
-  GemShape _shape = GemShape.faceted;
+  late GemShape _shape;
   final TextEditingController _customShapeCtrl = TextEditingController();
-  GemClarity _clarity = GemClarity.vvs1;
+  late GemClarity _clarity;
   final TextEditingController _finalColorCtrl = TextEditingController();
-  InventoryGemStatus _status = InventoryGemStatus.rough;
+  late InventoryGemStatus _status;
   final TextEditingController _lengthCtrl = TextEditingController();
   final TextEditingController _widthCtrl = TextEditingController();
   final TextEditingController _depthCtrl = TextEditingController();
 
-
   List<String> _finalPhotos = [];
   String? _finalVideo;
-
 
   bool _isCertified = false;
   List<CertificateModel> _certificates = [];
 
-
-  final TextEditingController _salesTargetPriceCtrl =
-      TextEditingController(text: '0');
+  final TextEditingController _salesTargetPriceCtrl = TextEditingController();
   bool _isReadyToSale = false;
   bool _isSold = false;
-  final TextEditingController _actualSoldPriceCtrl =
-      TextEditingController(text: '0');
+  final TextEditingController _actualSoldPriceCtrl = TextEditingController();
   PredictionModel? _prediction;
   bool _isLoadingPrediction = false;
   Timer? _predictionDebounce;
 
- 
   bool _clarityUserSet = false;
-
   String? _firstLookMediaError;
-  // String? _finalMediaError;
 
   double get _currentBaselineWeight {
     if (_valueAdditions.isNotEmpty) {
@@ -114,11 +102,10 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     _buyingColorCtrl.addListener(_refreshPredictionFromInputs);
     _finalColorCtrl.addListener(_refreshPredictionFromInputs);
     _finalWeightCtrl.addListener(_refreshPredictionFromInputs);
-    if (widget.gemstoneToEdit != null) {
-      _loadExistingGemstone(widget.gemstoneToEdit!);
-      _clarityUserSet = true;
-    }
- 
+
+    _loadExistingGemstone(widget.gemstoneToEdit);
+    _clarityUserSet = true;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _loadPredictionIfEligible();
     });
@@ -146,7 +133,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     }
 
     _buyingWeightCtrl.text = gem.buyingWeight.toString();
-
     _buyingPriceCtrl.text = gem.buyingPrice.toString();
 
     try {
@@ -331,7 +317,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       });
     }
 
-
     final enteredPrice = double.tryParse(_buyingPriceCtrl.text);
     final purchasePrice =
         (enteredPrice != null && enteredPrice > 0) ? enteredPrice : null;
@@ -359,7 +344,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         });
       }
     } catch (e) {
-      
       if (mounted) {
         setState(() {
           _prediction = PredictionModel.empty(gemType: selectedGemType);
@@ -385,7 +369,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _PredictionSheet(
+      builder: (_) => PredictionSheet(
         prediction: _prediction,
         isLoading: _isLoadingPrediction,
         confidenceColor: _confidenceColor,
@@ -456,12 +440,37 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
+  Widget _buildDatePicker(
+      String label, DateTime date, Function(DateTime) onSelect) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: InkWell(
+        onTap: () async {
+          final selected = await showDatePicker(
+            context: context,
+            initialDate: date,
+            firstDate: DateTime(2000),
+            lastDate: DateTime(2100),
+          );
+          if (selected != null) onSelect(selected);
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+          ),
+          child: Text(DateFormat('yyyy-MM-dd').format(date)),
+        ),
+      ),
+    );
+  }
+
   Widget _buildPredictionCard() {
     final confidenceLabel = _prediction?.confidenceLevel ?? 'Low';
     final recordCount = _prediction?.matchingRecordCount ?? 0;
     final hasData = recordCount > 0;
 
-    
     if (_prediction == null && !_isLoadingPrediction) {
       return const SizedBox.shrink();
     }
@@ -483,13 +492,12 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              
               Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withValues(alpha: 0.12),
+                      color: AppColors.primaryGreen.withOpacity(0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(Icons.insights_outlined,
@@ -503,7 +511,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-           
               if (_isLoadingPrediction) ...[
                 const SizedBox(height: 4),
                 const LinearProgressIndicator(minHeight: 2),
@@ -513,17 +520,15 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                       style: TextStyle(fontSize: 12, color: Colors.grey)),
                 ),
                 const SizedBox(height: 8),
-              ] else if (!hasData) ...
-                
-                [
+              ] else if (!hasData) ...[
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.08),
+                    color: Colors.amber.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(10),
                     border:
-                        Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                        Border.all(color: Colors.amber.withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
@@ -539,8 +544,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                     ],
                   ),
                 ),
-              ] else ...
-                [
+              ] else ...[
                 Text(
                   'Based on $recordCount similar inventory records',
                   style: TextStyle(
@@ -607,11 +611,11 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: _confidenceColor(confidenceLabel)
-                            .withValues(alpha: 0.15),
+                            .withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: _confidenceColor(confidenceLabel)
-                              .withValues(alpha: 0.4),
+                              .withOpacity(0.4),
                         ),
                       ),
                       child: Text(
@@ -903,142 +907,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     );
   }
 
-  bool _validateAllSteps() {
-    final isMainFormValid = _formKey.currentState?.validate() ?? false;
-
-    if (!isMainFormValid) return false;
-
-    // Step 2 validations
-    if (_buyingWeightCtrl.text.isEmpty ||
-        double.tryParse(_buyingWeightCtrl.text) == null) {
-      return false;
-    }
-
-    if (_buyingPriceCtrl.text.isEmpty ||
-        double.tryParse(_buyingPriceCtrl.text) == null) {
-      return false;
-    }
-
-    // Step 3 (example)
-    if (_finalWeightCtrl.text.isEmpty ||
-        double.tryParse(_finalWeightCtrl.text) == null) {
-      return false;
-    }
-
-    return true;
-  }
-
-  void _publishInventoryItem() async {
-    if (!_validateAllSteps()) {
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          const SnackBar(
-            content: Text('Please complete all required fields'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      return;
-    }
-
-    final newGem = GemstoneModel(
-      id: widget.gemstoneToEdit?.id,
-      category: _category == GemCategory.other
-          ? _customCategoryCtrl.text
-          : _category.displayName,
-      origin: _origin,
-      visibility: _visibility.displayName,
-      recordDate: _recordDate.toIso8601String(),
-      buyingDate: _buyingDate.toIso8601String(),
-      buyerName: _buyerNameCtrl.text,
-      buyerContact: _buyerContactCtrl.text,
-      buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
-      buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
-      variety: _varietyCtrl.text,
-      buyingColor: _buyingColorCtrl.text,
-      finalColor: _finalColorCtrl.text,
-      isRough: _status == InventoryGemStatus.rough,
-      isCut: _status == InventoryGemStatus.cut,
-      valueAdditions: _valueAdditions,
-      currentWeight: _currentWeight,
-      finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
-      shape:
-          _shape == GemShape.other ? _customShapeCtrl.text : _shape.displayName,
-      clarity: _clarity.displayName,
-      status: _status.displayName,
-      length: double.tryParse(_lengthCtrl.text) ?? 0.0,
-      width: double.tryParse(_widthCtrl.text) ?? 0.0,
-      depth: double.tryParse(_depthCtrl.text) ?? 0.0,
-      isCertified: _isCertified,
-      certificates: _certificates,
-      isReadyToSale: _isReadyToSale,
-      isSold: _isSold,
-      salesTargetPrice: double.tryParse(_salesTargetPriceCtrl.text) ?? 0.0,
-      actualSoldPrice: double.tryParse(_actualSoldPriceCtrl.text) ?? 0.0,
-      firstLookPhotos: _firstLookPhotos,
-      finalPhotos: _finalPhotos,
-    );
-
-    try {
-      await ref.read(addNewGemstoneViewModelProvider.notifier).saveGemstone(
-            gem: newGem,
-            rawFirstLookPhotos: _firstLookPhotos,
-            rawFirstLookVideo: _firstLookVideo,
-            rawFinalPhotos: _finalPhotos,
-            rawFinalVideo: _finalVideo,
-          );
-      ref.invalidate(inventoryProvider);
-
-      if (mounted) Navigator.pop(context);
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error: $e')));
-    }
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller,
-      {bool isNumber = false, String? Function(String?)? validator}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          filled: true,
-        ),
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        validator: validator,
-      ),
-    );
-  }
-
-  Widget _buildDatePicker(
-      String label, DateTime date, Function(DateTime) onSelect) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: InkWell(
-        onTap: () async {
-          final selected = await showDatePicker(
-            context: context,
-            initialDate: date,
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-          );
-          if (selected != null) onSelect(selected);
-        },
-        child: InputDecorator(
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            filled: true,
-          ),
-          child: Text(DateFormat('yyyy-MM-dd').format(date)),
-        ),
-      ),
-    );
-  }
-
   List<Step> _buildSteps() {
     return [
       // ── STEP 1: BASIC INFO ──────────────────────────────────────────────────
@@ -1046,56 +914,59 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         title: const Text('Basic Info'),
         content: Column(
           children: [
-            DropdownButtonFormField<GemCategory>(
-              initialValue: _category,
-              decoration: const InputDecoration(
-                  labelText: 'Category *', border: OutlineInputBorder()),
-              items: GemCategory.values
-                  .map((e) =>
-                      DropdownMenuItem(value: e, child: Text(e.displayName)))
-                  .toList(),
+            InventoryFormDropdownField<GemCategory>(
+              label: 'Category *',
+              hint: 'Select category',
+              value: _category,
+              items: GemCategory.values,
+              itemLabelBuilder: (e) => e.displayName,
               onChanged: (val) {
-                setState(() {
-                  _category = val!;
-                  // Rule: Automatically populate Variety field using Category selection
-                  if (_category != GemCategory.other) {
-                    _varietyCtrl.text = _category.displayName;
-                  } else {
-                    _varietyCtrl.text = _customCategoryCtrl.text;
-                  }
-                });
-                _refreshPredictionFromInputs();
+                if (val != null) {
+                  setState(() {
+                    _category = val;
+                    if (_category != GemCategory.other) {
+                      _varietyCtrl.text = _category.displayName;
+                    } else {
+                      _varietyCtrl.text = _customCategoryCtrl.text;
+                    }
+                  });
+                  _refreshPredictionFromInputs();
+                }
               },
             ),
-            const SizedBox(height: 16),
             if (_category == GemCategory.other) ...[
-              _buildTextField('Custom Category *', _customCategoryCtrl,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Required' : null),
-              const SizedBox(height: 16),
+              InventoryFormTextField(
+                label: 'Custom Category *',
+                hint: 'Enter custom category',
+                controller: _customCategoryCtrl,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+              ),
             ],
-            DropdownButtonFormField<String>(
-              initialValue: _origin,
-              decoration: const InputDecoration(
-                  labelText: 'Origin', border: OutlineInputBorder()),
-              items: _origins
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+            InventoryFormDropdownField<String>(
+              label: 'Origin',
+              hint: 'Select origin',
+              value: _origin,
+              items: _origins,
+              itemLabelBuilder: (e) => e,
               onChanged: (val) {
-                setState(() => _origin = val!);
-                _refreshPredictionFromInputs();
+                if (val != null) {
+                  setState(() => _origin = val);
+                  _refreshPredictionFromInputs();
+                }
               },
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<GemVisibility>(
-              initialValue: _visibility,
-              decoration: const InputDecoration(
-                  labelText: 'Visibility', border: OutlineInputBorder()),
-              items: GemVisibility.values
-                  .map((e) =>
-                      DropdownMenuItem(value: e, child: Text(e.displayName)))
-                  .toList(),
-              onChanged: (val) => setState(() => _visibility = val!),
+            InventoryFormDropdownField<GemVisibility>(
+              label: 'Visibility',
+              hint: 'Select visibility',
+              value: _visibility,
+              items: GemVisibility.values,
+              itemLabelBuilder: (e) => e.displayName,
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _visibility = val);
+                }
+              },
             ),
           ],
         ),
@@ -1108,40 +979,52 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         title: const Text('Buying Details'),
         content: Column(
           children: [
-            // Rule: Required, Must be > 0, Cannot be negative/zero
-            _buildTextField('Buying Weight (ct) *', _buyingWeightCtrl,
-                isNumber: true,
-                validator: GemFormValidator.validateBuyingWeight),
-
-            // Rule: Required, Cannot be negative, Greater than zero
-            _buildTextField('Buying Price *', _buyingPriceCtrl,
-                isNumber: true,
-                validator: GemFormValidator.validateBuyingPrice),
-
+            InventoryFormTextField(
+              label: 'Buying Weight (ct) *',
+              hint: 'Enter buying weight',
+              controller: _buyingWeightCtrl,
+              keyboardType: TextInputType.number,
+              validator: GemFormValidator.validateBuyingWeight,
+            ),
+            InventoryFormTextField(
+              label: 'Buying Price *',
+              hint: 'Enter buying price',
+              controller: _buyingPriceCtrl,
+              keyboardType: TextInputType.number,
+              validator: GemFormValidator.validateBuyingPrice,
+            ),
             _buildDatePicker('Buying Date', _buyingDate,
                 (d) => setState(() => _buyingDate = d)),
-
-            _buildTextField('Buyer Name (Optional)', _buyerNameCtrl),
-
-            // Note: If using a dedicated phone package, replace this field with your international picker
-            _buildTextField(
-                'Buyer Contact Number (Optional)', _buyerContactCtrl),
-
-            // Rule: Automatically populated from Step 1. Disabled to prevent manual changes.
-            TextFormField(
-              controller: _varietyCtrl,
-              enabled: false, // This cleanly locks the field from manual typing
-              decoration: const InputDecoration(
-                labelText: 'Variety (Auto-Populated)',
-                border: OutlineInputBorder(),
-                filled: true,
+            InventoryFormTextField(
+              label: 'Buyer Name (Optional)',
+              hint: 'Enter buyer name',
+              controller: _buyerNameCtrl,
+              optional: true,
+            ),
+            InventoryFormTextField(
+              label: 'Buyer Contact Number (Optional)',
+              hint: 'Enter contact number',
+              controller: _buyerContactCtrl,
+              optional: true,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: TextFormField(
+                controller: _varietyCtrl,
+                enabled: false,
+                decoration: const InputDecoration(
+                  labelText: 'Variety (Auto-Populated)',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                ),
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Rule: Required, Cannot be empty
-            _buildTextField('Buying Color *', _buyingColorCtrl,
-                validator: GemFormValidator.validateBuyingColor),
+            InventoryFormTextField(
+              label: 'Buying Color *',
+              hint: 'Enter color',
+              controller: _buyingColorCtrl,
+              validator: GemFormValidator.validateBuyingColor,
+            ),
           ],
         ),
         isActive: _currentStep >= 1,
@@ -1175,8 +1058,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               child:
                   Text(_firstLookVideo != null ? 'Change Video' : 'Add Video'),
             ),
-
-            // Rule: Dynamic requirement count messaging displayed cleanly to the user
             if (_firstLookMediaError != null) ...[
               const SizedBox(height: 12),
               Text(
@@ -1232,77 +1113,79 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         title: const Text('Final Stage'),
         content: Column(
           children: [
-            // Rule: Validation checks against previous current baseline weight histories
-            _buildTextField('Final Weight (ct) *', _finalWeightCtrl,
-                isNumber: true,
-                validator: (v) => GemFormValidator.validateFinalWeight(
-                    v, _currentBaselineWeight)),
-
-            DropdownButtonFormField<GemShape>(
-              initialValue: _shape,
-              decoration: const InputDecoration(
-                  labelText: 'Shape', border: OutlineInputBorder()),
-              items: GemShape.values
-                  .map((e) =>
-                      DropdownMenuItem(value: e, child: Text(e.displayName)))
-                  .toList(),
-              onChanged: (val) => setState(() => _shape = val!),
+            InventoryFormTextField(
+              label: 'Final Weight (ct) *',
+              hint: 'Enter final weight',
+              controller: _finalWeightCtrl,
+              keyboardType: TextInputType.number,
+              validator: (v) => GemFormValidator.validateFinalWeight(
+                  v, _currentBaselineWeight),
             ),
-            const SizedBox(height: 16),
-            if (_shape == GemShape.other) ...[
-              _buildTextField('Custom Shape', _customShapeCtrl),
-              const SizedBox(height: 16),
-            ],
-            DropdownButtonFormField<GemClarity>(
-              initialValue: _clarity,
-              decoration: const InputDecoration(
-                  labelText: 'Clarity', border: OutlineInputBorder()),
-              items: GemClarity.values
-                  .map((e) =>
-                      DropdownMenuItem(value: e, child: Text(e.displayName)))
-                  .toList(),
+            InventoryFormDropdownField<GemShape>(
+              label: 'Shape',
+              hint: 'Select shape',
+              value: _shape,
+              items: GemShape.values,
+              itemLabelBuilder: (e) => e.displayName,
               onChanged: (val) {
-                setState(() {
-                  _clarity = val!;
-                  _clarityUserSet = true;
-                });
-                _refreshPredictionFromInputs();
-              },
-            ),
-            const SizedBox(height: 16),
-
-            // Rule: Cannot be empty * Filled default with Buying color
-
-            TextFormField(
-              controller: _buyingColorCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Final Color',
-                border: OutlineInputBorder(),
-                filled: true,
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Final color is required';
+                if (val != null) {
+                  setState(() => _shape = val);
                 }
-                return null;
               },
             ),
-            const SizedBox(height: 16),
-
-            DropdownButtonFormField<InventoryGemStatus>(
-              initialValue: _status,
-              decoration: const InputDecoration(
-                  labelText: 'Status', border: OutlineInputBorder()),
-              items: InventoryGemStatus.values
-                  .map((e) =>
-                      DropdownMenuItem(value: e, child: Text(e.displayName)))
-                  .toList(),
-              onChanged: (val) => setState(() => _status = val!),
+            if (_shape == GemShape.other) ...[
+              InventoryFormTextField(
+                label: 'Custom Shape',
+                hint: 'Enter shape',
+                controller: _customShapeCtrl,
+              ),
+            ],
+            InventoryFormDropdownField<GemClarity>(
+              label: 'Clarity',
+              hint: 'Select clarity',
+              value: _clarity,
+              items: GemClarity.values,
+              itemLabelBuilder: (e) => e.displayName,
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() {
+                    _clarity = val;
+                    _clarityUserSet = true;
+                  });
+                  _refreshPredictionFromInputs();
+                }
+              },
             ),
-
-            // Rule: Length, Width, Depth validation dynamically enforced if Status == Cut
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: TextFormField(
+                controller: _buyingColorCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Final Color',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Final color is required';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            InventoryFormDropdownField<InventoryGemStatus>(
+              label: 'Status',
+              hint: 'Select status',
+              value: _status,
+              items: InventoryGemStatus.values,
+              itemLabelBuilder: (e) => e.displayName,
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _status = val);
+                }
+              },
+            ),
             if (_status == InventoryGemStatus.cut) ...[
-              const SizedBox(height: 16),
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Text('Dimensions (Required for Cut Status) *',
@@ -1312,22 +1195,37 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               Row(
                 children: [
                   Expanded(
-                      child: _buildTextField('Length *', _lengthCtrl,
-                          isNumber: true,
-                          validator: (v) => GemFormValidator.validateDimension(
-                              v, _status.displayName))),
+                    child: InventoryFormTextField(
+                      label: 'Length *',
+                      hint: 'L',
+                      controller: _lengthCtrl,
+                      keyboardType: TextInputType.number,
+                      validator: (v) => GemFormValidator.validateDimension(
+                          v, _status.displayName),
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _buildTextField('Width *', _widthCtrl,
-                          isNumber: true,
-                          validator: (v) => GemFormValidator.validateDimension(
-                              v, _status.displayName))),
+                    child: InventoryFormTextField(
+                      label: 'Width *',
+                      hint: 'W',
+                      controller: _widthCtrl,
+                      keyboardType: TextInputType.number,
+                      validator: (v) => GemFormValidator.validateDimension(
+                          v, _status.displayName),
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: _buildTextField('Depth *', _depthCtrl,
-                          isNumber: true,
-                          validator: (v) => GemFormValidator.validateDimension(
-                              v, _status.displayName))),
+                    child: InventoryFormTextField(
+                      label: 'Depth *',
+                      hint: 'D',
+                      controller: _depthCtrl,
+                      keyboardType: TextInputType.number,
+                      validator: (v) => GemFormValidator.validateDimension(
+                          v, _status.displayName),
+                    ),
+                  ),
                 ],
               ),
             ]
@@ -1365,18 +1263,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   ? 'Change Final Video'
                   : 'Add Final Video'),
             ),
-
-            // Rule: Display remaining requirements dynamically to user
-            // if (_finalMediaError != null) ...[
-            //   const SizedBox(height: 12),
-            //   Text(
-            //     _finalMediaError!,
-            //     style: const TextStyle(
-            //         color: Colors.red,
-            //         fontSize: 13,
-            //         fontWeight: FontWeight.w500),
-            //   ),
-            // ],
           ],
         ),
         isActive: _currentStep >= 5,
@@ -1436,8 +1322,12 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16)),
             ),
-            _buildTextField('Sales Target Price', _salesTargetPriceCtrl,
-                isNumber: true),
+            InventoryFormTextField(
+              label: 'Sales Target Price',
+              hint: 'Enter target price',
+              controller: _salesTargetPriceCtrl,
+              keyboardType: TextInputType.number,
+            ),
             ListTile(
               title: const Text('Target Profit / Margin'),
               trailing: Text(
@@ -1454,8 +1344,12 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
               onChanged: (v) => setState(() => _isSold = v),
             ),
             if (_isSold) ...[
-              _buildTextField('Actual Sold Price', _actualSoldPriceCtrl,
-                  isNumber: true),
+              InventoryFormTextField(
+                label: 'Actual Sold Price',
+                hint: 'Enter sold price',
+                controller: _actualSoldPriceCtrl,
+                keyboardType: TextInputType.number,
+              ),
               ListTile(
                 title: const Text('Actual Profit / Margin'),
                 trailing: Text(
@@ -1470,15 +1364,13 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
     ];
   }
 
-  // === NEW STEP VALIDATOR LOGIC (SAFE REFACTORED) ===
   bool _validateCurrentStep() {
-    // Reset display errors cleanly
     setState(() {
       _firstLookMediaError = null;
     });
 
     switch (_currentStep) {
-      case 0: // Basic Information
+      case 0:
         if (_varietyCtrl.text.isEmpty) {
           _varietyCtrl.text = _category == GemCategory.other
               ? _customCategoryCtrl.text
@@ -1486,7 +1378,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         }
         return true;
 
-      case 1: // Buying Details
+      case 1:
         if (_varietyCtrl.text.isEmpty) {
           _varietyCtrl.text = _category == GemCategory.other
               ? _customCategoryCtrl.text
@@ -1501,7 +1393,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
 
         if (_buyingColorCtrl.text.trim().isEmpty) return false;
 
-        // Clean Contact Number automatically if provided
         if (_buyerContactCtrl.text.isNotEmpty) {
           _buyerContactCtrl.text =
               _buyerContactCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
@@ -1509,7 +1400,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
 
         return true;
 
-      case 2: // First Look Media Check
+      case 2:
         final imgCount = _firstLookPhotos.length;
         final hasVid = _firstLookVideo != null;
 
@@ -1531,7 +1422,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
       case 3:
         return true;
 
-      case 4: // Final Stage Fields
+      case 4:
         if (_finalColorCtrl.text.trim().isEmpty) {
           _finalColorCtrl.text = _buyingColorCtrl.text;
         }
@@ -1566,7 +1457,96 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         return true;
     }
   }
-  // ================================
+
+  bool _validateAllSteps() {
+    final isMainFormValid = _formKey.currentState?.validate() ?? false;
+    if (!isMainFormValid) return false;
+
+    if (_buyingWeightCtrl.text.isEmpty ||
+        double.tryParse(_buyingWeightCtrl.text) == null) {
+      return false;
+    }
+
+    if (_buyingPriceCtrl.text.isEmpty ||
+        double.tryParse(_buyingPriceCtrl.text) == null) {
+      return false;
+    }
+
+    if (_finalWeightCtrl.text.isEmpty ||
+        double.tryParse(_finalWeightCtrl.text) == null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  void _publishInventoryItem() async {
+    if (!_validateAllSteps()) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('Please complete all required fields'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      return;
+    }
+
+    final updatedGem = GemstoneModel(
+      id: widget.gemstoneToEdit.id,
+      category: _category == GemCategory.other
+          ? _customCategoryCtrl.text
+          : _category.displayName,
+      origin: _origin,
+      visibility: _visibility.displayName,
+      recordDate: _recordDate.toIso8601String(),
+      buyingDate: _buyingDate.toIso8601String(),
+      buyerName: _buyerNameCtrl.text,
+      buyerContact: _buyerContactCtrl.text,
+      buyingWeight: double.tryParse(_buyingWeightCtrl.text) ?? 0.0,
+      buyingPrice: double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
+      variety: _varietyCtrl.text,
+      buyingColor: _buyingColorCtrl.text,
+      finalColor: _finalColorCtrl.text,
+      isRough: _status == InventoryGemStatus.rough,
+      isCut: _status == InventoryGemStatus.cut,
+      valueAdditions: _valueAdditions,
+      currentWeight: _currentWeight,
+      finalWeight: double.tryParse(_finalWeightCtrl.text) ?? 0.0,
+      shape:
+          _shape == GemShape.other ? _customShapeCtrl.text : _shape.displayName,
+      clarity: _clarity.displayName,
+      status: _status.displayName,
+      length: double.tryParse(_lengthCtrl.text) ?? 0.0,
+      width: double.tryParse(_widthCtrl.text) ?? 0.0,
+      depth: double.tryParse(_depthCtrl.text) ?? 0.0,
+      isCertified: _isCertified,
+      certificates: _certificates,
+      isReadyToSale: _isReadyToSale,
+      isSold: _isSold,
+      salesTargetPrice: double.tryParse(_salesTargetPriceCtrl.text) ?? 0.0,
+      actualSoldPrice: double.tryParse(_actualSoldPriceCtrl.text) ?? 0.0,
+      firstLookPhotos: _firstLookPhotos,
+      finalPhotos: _finalPhotos,
+    );
+
+    try {
+      await ref.read(addNewGemstoneViewModelProvider.notifier).saveGemstone(
+            gem: updatedGem,
+            rawFirstLookPhotos: _firstLookPhotos,
+            rawFirstLookVideo: _firstLookVideo,
+            rawFinalPhotos: _finalPhotos,
+            rawFinalVideo: _finalVideo,
+          );
+      ref.invalidate(inventoryProvider);
+
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1582,8 +1562,7 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
         backgroundColor: bgColor,
         appBar: AppBar(
           backgroundColor: bgColor,
-          title: Text(
-              widget.gemstoneToEdit != null ? 'Edit Gemstone' : 'Add Gemstone'),
+          title: const Text('Edit Gemstone'),
           centerTitle: true,
           actions: [
             Padding(
@@ -1701,330 +1680,6 @@ class _AddNewGemstoneScreenState extends ConsumerState<AddNewGemstoneScreen> {
                   },
                 ),
               ),
-      ),
-    );
-  }
-}
-
-class _PredictionSheet extends StatelessWidget {
-  const _PredictionSheet({
-    required this.prediction,
-    required this.isLoading,
-    required this.confidenceColor,
-  });
-
-  final PredictionModel? prediction;
-  final bool isLoading;
-  final Color Function(String) confidenceColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? AppColors.darkSurface : Colors.white;
-    final recordCount = prediction?.matchingRecordCount ?? 0;
-    final hasData = recordCount > 0;
-    final confidenceLabel = prediction?.confidenceLevel ?? 'Low';
-
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.92,
-      expand: false,
-      builder: (_, scrollController) => Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // ── Drag handle ────────────────────────────────────────────────
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // ── Header ─────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.auto_awesome,
-                        color: Colors.white, size: 22),
-                  ),
-                  const SizedBox(width: 14),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('📊 Business Prediction',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 17)),
-                        Text('AI-powered market analysis',
-                            style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.grey.withValues(alpha: 0.1),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Divider(height: 1),
-            // ── Scrollable content ─────────────────────────────────────────
-            Expanded(
-              child: SingleChildScrollView(
-                controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                child: _buildContent(
-                    context, hasData, recordCount, confidenceLabel, isDark),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent(BuildContext context, bool hasData, int recordCount,
-      String confidenceLabel, bool isDark) {
-    // ── Loading ─────────────────────────────────────────────────────────────
-    if (isLoading) {
-      return Column(
-        children: [
-          const SizedBox(height: 32),
-          const CircularProgressIndicator(),
-          const SizedBox(height: 20),
-          Text('Analysing historical records…',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-          const SizedBox(height: 8),
-          const LinearProgressIndicator(),
-        ],
-      );
-    }
-
-    // ── No data ─────────────────────────────────────────────────────────────
-    if (!hasData) {
-      return Column(
-        children: [
-          const SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.amber.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.amber.withValues(alpha: 0.35)),
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.amber, size: 36),
-                const SizedBox(height: 12),
-                const Text(
-                  'No sufficient historical records available for prediction.',
-                  textAlign: TextAlign.center,
-                  style:
-                      TextStyle(fontSize: 13, height: 1.6, color: Colors.amber),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Add more sold inventory records to improve accuracy.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-                ),
-              ],
-            ),
-          ),
-        ],
-      );
-    }
-
-    // ── Has data ────────────────────────────────────────────────────────────
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Record count badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: AppColors.primaryGreen.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-                color: AppColors.primaryGreen.withValues(alpha: 0.3)),
-          ),
-          child: Text(
-            'Based on $recordCount similar inventory records',
-            style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.primaryGreen,
-                fontWeight: FontWeight.w600),
-          ),
-        ),
-        const SizedBox(height: 20),
-        // Metric cards
-        _metricCard(
-          label: 'Expected Selling Price',
-          value: prediction!.expectedSellingPrice,
-          icon: Icons.attach_money,
-          isCurrency: true,
-          color: AppColors.primaryBlue,
-        ),
-        const SizedBox(height: 10),
-        _metricCard(
-          label: 'Expected Expenses',
-          value: prediction!.expectedExpenses,
-          icon: Icons.receipt_long,
-          isCurrency: true,
-          color: AppColors.accentOrange,
-        ),
-        const SizedBox(height: 10),
-        _metricCard(
-          label: 'Expected Profit',
-          value: prediction!.expectedProfit,
-          icon: Icons.trending_up,
-          isCurrency: true,
-          color: prediction!.expectedProfit >= 0
-              ? AppColors.successGreen
-              : AppColors.accentRed,
-        ),
-        const SizedBox(height: 10),
-        _metricCard(
-          label: 'Expected Selling Time',
-          value: prediction!.expectedDaysToSell,
-          icon: Icons.schedule,
-          isCurrency: false,
-          suffix: ' days',
-          color: AppColors.accentPurple,
-        ),
-        const SizedBox(height: 10),
-        _metricCard(
-          label: 'Avg. Profit Margin',
-          value: prediction!.profitMarginPercent,
-          icon: Icons.percent,
-          isCurrency: false,
-          suffix: '%',
-          color: AppColors.primaryYellow,
-        ),
-        const SizedBox(height: 24),
-        // Confidence row
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: confidenceColor(confidenceLabel).withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-                color: confidenceColor(confidenceLabel).withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.shield_outlined,
-                  color: confidenceColor(confidenceLabel), size: 22),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text('Confidence Level',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                decoration: BoxDecoration(
-                  color:
-                      confidenceColor(confidenceLabel).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color:
-                        confidenceColor(confidenceLabel).withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Text(
-                  confidenceLabel,
-                  style: TextStyle(
-                    color: confidenceColor(confidenceLabel),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _metricCard({
-    required String label,
-    required double value,
-    required IconData icon,
-    required Color color,
-    bool isCurrency = true,
-    String suffix = '',
-  }) {
-    final displayValue = isCurrency
-        ? NumberFormat.currency(locale: 'en_LK', symbol: 'Rs. ')
-            .format(value.toInt())
-        : '${value.toStringAsFixed(1)}$suffix';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(label,
-                style: const TextStyle(fontSize: 13, color: Colors.black87)),
-          ),
-          Text(
-            displayValue,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }
