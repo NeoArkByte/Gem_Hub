@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:gemhub/data/models/backup/backup_snapshot.dart';
 import 'package:gemhub/data/models/backup/backup_state.dart';
-import 'package:gemhub/features/profile/viewmodel/backup_viewmodel.dart';
+import 'package:gemhub/features/backup/viewmodel/backup_viewmodel.dart';
 import 'package:gemhub/shared/widgets/custom_confirm_dialog.dart';
 import 'package:gemhub/shared/widgets/custom_toast.dart';
 

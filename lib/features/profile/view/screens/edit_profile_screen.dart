@@ -125,7 +125,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               children: [
                 const SizedBox(height: 12),
                 
-                
                 GestureDetector(
                   onTap: (isSaving || _isPickingImage) ? null : _pickImage,
                   child: Stack(
@@ -163,7 +162,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                
                 _buildSectionHeader("ACCOUNT CREDENTIALS"),
                 Container(
                   decoration: BoxDecoration(
@@ -211,7 +209,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
                 const SizedBox(height: 24),
 
-             
                 _buildSectionHeader("PUBLIC INTRO"),
                 Container(
                   decoration: BoxDecoration(
@@ -234,7 +231,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 ),
                 const SizedBox(height: 36),
 
-                // Bottom Action Button Blueprint
                 SizedBox(
                   width: double.infinity,
                   height: 52,

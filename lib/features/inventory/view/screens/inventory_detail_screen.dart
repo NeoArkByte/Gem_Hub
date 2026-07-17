@@ -6,15 +6,15 @@ import 'package:chewie/chewie.dart';
 import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
 
-class GemDetailsScreen extends StatefulWidget {
+class InventoryDetailScreen extends StatefulWidget {
   final GemstoneModel gemstone;
-  const GemDetailsScreen({super.key, required this.gemstone});
+  const InventoryDetailScreen({super.key, required this.gemstone});
 
   @override
-  State<GemDetailsScreen> createState() => _GemDetailsScreenState();
+  State<InventoryDetailScreen> createState() => _InventoryDetailScreenState();
 }
 
-class _GemDetailsScreenState extends State<GemDetailsScreen> {
+class _InventoryDetailScreenState extends State<InventoryDetailScreen> {
   late String _currentSelectedPath;
   late bool _isShowingVideo;
   VideoPlayerController? _videoPlayerController;
@@ -767,6 +767,8 @@ class _GemDetailsScreenState extends State<GemDetailsScreen> {
       ],
     );
   }
+
+
 
   Widget _buildActionButton(BuildContext context) {
     return SizedBox(

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:gemhub/features/inventory/view/auction_utils.dart';
+import 'package:gemhub/features/inventory/utils/auction_utils.dart';
 
 void main() {
   group('AuctionUtils.calculateAuctionPrice Tests', () {
