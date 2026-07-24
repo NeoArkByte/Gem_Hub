@@ -4,6 +4,7 @@ import 'package:gemhub/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gemhub/features/inventory/provider/inventory_provider.dart';
 import 'package:gemhub/features/inventory/validators/gem_form_validator.dart';
+import 'package:gemhub/features/inventory/validators/inventory_form_step_validator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
@@ -14,8 +15,8 @@ import 'package:gemhub/features/inventory/viewmodels/add_new_gemstone_viewmodel.
 import 'package:gemhub/features/inventory/viewmodels/prediction_viewmodel.dart';
 import 'package:gemhub/data/models/inventory/prediction_model.dart';
 import 'package:gemhub/features/inventory/view/widgets/prediction_sheet.dart';
-import 'package:gemhub/features/inventory/view/widgets/shared/inventory_form_text_field.dart';
-import 'package:gemhub/features/inventory/view/widgets/shared/inventory_form_dropdown_field.dart';
+import 'package:gemhub/features/inventory/view/widgets/inventory_add_entry_screen/inventory_add_entry_screen_widgets.dart';
+
 
 class InventoryAddEntryScreen extends ConsumerStatefulWidget {
   const InventoryAddEntryScreen({super.key});
@@ -352,240 +353,7 @@ class _InventoryAddEntryScreenState extends ConsumerState<InventoryAddEntryScree
     );
   }
 
-  Widget _buildDatePicker(
-      String label, DateTime date, Function(DateTime) onSelect) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: InkWell(
-        onTap: () async {
-          final selected = await showDatePicker(
-            context: context,
-            initialDate: date,
-            firstDate: DateTime(2000),
-            lastDate: DateTime(2100),
-          );
-          if (selected != null) onSelect(selected);
-        },
-        child: InputDecorator(
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            filled: true,
-          ),
-          child: Text(DateFormat('yyyy-MM-dd').format(date)),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildPredictionCard() {
-    final confidenceLabel = _prediction?.confidenceLevel ?? 'Low';
-    final recordCount = _prediction?.matchingRecordCount ?? 0;
-    final hasData = recordCount > 0;
-
-    if (_prediction == null && !_isLoadingPrediction) {
-      return const SizedBox.shrink();
-    }
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: SizeTransition(sizeFactor: animation, child: child),
-      ),
-      child: Card(
-        key: ValueKey(
-            'prediction_${_isLoadingPrediction ? 'loading' : recordCount}'),
-        margin: const EdgeInsets.only(bottom: 16),
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryGreen.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.insights_outlined,
-                        size: 20, color: AppColors.primaryGreen),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    '📊 Business Prediction',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              if (_isLoadingPrediction) ...[
-                const SizedBox(height: 4),
-                const LinearProgressIndicator(minHeight: 2),
-                const SizedBox(height: 12),
-                const Center(
-                  child: Text('Calculating prediction…',
-                      style: TextStyle(fontSize: 12, color: Colors.grey)),
-                ),
-                const SizedBox(height: 8),
-              ] else if (!hasData) ...[
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border:
-                        Border.all(color: Colors.amber.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline,
-                          size: 16, color: Colors.amber),
-                      const SizedBox(width: 8),
-                      const Expanded(
-                        child: Text(
-                          'No sufficient historical records available for prediction.',
-                          style: TextStyle(fontSize: 12, color: Colors.amber),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ] else ...[
-                Text(
-                  'Based on $recordCount similar inventory records',
-                  style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                      fontStyle: FontStyle.italic),
-                ),
-                const SizedBox(height: 12),
-                const Divider(height: 1),
-                const SizedBox(height: 12),
-                _buildPredictionMetric(
-                  'Expected Selling Price',
-                  _prediction!.expectedSellingPrice,
-                  icon: Icons.attach_money,
-                  isCurrency: true,
-                ),
-                _buildPredictionMetric(
-                  'Expected Expenses',
-                  _prediction!.expectedExpenses,
-                  icon: Icons.receipt_long,
-                  isCurrency: true,
-                ),
-                _buildPredictionMetric(
-                  'Expected Profit',
-                  _prediction!.expectedProfit,
-                  icon: Icons.trending_up,
-                  isCurrency: true,
-                  valueColor: _prediction!.expectedProfit >= 0
-                      ? AppColors.successGreen
-                      : AppColors.accentRed,
-                ),
-                _buildPredictionMetric(
-                  'Expected Selling Time',
-                  _prediction!.expectedDaysToSell,
-                  icon: Icons.schedule,
-                  suffix: ' days',
-                  isCurrency: false,
-                ),
-                _buildPredictionMetric(
-                  'Avg. Profit Margin',
-                  _prediction!.profitMarginPercent,
-                  icon: Icons.percent,
-                  suffix: '%',
-                  isCurrency: false,
-                ),
-                const SizedBox(height: 10),
-                const Divider(height: 1),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.shield_outlined,
-                            size: 16, color: _confidenceColor(confidenceLabel)),
-                        const SizedBox(width: 6),
-                        const Text('Confidence Level',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600, fontSize: 13)),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _confidenceColor(confidenceLabel)
-                            .withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: _confidenceColor(confidenceLabel)
-                              .withOpacity(0.4),
-                        ),
-                      ),
-                      child: Text(
-                        confidenceLabel,
-                        style: TextStyle(
-                          color: _confidenceColor(confidenceLabel),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPredictionMetric(
-    String label,
-    double value, {
-    String suffix = '',
-    IconData? icon,
-    bool isCurrency = true,
-    Color? valueColor,
-  }) {
-    final String displayValue = isCurrency
-        ? NumberFormat.currency(locale: 'en_LK', symbol: 'Rs. ')
-            .format(value.toInt())
-        : '${value.toStringAsFixed(1)}$suffix';
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 9),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, size: 15, color: AppColors.primaryGreen),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Text(label,
-                style: const TextStyle(fontSize: 13, color: Colors.black87)),
-          ),
-          Text(
-            displayValue,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-              color: valueColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _pickImage(List<String> list, int maxPhotos) async {
     if (_isPickingFile) return;
@@ -905,8 +673,11 @@ class _InventoryAddEntryScreenState extends ConsumerState<InventoryAddEntryScree
               keyboardType: TextInputType.number,
               validator: GemFormValidator.validateBuyingPrice,
             ),
-            _buildDatePicker('Buying Date', _buyingDate,
-                (d) => setState(() => _buyingDate = d)),
+            InventoryDatePickerTile(
+              label: 'Buying Date',
+              date: _buyingDate,
+              onSelect: (d) => setState(() => _buyingDate = d),
+            ),
             InventoryFormTextField(
               label: 'Buyer Name (Optional)',
               hint: 'Enter buyer name',
@@ -1227,7 +998,11 @@ class _InventoryAddEntryScreenState extends ConsumerState<InventoryAddEntryScree
         title: const Text('Finance & Sales'),
         content: Column(
           children: [
-            _buildPredictionCard(),
+            InventoryPredictionCard(
+              prediction: _prediction,
+              isLoadingPrediction: _isLoadingPrediction,
+              confidenceColor: _confidenceColor,
+            ),
             ListTile(
               title: const Text('Total Final Cost'),
               trailing: Text('Rs. ${_totalFinalCost.toStringAsFixed(2)}',
@@ -1281,115 +1056,47 @@ class _InventoryAddEntryScreenState extends ConsumerState<InventoryAddEntryScree
       _firstLookMediaError = null;
     });
 
-    switch (_currentStep) {
-      case 0:
-        if (_varietyCtrl.text.isEmpty) {
-          _varietyCtrl.text = _category == GemCategory.other
-              ? _customCategoryCtrl.text
-              : _category.displayName;
-        }
-        return true;
+    final result = InventoryFormStepValidator.validateStep(
+      step: _currentStep,
+      category: _category,
+      varietyCtrl: _varietyCtrl,
+      customCategoryCtrl: _customCategoryCtrl,
+      buyingWeightCtrl: _buyingWeightCtrl,
+      buyingPriceCtrl: _buyingPriceCtrl,
+      buyingColorCtrl: _buyingColorCtrl,
+      buyerContactCtrl: _buyerContactCtrl,
+      finalColorCtrl: _finalColorCtrl,
+      finalWeightCtrl: _finalWeightCtrl,
+      currentBaselineWeight: _currentBaselineWeight,
+      firstLookPhotos: _firstLookPhotos,
+      firstLookVideo: _firstLookVideo,
+      isCertified: _isCertified,
+      certificates: _certificates,
+    );
 
-      case 1:
-        if (_varietyCtrl.text.isEmpty) {
-          _varietyCtrl.text = _category == GemCategory.other
-              ? _customCategoryCtrl.text
-              : _category.displayName;
-        }
-
-        if (_buyingWeightCtrl.text.trim().isEmpty) return false;
-        if (double.tryParse(_buyingWeightCtrl.text) == null) return false;
-
-        if (_buyingPriceCtrl.text.trim().isEmpty) return false;
-        if (double.tryParse(_buyingPriceCtrl.text) == null) return false;
-
-        if (_buyingColorCtrl.text.trim().isEmpty) return false;
-
-        if (_buyerContactCtrl.text.isNotEmpty) {
-          _buyerContactCtrl.text =
-              _buyerContactCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
-        }
-
-        return true;
-
-      case 2:
-        final imgCount = _firstLookPhotos.length;
-        final hasVid = _firstLookVideo != null;
-
-        if (imgCount < 2 && !hasVid) {
-          setState(() => _firstLookMediaError =
-              'Please add ${2 - imgCount} more image(s) and 1 video.');
-          return false;
-        } else if (imgCount < 2) {
-          setState(() => _firstLookMediaError =
-              'Please add ${2 - imgCount} more image(s).');
-          return false;
-        } else if (!hasVid) {
-          setState(() => _firstLookMediaError = 'Please add 1 video.');
-          return false;
-        }
-
-        return true;
-
-      case 3:
-        return true;
-
-      case 4:
-        if (_finalColorCtrl.text.trim().isEmpty) {
-          _finalColorCtrl.text = _buyingColorCtrl.text;
-        }
-
-        if (_finalWeightCtrl.text.trim().isEmpty) {
-          _finalWeightCtrl.text = _currentBaselineWeight > 0
-              ? _currentBaselineWeight.toString()
-              : _buyingWeightCtrl.text;
-        }
-
-        if (_finalWeightCtrl.text.trim().isEmpty) return false;
-
-        return true;
-
-      case 5:
-        return true;
-
-      case 6:
-        if (_isCertified && _certificates.isEmpty) {
+    if (!result.isValid) {
+      if (result.errorMessage != null) {
+        if (_currentStep == 6) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Please add at least one certificate or disable certification.',
-              ),
-            ),
+            SnackBar(content: Text(result.errorMessage!)),
           );
-          return false;
+        } else {
+          setState(() => _firstLookMediaError = result.errorMessage);
         }
-        return true;
-
-      default:
-        return true;
-    }
-  }
-
-  bool _validateAllSteps() {
-    final isMainFormValid = _formKey.currentState?.validate() ?? false;
-    if (!isMainFormValid) return false;
-
-    if (_buyingWeightCtrl.text.isEmpty ||
-        double.tryParse(_buyingWeightCtrl.text) == null) {
-      return false;
-    }
-
-    if (_buyingPriceCtrl.text.isEmpty ||
-        double.tryParse(_buyingPriceCtrl.text) == null) {
-      return false;
-    }
-
-    if (_finalWeightCtrl.text.isEmpty ||
-        double.tryParse(_finalWeightCtrl.text) == null) {
+      }
       return false;
     }
 
     return true;
+  }
+
+  bool _validateAllSteps() {
+    return InventoryFormStepValidator.validateAllSteps(
+      formKey: _formKey,
+      buyingWeightCtrl: _buyingWeightCtrl,
+      buyingPriceCtrl: _buyingPriceCtrl,
+      finalWeightCtrl: _finalWeightCtrl,
+    );
   }
 
   void _publishInventoryItem() async {
