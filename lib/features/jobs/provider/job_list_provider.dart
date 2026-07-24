@@ -1,4 +1,4 @@
-import 'package:gemhub/data/repositories/job_market/job_repository_provider.dart';
+import 'package:gemhub/data/repositories/job_market/job_repository.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
 

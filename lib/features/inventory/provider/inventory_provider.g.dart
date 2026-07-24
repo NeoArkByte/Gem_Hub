@@ -33,7 +33,7 @@ final class InventoryNotifierProvider
   InventoryNotifier create() => InventoryNotifier();
 }
 
-String _$inventoryNotifierHash() => r'acc86c467b66675c590cbd6066d98beeb8ae492a';
+String _$inventoryNotifierHash() => r'3958edceda384d0140300309bb435c9b9ed8673b';
 
 abstract class _$InventoryNotifier extends $AsyncNotifier<List<GemstoneModel>> {
   FutureOr<List<GemstoneModel>> build();

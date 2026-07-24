@@ -1,217 +1,458 @@
-//lib\data\datasources\local\database_helper.dart
+// lib/data/datasources/local/database_helper.dart
 import 'dart:convert';
 import 'dart:math';
-import 'dart:io';
-import 'package:sqflite_sqlcipher/sqflite.dart';
-import 'package:path/path.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:gemhub/core/enums/gem_type.dart';
+import 'package:gemhub/data/models/inventory/gemstone_model.dart';
+import 'package:gemhub/data/models/analytics/analytics_data_model.dart';
+import 'package:gemhub/data/models/inventory/prediction_model.dart';
 
+/// The single central data hub for all local persistence.
+/// All query, aggregation, and CRUD logic lives here.
+/// Repositories and providers call these methods directly.
 class DatabaseHelper {
+  // ─── Singleton ────────────────────────────────────────────────────────────
   static final DatabaseHelper _instance = DatabaseHelper._internal();
-  static Database? _database;
+  factory DatabaseHelper() => _instance;
+  DatabaseHelper._internal();
 
+  // ─── Hive box names ───────────────────────────────────────────────────────
+  static const _gemstonesBoxName = 'gemstones';
+
+  // ─── Secure storage for AES cipher key ───────────────────────────────────
   final _storage = const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
-  final _keyName = 'gemcost_vault_key_v12';
+  static const _keyName = 'gemhub_hive_aes_key_v1';
 
-  factory DatabaseHelper() => _instance;
+  // ─── Lazy box reference ───────────────────────────────────────────────────
+  Box<Map>? _gemstonesBox;
 
-  DatabaseHelper._internal();
-
-  Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+  // ─── Public initialiser (call once in main.dart) ──────────────────────────
+  static Future<void> init() async {
+    await Hive.initFlutter();
   }
 
-  Future<String> _getEncryptionKey() async {
-    String? key = await _storage.read(key: _keyName);
-    if (key == null) {
-      final randomBytes = List<int>.generate(32, (i) => Random.secure().nextInt(256));
-      key = base64Url.encode(randomBytes);
-      await _storage.write(key: _keyName, value: key);
+  // ─── Backup / Restore helpers ─────────────────────────────────────────────
+
+  /// Flush pending writes, close the Hive box, and clear the cached reference
+  /// so the file is no longer locked. Call this BEFORE overwriting the .hive
+  /// file on disk (e.g. during a restore).
+  Future<void> closeBox() async {
+    if (_gemstonesBox != null && _gemstonesBox!.isOpen) {
+      await _gemstonesBox!.flush();
+      await _gemstonesBox!.close();
     }
-    return key;
+    _gemstonesBox = null;
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'gemcost_inventory_v12_secure.db');
-    final password = await _getEncryptionKey();
+  /// Re-open the Hive box after a restore so subsequent reads use the freshly
+  /// extracted file. Throws if the file cannot be opened (e.g. wrong key /
+  /// corrupt archive), which lets the caller surface the error.
+  Future<void> reopenBox() async {
+    // Ensure any stale reference is cleared first
+    if (_gemstonesBox != null && _gemstonesBox!.isOpen) {
+      await _gemstonesBox!.close();
+    }
+    _gemstonesBox = null;
+    // This will re-read the key from secure storage and open the box
+    await _box;
+  }
 
-    print("Encryption Key (Base64): $password");
+  // ─── Internal: get or open the gemstones box (encrypted) ─────────────────
+  Future<Box<Map>> get _box async {
+    if (_gemstonesBox != null && _gemstonesBox!.isOpen) return _gemstonesBox!;
+    final cipher = HiveAesCipher(await _getAesKey());
+    _gemstonesBox = await Hive.openBox<Map>(_gemstonesBoxName, encryptionCipher: cipher);
+    return _gemstonesBox!;
+  }
 
-    return await openDatabase(
-      path,
-      password: password,
-      version: 2,
-      onConfigure: (db) async {
-        await db.execute('PRAGMA foreign_keys = ON');
-      },
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
+  // ─── Internal: generate / retrieve 32-byte AES key ───────────────────────
+  Future<List<int>> _getAesKey() async {
+    String? stored = await _storage.read(key: _keyName);
+    if (stored == null) {
+      final bytes = List<int>.generate(32, (_) => Random.secure().nextInt(256));
+      stored = base64Url.encode(bytes);
+      await _storage.write(key: _keyName, value: stored);
+    }
+    return base64Url.decode(stored);
+  }
+
+  // ─── Shared cost calculator (mirrors SQL COALESCE sums) ──────────────────
+  double _calcExpenses(GemstoneModel g) =>
+      g.buyingPrice +
+      g.treatmentCost +
+      g.recutCost +
+      g.otherProcessingCost +
+      g.transportCost +
+      g.otherCost +
+      g.cuttingCost +
+      g.heatCost +
+      g.certificateFees;
+
+  double _calcRevenue(GemstoneModel g) =>
+      g.actualSoldPrice > 0 ? g.actualSoldPrice : 0.0;
+
+  // ─── Internal: parse yyyy-MM-dd string → fractional Julian day ───────────
+  double? _julianDay(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return null;
+    try {
+      final d = DateTime.parse(dateStr);
+      // Julian Day Number formula
+      final a = (14 - d.month) ~/ 12;
+      final y = d.year + 4800 - a;
+      final m = d.month + 12 * a - 3;
+      final jdn =
+          d.day + (153 * m + 2) ~/ 5 + 365 * y + y ~/ 4 - y ~/ 100 + y ~/ 400 - 32045;
+      return jdn.toDouble();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // VARIETY  (replaced the gem_varieties table — sourced from enum directly)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  Future<List<String>> getGemVarieties() async {
+    return GemType.values.map((t) => t.displayName).toList();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INVENTORY CRUD
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Insert a gemstone. Returns the assigned integer key.
+  Future<int> insertGemstone(GemstoneModel gem) async {
+    final box = await _box;
+    // toMap() returns the full flat representation GemstoneModel already defines
+    final map = gem.toMap()..remove('id'); // let Hive assign the key
+    return await box.add(Map.from(map));
+  }
+
+  /// Fetch all gemstones, newest first (by Hive key descending).
+  Future<List<GemstoneModel>> getAllGemstones() async {
+    final box = await _box;
+    final entries = box.toMap().entries.toList()
+      ..sort((a, b) => (b.key as int).compareTo(a.key as int));
+    return entries
+        .map((e) => GemstoneModel.fromMap(_injectId(e.key as int, e.value)))
+        .toList();
+  }
+
+  /// Fetch only unsold gemstones, newest first.
+  Future<List<GemstoneModel>> getUnsoldGemstones() async {
+    final all = await getAllGemstones();
+    return all.where((g) => !g.isSold).toList();
+  }
+
+  /// Update an existing gemstone (identified by [gem.id]).
+  Future<void> updateGemstone(GemstoneModel gem) async {
+    if (gem.id == null) throw ArgumentError('Cannot update a gem without an id');
+    final box = await _box;
+    if (!box.containsKey(gem.id)) {
+      throw Exception('Update failed: record not found for id ${gem.id}');
+    }
+    final map = gem.toMap()..remove('id');
+    await box.put(gem.id, Map.from(map));
+  }
+
+  /// Delete a gemstone by key.
+  Future<void> deleteGemstone(int id) async {
+    final box = await _box;
+    await box.delete(id);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ANALYTICS  (all pure-Dart replacements of the raw SQL queries)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Business summary — equivalent of the GROUP aggregate SQL in AnalyticsRepository.
+  Future<BusinessSummary> getBusinessSummary({String? gemVariety}) async {
+    final allGems = await getAllGemstones();
+    final sold = allGems.where((g) {
+      if (!g.isSold) return false;
+      if (gemVariety != null && gemVariety.isNotEmpty) {
+        return g.variety == gemVariety;
+      }
+      return true;
+    }).toList();
+
+    if (sold.isEmpty) {
+      return BusinessSummary(
+        totalProfit: 0,
+        totalExpenses: 0,
+        totalRevenue: 0,
+        totalInventorySold: 0,
+        averageProfit: 0,
+        averageSellingTime: 0,
+      );
+    }
+
+    double totalRevenue = 0;
+    double totalExpenses = 0;
+    double totalSellingDays = 0;
+    int sellingDaysCount = 0;
+
+    for (final g in sold) {
+      final rev = _calcRevenue(g);
+      final exp = _calcExpenses(g);
+      totalRevenue += rev;
+      totalExpenses += exp;
+
+      final bought = _julianDay(g.buyingDate);
+      final sold_ = _julianDay(g.recordDate);
+      if (bought != null && sold_ != null) {
+        totalSellingDays += (sold_ - bought);
+        sellingDaysCount++;
+      }
+    }
+
+    final totalProfit = totalRevenue - totalExpenses;
+    return BusinessSummary(
+      totalProfit: totalProfit,
+      totalExpenses: totalExpenses,
+      totalRevenue: totalRevenue,
+      totalInventorySold: sold.length,
+      averageProfit: totalProfit / sold.length,
+      averageSellingTime:
+          sellingDaysCount > 0 ? totalSellingDays / sellingDaysCount : 0,
     );
   }
 
-  Future<void> _onCreate(Database db, int version) async {
-    await db.execute('''
-      CREATE TABLE gem_varieties (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        display_name TEXT NOT NULL
-      )
-    ''');
+  /// Monthly performance breakdown, sorted ascending by month.
+  Future<List<MonthlyPerformance>> getMonthlyPerformance() async {
+    final allGems = await getAllGemstones();
+    final sold = allGems.where((g) => g.isSold && g.buyingDate.isNotEmpty);
 
-    await db.execute('''
-      CREATE TABLE gemstones (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        date TEXT, 
-        variety TEXT, 
-        is_sold INTEGER DEFAULT 0,
-        color TEXT,
-        is_rough INTEGER, 
-        is_cut INTEGER,
-        buying_weight REAL, 
-        buying_price REAL,
-        treatment_cost REAL, 
-        recut_cost REAL,
-        other_processing_cost REAL, 
-        other_processing_desc TEXT,
-        final_weight REAL, 
-        transport_cost REAL,
-        other_cost REAL, 
-        other_cost_reason TEXT,
-        target_price REAL, 
-        selling_price REAL,
-        first_image_path TEXT, 
-        final_image_path TEXT,
-        first_video_path TEXT,
-        final_video_path TEXT,
-        category TEXT DEFAULT 'Other',
-        origin TEXT DEFAULT 'Sri Lanka',
-        visibility TEXT DEFAULT 'Private',
-        recordDate TEXT,
-        buyingDate TEXT,
-        buyerName TEXT,
-        buyerContact TEXT,
-        buyingColor TEXT,
-        finalColor TEXT,
-        firstLookPhotos TEXT,
-        firstLookVideo TEXT,
-        finalPhotos TEXT,
-        finalVideo TEXT,
-        valueAdditions TEXT,
-        currentWeight REAL,
-        shape TEXT,
-        clarity TEXT,
-        status TEXT,
-        length REAL,
-        width REAL,
-        depth REAL,
-        isCertified INTEGER DEFAULT 0,
-        certificates TEXT,
-        isReadyToSale INTEGER DEFAULT 0,
-        salesTargetPrice REAL,
-        actualSoldPrice REAL,
-        cuttingCost REAL,
-        heatCost REAL,
-        certificateFees REAL
-      )
-    ''');
-
-    for (var type in GemType.values) {
-      await db.insert('gem_varieties', {
-        'name': type.name,
-        'display_name': type.displayName,
-      });
+    // Group by 'yyyy-MM'
+    final Map<String, _MonthAccum> buckets = {};
+    for (final g in sold) {
+      final month = g.buyingDate.length >= 7 ? g.buyingDate.substring(0, 7) : null;
+      if (month == null) continue;
+      final rev = _calcRevenue(g);
+      final exp = _calcExpenses(g);
+      buckets.putIfAbsent(month, () => _MonthAccum());
+      buckets[month]!.revenue += rev;
+      buckets[month]!.expenses += exp;
     }
+
+    final result = buckets.entries
+        .map((e) => MonthlyPerformance(
+              month: e.key,
+              revenue: e.value.revenue,
+              expenses: e.value.expenses,
+              profit: e.value.revenue - e.value.expenses,
+            ))
+        .toList()
+      ..sort((a, b) => a.month.compareTo(b.month));
+
+    return result;
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      final List<String> newColumns = [
-        "ADD COLUMN category TEXT DEFAULT 'Other'",
-        "ADD COLUMN origin TEXT DEFAULT 'Sri Lanka'",
-        "ADD COLUMN visibility TEXT DEFAULT 'Private'",
-        "ADD COLUMN recordDate TEXT",
-        "ADD COLUMN buyingDate TEXT",
-        "ADD COLUMN buyerName TEXT",
-        "ADD COLUMN buyerContact TEXT",
-        "ADD COLUMN buyingColor TEXT",
-        "ADD COLUMN finalColor TEXT",
-        "ADD COLUMN firstLookPhotos TEXT",
-        "ADD COLUMN firstLookVideo TEXT",
-        "ADD COLUMN finalPhotos TEXT",
-        "ADD COLUMN finalVideo TEXT",
-        "ADD COLUMN valueAdditions TEXT",
-        "ADD COLUMN currentWeight REAL",
-        "ADD COLUMN shape TEXT",
-        "ADD COLUMN clarity TEXT",
-        "ADD COLUMN status TEXT",
-        "ADD COLUMN length REAL",
-        "ADD COLUMN width REAL",
-        "ADD COLUMN depth REAL",
-        "ADD COLUMN isCertified INTEGER DEFAULT 0",
-        "ADD COLUMN certificates TEXT",
-        "ADD COLUMN isReadyToSale INTEGER DEFAULT 0",
-        "ADD COLUMN salesTargetPrice REAL",
-        "ADD COLUMN actualSoldPrice REAL",
-        "ADD COLUMN cuttingCost REAL",
-        "ADD COLUMN heatCost REAL",
-        "ADD COLUMN certificateFees REAL"
-      ];
+  /// Top performing gem types, sorted by average profit descending.
+  Future<List<GemTypePerformance>> getTopPerformingGems() async {
+    final allGems = await getAllGemstones();
+    final sold = allGems.where((g) => g.isSold);
 
-      for (String column in newColumns) {
-        try {
-          await db.execute('ALTER TABLE gemstones $column');
-        } catch (e) {
-          // Column might already exist
-          print('Error adding column: \$e');
-        }
+    final Map<String, _GemAccum> buckets = {};
+    for (final g in sold) {
+      final variety = g.variety.isEmpty ? 'Unknown' : g.variety;
+      final rev = _calcRevenue(g);
+      final exp = _calcExpenses(g);
+      buckets.putIfAbsent(variety, () => _GemAccum());
+      buckets[variety]!.totalRevenue += rev;
+      buckets[variety]!.totalProfit += (rev - exp);
+      buckets[variety]!.count++;
+
+      final bought = _julianDay(g.buyingDate);
+      final soldDate = _julianDay(g.recordDate);
+      if (bought != null && soldDate != null) {
+        buckets[variety]!.totalDays += (soldDate - bought);
+        buckets[variety]!.daysCount++;
       }
     }
+
+    final result = buckets.entries
+        .map((e) {
+          final avgProfit = e.value.count > 0 ? e.value.totalProfit / e.value.count : 0.0;
+          final avgDays = e.value.daysCount > 0
+              ? e.value.totalDays / e.value.daysCount
+              : 0.0;
+          return GemTypePerformance(
+            gemType: e.key,
+            averageProfit: avgProfit,
+            totalSales: e.value.count.toDouble(),
+            totalRevenue: e.value.totalRevenue,
+            averageSellingTime: avgDays,
+          );
+        })
+        .toList()
+      ..sort((a, b) => b.averageProfit.compareTo(a.averageProfit));
+
+    return result;
   }
 
-  // --- VARIETY FUNCTIONS ---
-  Future<List<String>> getGemVarieties() async {
-  final db = await database;
-  
-  final List<Map<String, dynamic>> maps = await db.query(
-    'gem_varieties', 
-    columns: ['display_name'],
-    orderBy: 'id ASC'
-  );
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PREDICTION
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  return maps.map((row) => row['display_name'] as String).toList();
+  /// Compute a price/profit prediction for a given gem type + optional filters.
+  /// Pure-Dart replacement for the nested rawQuery in PredictionRepository.
+  Future<PredictionModel> getPrediction({
+    required String gemType,
+    String? category,
+    String? origin,
+    double? purchasePrice,
+    double? weight,
+    String? color,
+    String? clarity,
+  }) async {
+    final normalizedGemType = gemType.trim();
+    if (normalizedGemType.isEmpty) {
+      return PredictionModel.empty(gemType: gemType);
+    }
+
+    final allGems = await getAllGemstones();
+
+    // Apply the same filters the SQL WHERE clause expressed
+    final matched = allGems.where((g) {
+      if (!g.isSold) return false;
+
+      // variety OR category match
+      final varietyMatch =
+          g.variety == normalizedGemType || g.category == normalizedGemType;
+      if (!varietyMatch) return false;
+
+      if ((category ?? '').trim().isNotEmpty && category != 'All') {
+        if (g.category != category) return false;
+      }
+
+      if ((origin ?? '').trim().isNotEmpty && origin != 'All') {
+        if (g.origin != origin) return false;
+      }
+
+      if (purchasePrice != null && purchasePrice > 0) {
+        final lower = purchasePrice * 0.8;
+        final upper = purchasePrice * 1.2;
+        if (g.buyingPrice < lower || g.buyingPrice > upper) return false;
+      }
+
+      if (weight != null && weight > 0) {
+        final lower = weight * 0.8;
+        final upper = weight * 1.2;
+        if (g.buyingWeight < lower || g.buyingWeight > upper) return false;
+      }
+
+      if ((color ?? '').trim().isNotEmpty) {
+        if (g.buyingColor != color && g.finalColor != color) return false;
+      }
+
+      if ((clarity ?? '').trim().isNotEmpty) {
+        if (g.clarity != clarity) return false;
+      }
+
+      return true;
+    }).toList();
+
+    if (matched.isEmpty) {
+      return PredictionModel.empty(gemType: normalizedGemType);
+    }
+
+    // Aggregates
+    double totalProfit = 0;
+    double totalExpenses = 0;
+    double totalSellingPrice = 0;
+    double totalDays = 0;
+    int daysCount = 0;
+
+    // For bestSellingMonth: group profit by 'yyyy-MM'
+    final Map<String, double> monthProfits = {};
+    // For mostProfitableGemType: group profit by variety
+    final Map<String, double> varietyProfits = {};
+
+    for (final g in matched) {
+      final rev = _calcRevenue(g);
+      final exp = _calcExpenses(g);
+      final profit = rev - exp;
+      totalProfit += profit;
+      totalExpenses += exp;
+      totalSellingPrice += rev;
+
+      final bought = _julianDay(g.buyingDate);
+      final soldDate = _julianDay(g.recordDate);
+      if (bought != null && soldDate != null) {
+        totalDays += (soldDate - bought);
+        daysCount++;
+      }
+
+      final month = g.recordDate.length >= 7 ? g.recordDate.substring(0, 7) : null;
+      if (month != null) {
+        monthProfits[month] = (monthProfits[month] ?? 0) + profit;
+      }
+
+      final v = g.variety.isEmpty ? 'Unknown' : g.variety;
+      varietyProfits[v] = (varietyProfits[v] ?? 0) + profit;
+    }
+
+    final count = matched.length;
+    final avgProfit = totalProfit / count;
+    final avgExpenses = totalExpenses / count;
+    final avgSellingPrice = totalSellingPrice / count;
+    final avgDays = daysCount > 0 ? totalDays / daysCount : 0.0;
+    final profitMargin =
+        avgSellingPrice > 0 ? ((avgSellingPrice - avgExpenses) / avgSellingPrice) * 100 : 0.0;
+
+    final bestMonth = monthProfits.isEmpty
+        ? 'N/A'
+        : (monthProfits.entries.reduce((a, b) => a.value >= b.value ? a : b).key);
+
+    final bestVariety = varietyProfits.isEmpty
+        ? normalizedGemType
+        : (varietyProfits.entries.reduce((a, b) => a.value >= b.value ? a : b).key);
+
+    final confidence = count <= 5 ? 'Low' : count <= 20 ? 'Medium' : 'High';
+
+    return PredictionModel(
+      gemType: normalizedGemType,
+      matchingRecordCount: count,
+      averageProfit: avgProfit,
+      averageExpenses: avgExpenses,
+      averageSellingPrice: avgSellingPrice,
+      averageDaysToSell: avgDays,
+      profitMarginPercent: profitMargin,
+      totalInventoryProfit: totalProfit,
+      monthlyProfit: 0.0,
+      monthlyExpense: 0.0,
+      bestSellingMonth: bestMonth,
+      mostProfitableGemType: bestVariety,
+      expectedExpenses: avgExpenses,
+      expectedSellingPrice: avgSellingPrice,
+      expectedProfit: avgProfit,
+      expectedDaysToSell: avgDays,
+      confidenceLevel: confidence,
+    );
+  }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────
+  Map<String, dynamic> _injectId(int key, Map rawMap) {
+    final map = Map<String, dynamic>.from(rawMap);
+    map['id'] = key;
+    return map;
+  }
 }
 
-  // --- INVENTORY FUNCTIONS ---
-  Future<int> insertGemstone(Map<String, dynamic> gemstone) async {
-    final db = await database;
-    return await db.insert('gemstones', gemstone);
-  }
+// ─── Private accumulator helpers (not part of public API) ────────────────────
+class _MonthAccum {
+  double revenue = 0;
+  double expenses = 0;
+}
 
-  Future<List<Map<String, dynamic>>> getAllGemstones() async {
-    final db = await database;
-    return await db.query('gemstones', orderBy: 'id DESC');
-  }
-
-  Future<List<Map<String, dynamic>>> getUnsoldGemstones() async {
-    final db = await database;
-    return await db.query('gemstones', where: 'is_sold = 0', orderBy: 'id DESC');
-  }
-
-
-  Future<void> hexDumpHeader() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'gemcost_inventory_v12_secure.db');
-    final file = File(path);
-
-    if (await file.exists()) {
-      final bytes = await file.openRead(0, 16).first;
-      final hexString = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
-      print(" FILE HEADER (HEX): $hexString");
-    }
-  }
+class _GemAccum {
+  double totalRevenue = 0;
+  double totalProfit = 0;
+  int count = 0;
+  double totalDays = 0;
+  int daysCount = 0;
 }

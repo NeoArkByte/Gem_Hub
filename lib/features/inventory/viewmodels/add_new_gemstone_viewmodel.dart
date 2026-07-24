@@ -2,7 +2,7 @@
 
 import 'package:gemhub/data/models/inventory/gemstone_model.dart';
 import 'package:gemhub/data/models/inventory/media_processing_state.dart';
-import 'package:gemhub/data/repositories/inventory/inventory_repository_provider.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 import 'package:gemhub/data/services/media_vault_service.dart';
 import 'package:gemhub/features/inventory/viewmodels/inventory_viewmodel.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -22,7 +22,7 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
     String? rawFinalVideo,
   }) async {
     final repository = ref.read(inventoryRepositoryProvider);
-    final vaultService = ref.read(mediaVaultProvider);
+    final vaultService = MediaVaultService();
 
     state = MediaProcessingState(isLoading: true, progress: 0);
 
@@ -110,9 +110,10 @@ class AddNewGemstoneViewModel extends _$AddNewGemstoneViewModel {
         final id = await repository.insertGemstone(gemstoneToSave);
         gemstoneToSave = gemstoneToSave.copyWith(id: id);
       } else {
-        final updatedRows = await repository.updateGemstone(gemstoneToSave);
-
-        if (updatedRows == 0) {
+        try {
+          await repository.updateGemstone(gemstoneToSave);
+        } catch (_) {
+          // Record not found — fall back to insert
           final id = await repository.insertGemstone(gemstoneToSave);
           gemstoneToSave = gemstoneToSave.copyWith(id: id);
         }

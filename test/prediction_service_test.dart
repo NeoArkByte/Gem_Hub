@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gemhub/data/models/inventory/prediction_model.dart';
-import 'package:gemhub/data/repositories/inventory/prediction_repository.dart';
+import 'package:gemhub/data/repositories/inventory/inventory_repository.dart';
 import 'package:gemhub/data/services/prediction_service.dart';
 
-class FakePredictionRepository implements PredictionRepositoryProtocol {
+class FakePredictionRepository extends InventoryRepository {
   FakePredictionRepository({required this.snapshot});
 
   final PredictionModel snapshot;

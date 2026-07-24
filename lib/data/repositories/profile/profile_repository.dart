@@ -1,6 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gemhub/data/models/auth/profile_model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:gemhub/core/providers/dio/dio_provider.dart';
+
+part 'profile_repository.g.dart';
 
 class ProfileRepository {
   final Dio _dio;
@@ -100,4 +104,10 @@ class ProfileRepository {
     }
     return 'Connection failed: ${e.message}';
   }
+}
+
+@riverpod
+ProfileRepository profileRepository(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return ProfileRepository(dio);
 }

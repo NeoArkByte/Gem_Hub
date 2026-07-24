@@ -1,5 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:gemhub/data/models/job_market/job_model.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:gemhub/core/providers/dio/dio_provider.dart';
+
+part 'job_repository.g.dart';
 
 class JobRepository {
   final Dio _dio;
@@ -182,4 +186,10 @@ Future<List<Job>> getMyJobs(String employerId) async {
       return [];
     }
   }
+}
+
+@riverpod
+JobRepository jobRepository(Ref ref) {
+  final dio = ref.watch(dioProvider);
+  return JobRepository(dio);
 }

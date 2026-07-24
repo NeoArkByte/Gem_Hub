@@ -44,22 +44,6 @@ class JobDetailsScreen extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // actions: [
-        //   Padding(
-        //     padding: const EdgeInsets.all(8.0),
-        //     child: Container(
-        //       decoration: BoxDecoration(
-        //         color: isDark ? const Color(0xFF1F2937) : Colors.grey[100],
-        //         shape: BoxShape.circle,
-        //       ),
-        //       child: IconButton(
-        //         icon: Icon(Icons.ios_share, size: 20, color: textColor),
-        //         onPressed: () {},
-        //       ),
-        //     ),
-        //   ),
-        //   const SizedBox(width: 8),
-        // ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -421,33 +405,6 @@ class JobDetailsScreen extends ConsumerWidget {
     );
   }
 
-  // Widget _buildExpertiseSection(Color textColor, Color greyText) {
-  //   List<String> skills = (job.tags).split(',').where((s) => s.trim().isNotEmpty).toList();
-
-  //   // return Column(
-  //   //   crossAxisAlignment: CrossAxisAlignment.start,
-  //   //   children: [
-  //   //     Text(
-  //   //       'Requirements & Expertise',
-  //   //       style: TextStyle(
-  //   //         fontSize: 18,
-  //   //         fontWeight: FontWeight.bold,
-  //   //         color: textColor,
-  //   //       ),
-  //   //     ),
-  //   //     const SizedBox(height: 16),
-  //   //     // if (skills.isEmpty)
-  //   //     //   Text(
-  //   //     //     'No specific requirements mentioned.',
-  //   //     //     style: TextStyle(color: greyText),
-  //   //     //   ),
-  //   //     // ...skills.map(
-  //   //     //   //(skill) => _buildExpertiseItem(skill.trim(), textColor),
-  //   //     // ),
-  //   //   ],
-  //   // );
-  // }
-
   Widget _buildBottomActionArea(
     BuildContext context,
     WidgetRef ref,
@@ -523,7 +480,6 @@ class JobDetailsScreen extends ConsumerWidget {
                 whatsappNumber != null &&
                 whatsappNumber.isNotEmpty)
               const SizedBox(width: 16),
-
             
             if (whatsappNumber != null && whatsappNumber.isNotEmpty)
               Expanded(

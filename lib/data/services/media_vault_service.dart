@@ -1,10 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'media_compression_service.dart';
-
-part 'media_vault_service.g.dart';
 
 enum MediaType { image, video }
 
@@ -12,7 +9,8 @@ class MediaVaultService {
   final MediaCompressionService _compressionService;
   static const String _vaultFolder = 'media_vault';
 
-  MediaVaultService(this._compressionService);
+  MediaVaultService([MediaCompressionService? compressionService])
+      : _compressionService = compressionService ?? MediaCompressionService();
 
   Future<Directory> _getVaultDirectory() async {
     final Directory appDocDir = await getApplicationDocumentsDirectory();
@@ -96,10 +94,4 @@ class MediaVaultService {
       rethrow;
     }
   }
-}
-
-@riverpod
-MediaVaultService mediaVault(Ref ref) {
-  final compressionService = ref.read(mediaCompressionProvider);
-  return MediaVaultService(compressionService);
 }

@@ -56,7 +56,6 @@ class _JobMarketplaceScreenState extends ConsumerState<JobMarketplaceScreen> {
             ),
             const SectionHeader(
               title: 'Newly Listed Jobs',
-              //actionText: 'See All',
             ),
             const FeaturedJobsList(),
             const SectionHeader(title: 'Explore All Jobs'),
